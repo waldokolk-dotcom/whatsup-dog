@@ -5,7 +5,7 @@ window.WHATSUP_DOG_BACKEND={
   provider:'supabase',
   enabled:true,
   url:'https://dohelzkgruxnmejmplgw.supabase.co',
-  publishableKey:'sb_publishable_ltaNA7nnVozoSCOcZIjg',
+  publishableKey:'sb_publishable_f_o39KqeR78WnFFts8nWCA_NYytndFT',
   photoBucket:'report-photos',
   maxSharedReports:200,
   signedPhotoSeconds:3600
