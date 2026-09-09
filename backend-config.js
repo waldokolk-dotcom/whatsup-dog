@@ -3,9 +3,9 @@
 // Never place privileged server credentials in browser code.
 window.WHATSUP_DOG_BACKEND={
   provider:'supabase',
-  enabled:false,
-  url:'',
-  publishableKey:'',
+  enabled:true,
+  url:'https://dohelzkgruxnmejmplgw.supabase.co',
+  publishableKey:'sb_publishable_ltaNA7nnVozoSCOcZIjg',
   photoBucket:'report-photos',
   maxSharedReports:200,
   signedPhotoSeconds:3600
@@ -18,3 +18,4 @@ if(!document.querySelector('script[data-wd-community-ui]')){
   bridge.dataset.wdCommunityUi='1';
   document.body.appendChild(bridge);
 }
+
