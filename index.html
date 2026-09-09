@@ -66,14 +66,14 @@
       </section>
 
       <section id="view-chat" class="view page-view chat-page" aria-label="Whatsup dog chat">
-        <header class="page-brand"><div class="chat-logo">💬</div><div><h1>Whatsup dog</h1><p>Lokaal · Vriendelijk · Betrouwbaar</p></div><button class="round-action" aria-label="Nieuw gesprek">＋</button></header>
+        <header class="page-brand"><div class="chat-logo">💬</div><div><h1>Whatsup dog</h1><p>Lokaal · Vriendelijk · Betrouwbaar</p></div><button class="round-action" aria-label="Nieuw gesprek">＋</button><button class="text-action" id="clearChat" type="button">Wis</button></header>
         <div class="segment-row"><button class="segment active">Alle gesprekken</button><button class="segment">In de buurt</button><button class="segment">Groepen</button><button class="segment">Tips</button><button class="segment">Wandelmaatjes</button></div>
         <div id="chatList" class="chat-list"></div><div id="chatConversation" class="chat-conversation hidden" aria-live="polite"></div>
         <p class="privacy-note">Chatdemo: berichten blijven op dit toestel.</p><form id="chatForm" class="chat-compose"><input id="chatInput" maxlength="280" placeholder="Zeg iets hondigs…" autocomplete="off" /><button aria-label="Versturen">➤</button></form>
       </section>
 
       <section id="view-alerts" class="view page-view" aria-label="Meldingen">
-        <header class="page-brand"><div class="chat-logo">🔔</div><div><h1>Meldingen</h1><p>Alleen wat voor jou en je hond telt.</p></div></header>
+        <header class="page-brand"><div class="chat-logo">🔔</div><div><h1>Meldingen</h1><p>Alleen wat voor jou en je hond telt.</p></div><button class="text-action" id="clearReports" type="button">Wis</button></header>
         <div class="settings-card"><label class="switch-row"><span><b>⚠️ Gevaren</b><small>Glas, gif, verkeer en andere risico's</small></span><input type="checkbox" checked></label><label class="switch-row"><span><b>🌿 Vegetatie</b><small>Grasaren, berenklauw, processierups</small></span><input type="checkbox" checked></label><label class="switch-row"><span><b>🚨 Vermiste hond</b><small>Urgente signalen in een groter gebied</small></span><input type="checkbox" checked></label><label class="switch-row"><span><b>🐾 Activiteiten</b><small>Wandelmaatjes en hondendingen</small></span><input type="checkbox"></label></div>
         <button id="pushDemo" class="primary wide">🔔 Test een melding</button><p class="fineprint">Echte webpush wordt geactiveerd zodra de gedeelde backend klaarstaat.</p>
       </section>
