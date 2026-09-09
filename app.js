@@ -80,14 +80,17 @@ function setupAreaDetail(){el('areaShowMap')?.addEventListener('click',()=>{if(!
 
 function setupChat(){
   const defaults=[
-    {id:'walk',avatar:'🐾',name:'Wandelen in Nijkerk',text:'Morgen iemand mee naar het Corlaerpark? 🐕🌳',time:'14:28',count:3},
-    {id:'max',avatar:'🐶',name:'Max & Mila',text:'Wat een heerlijke ochtend vandaag in het Stadspark!',time:'12:04'},
-    {id:'areas',avatar:'📣',name:'Losloopgebied updates',text:'Nieuws en veranderingen aan hondenplekken.',time:'10:21'},
-    {id:'near',avatar:'🐾',name:'Honden in de buurt',text:'Zijn er nog leuke rustige plekjes?',time:'Gisteren'},
-    {id:'club',avatar:'🐕',name:'Doodleclub Nijkerk',text:'Pup-social vandaag was een succes! 🐶',time:'Gisteren'}
+    {id:'walk',avatar:'🐾',name:'Wandelen in Nijkerk',text:'Morgen iemand mee naar het Corlaerpark? 🐕🌳',time:'14:28',count:3,group:'Wandelmaatjes'},
+    {id:'max',avatar:'🐶',name:'Max & Mila',text:'Wat een heerlijke ochtend vandaag in het Stadspark!',time:'12:04',group:'In de buurt'},
+    {id:'areas',avatar:'📣',name:'Losloopgebied updates',text:'Nieuws en veranderingen aan hondenplekken.',time:'10:21',group:'Tips'},
+    {id:'near',avatar:'🐾',name:'Honden in de buurt',text:'Zijn er nog leuke rustige plekjes?',time:'Gisteren',group:'In de buurt'},
+    {id:'club',avatar:'🐕',name:'Doodleclub Nijkerk',text:'Pup-social vandaag was een succes! 🐶',time:'Gisteren',group:'Groepen'}
   ];
-  let messages=loadJSON(STORAGE.chat,[]);
-  const render=()=>{const userRows=messages.slice().reverse().map(m=>({avatar:profile()?.avatar||'🐶',name:m.name,text:m.text,time:'Nu'}));el('chatList').innerHTML=[...userRows,...defaults].map(m=>`<div class="chat-thread"><div class="chat-avatar">${m.avatar}</div><div><b>${escapeHTML(m.name)}</b><p>${escapeHTML(m.text)}</p></div><div class="chat-time">${m.time}${m.count?`<div class="chat-count">${m.count}</div>`:''}</div></div>`).join('')};
+  let messages=loadJSON(STORAGE.chat,[]),activeSegment='Alle gesprekken';
+  const render=()=>{const userRows=messages.slice().reverse().map(m=>({id:m.id,avatar:profile()?.avatar||'🐶',name:m.name,text:m.text,time:'Nu',group:'In de buurt'}));const rows=[...userRows,...defaults].filter(m=>activeSegment==='Alle gesprekken'||m.group===activeSegment);el('chatList').innerHTML=rows.length?rows.map(m=>`<button type="button" class="chat-thread" data-chat-id="${escapeHTML(m.id)}"><div class="chat-avatar">${m.avatar}</div><div><b>${escapeHTML(m.name)}</b><p>${escapeHTML(m.text)}</p></div><div class="chat-time">${m.time}${m.count?`<div class="chat-count">${m.count}</div>`:''}</div></button>`).join(''):'<p class="chat-empty">Nog geen gesprekken in deze categorie.</p>'};
+  document.querySelector('.round-action')?.addEventListener('click',()=>{el('chatInput').focus();toast('Typ hieronder om een nieuw gesprek te starten 🐾')});
+  document.querySelector('.segment-row')?.addEventListener('click',e=>{const b=e.target.closest('.segment');if(!b)return;activeSegment=b.textContent.trim();document.querySelectorAll('.segment').forEach(x=>x.classList.toggle('active',x===b));render()});
+  el('chatList')?.addEventListener('click',e=>{const row=e.target.closest('[data-chat-id]');if(!row)return;const item=[...messages,...defaults].find(m=>String(m.id)===row.dataset.chatId);if(!item)return;el('chatInput').focus();el('chatInput').placeholder=`Bericht aan ${item.name}…`;toast(`${item.name} geopend`)});
   el('chatForm').addEventListener('submit',e=>{e.preventDefault();const input=el('chatInput'),text=input.value.trim();if(!text)return;messages.push({id:String(Date.now()),name:profile()?.name||'Jij',text});saveJSON(STORAGE.chat,messages);input.value='';render()});render()
 }
 function setupAlerts(){el('pushDemo')?.addEventListener('click',async()=>{if(!('Notification'in window)){toast('Deze browser ondersteunt geen webmeldingen');return}if(Notification.permission==='default')await Notification.requestPermission();if(Notification.permission==='granted'){new Notification('🌿❗ Whatsup dog',{body:'Vegetatie gemeld in je wandelgebied.'});toast('Testmelding verstuurd')}else toast('Meldingen zijn niet toegestaan.')})}
