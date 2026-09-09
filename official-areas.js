@@ -17,7 +17,7 @@
   };
   if(window.WHATSUP_DOG_BACKEND)loadCommunity();
   else if(!document.querySelector('script[data-wd-backend-config]')){
-    const config=document.createElement('script');config.src='./backend-config.js?v=3';config.async=false;config.dataset.wdBackendConfig='1';config.onload=loadCommunity;document.body.appendChild(config);
+    const config=document.createElement('script');config.src='./backend-config.js?v=4';config.async=false;config.dataset.wdBackendConfig='1';config.onload=loadCommunity;document.body.appendChild(config);
   }
 
   if(typeof L==='undefined'||typeof map==='undefined'||!map||typeof offleashLayer==='undefined'||!offleashLayer)return;
@@ -127,3 +127,4 @@
     if(typeof toast==='function')toast('Losloopgebieden konden niet laden. We tonen geen geschatte gebieden.');
   }
 })();
+
