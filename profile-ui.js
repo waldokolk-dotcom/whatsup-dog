@@ -62,7 +62,7 @@
       if(existing.has(a))return;
       const b=document.createElement('button');b.type='button';b.className='avatar-choice';b.dataset.avatar=a;b.setAttribute('aria-label',`Avatar ${a}`);b.textContent=a;grid.appendChild(b);
     });
-    const label=document.createElement('label');label.className='photo-avatar-choice';label.innerHTML='<span>📷</span>Eigen foto<input id="dogProfilePhotoInput" type="file" accept="image/*" capture="environment">';grid.appendChild(label);
+    const label=document.createElement('label');label.className='photo-avatar-choice';label.innerHTML='<span>📷</span>Eigen foto<input id="dogProfilePhotoInput" type="file" accept="image/*">';grid.appendChild(label);
     label.querySelector('input').addEventListener('change',async e=>{
       const f=e.target.files?.[0];if(!f)return;
       try{const data=await cropPhoto(f);savePhoto(data);renderProfilePhoto();document.querySelectorAll('.avatar-choice').forEach(x=>x.classList.remove('selected'));if(typeof toast==='function')toast('📷 Foto van je hond ingesteld')}catch(err){if(typeof toast==='function')toast(err.message||'Foto kon niet worden gebruikt')}finally{e.target.value=''}
@@ -79,8 +79,13 @@
     }catch{}
   }
 
+  function loadDirectoryUi(){
+    if(document.querySelector('script[data-wd-directory-ui]'))return;
+    const s=document.createElement('script');s.src='./directory-ui.js?v=1';s.async=false;s.dataset.wdDirectoryUi='1';document.body.appendChild(s);
+  }
+
   function boot(){
-    injectStyles();removeDuplicateReportButton();enrichAvatarGrid();patchProfileRefresh();renderProfilePhoto();
+    injectStyles();removeDuplicateReportButton();enrichAvatarGrid();patchProfileRefresh();renderProfilePhoto();loadDirectoryUi();
     document.addEventListener('click',()=>setTimeout(()=>{enrichAvatarGrid();renderProfilePhoto()},0));
     window.addEventListener('storage',e=>{if(e.key===PHOTO_KEY)renderProfilePhoto()});
   }
