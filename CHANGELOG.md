@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.3] - 2026-09-13
+- Verholpen dat de pagina kon vastlopen door een zichzelf herhaald triggerende MutationObserver.
+- UI-hotfixes zijn nu idempotent: teksten worden alleen aangepast wanneer ze echt veranderen.
+- Observerwerk wordt gededupliceerd via requestAnimationFrame zodat snelle DOM-wijzigingen niet tot een CPU-loop leiden.
+- Regressiecheck toegevoegd die deze stabiliteitswaarborgen bewaakt.
+
 ## [1.6.2] - 2026-09-13
 - Vaste nep-ongelezenbadge “3” bij standaardchat verwijderd.
 - Na het maken/kiezen van een herkenningsfoto zijn “Foto verwijderen” en “Verder met melding” duidelijk beschikbaar.
