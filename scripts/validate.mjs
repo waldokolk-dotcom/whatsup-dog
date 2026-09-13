@@ -8,6 +8,9 @@ assert.match(appSource,/el\('deleteReport'\)\.onclick=\(\)=>deleteReport\(r\)/,'
 assert.match(smartSource,/id="resolveReport"[\s\S]*id="deleteReport"/,'Area detail actions missing');
 assert.match(smartSource,/\$\('resolveReport'\)\.onclick=\(\)=>markReportResolved\(r\)/,'Area resolve handler missing');
 assert.match(smartSource,/\$\('deleteReport'\)\.onclick=\(\)=>deleteReport\(r\)/,'Area delete handler missing');
+assert.match(smartSource,/selectedReportType==='lost'&&!selectedLostKind/,'Enhanced report flow must require lost/found choice');
+assert.match(smartSource,/const subtype=selectedReportType==='lost'/,'Enhanced report flow must preserve lost/found subtype');
+assert.match(smartSource,/\$\('mapPlusBtn'\)\?\.addEventListener\('click',resetOnOpen\)/,'Map quick-add must reset enhanced report state');
 assert.match(appSource,/hiddenReports:'wd_hidden_reports_v1'/,'Hidden report storage missing');
 const backendSource=read('community-backend.js');
 assert.match(backendSource,/wd_hidden_reports_v1/,'Remote hidden report filter missing');
@@ -16,6 +19,10 @@ assert.equal((indexSource.match(/breed-catalog\.js/g)||[]).length,1,'Exactly one
 assert.doesNotMatch(indexSource,/breed-catalog-expanded\.js|breed-custom\.js|breed-custom\.css/,'Legacy breed picker assets still referenced');
 assert.match(indexSource,/breed-catalog\.js\?v=2/,'Breed catalog cache-busting version missing');
 assert.match(indexSource,/breed\.css\?v=2/,'Breed styles cache-busting version missing');
+assert.match(indexSource,/smart-report\.css\?v=3/,'Enhanced report styles are not wired into frontend');
+assert.match(indexSource,/smart-report-v3\.js\?v=3/,'Enhanced report controller is not wired into frontend');
+assert.match(indexSource,/backend-config\.js\?v=4/,'Backend config is not wired into frontend');
+assert.match(indexSource,/community-backend\.js\?v=2/,'Community backend is not wired into frontend');
 const breedContext={window:{},document:{getElementById:()=>null}};vm.runInNewContext(breedSource,breedContext);
 const breedCatalog=breedContext.window.WHATSUP_DOG_BREEDS;assert.ok(Array.isArray(breedCatalog),'Breed catalog export missing');assert.ok(breedCatalog.length>=400,'Breed catalog unexpectedly small');
 const breedNames=Array.from(breedCatalog,x=>String(x.name)),sortedBreedNames=[...breedNames].sort(new Intl.Collator('nl',{sensitivity:'base',numeric:true}).compare);assert.deepEqual(breedNames,sortedBreedNames,'Breed catalog is not alphabetical');assert.equal(new Set(breedNames).size,breedNames.length,'Duplicate breed names');
@@ -31,8 +38,8 @@ let pending;events.install({waitUntil:p=>pending=p});await pending;
 for(const file of core){const clean=file.split('?')[0];assert.ok(clean==='./'||fs.existsSync(clean),'Missing precache '+file);}
 events.activate({waitUntil:p=>pending=p});await pending;
 assert.deepEqual(deleted,['whatsup-dog:https://example.test/whatsup-dog/:v1']);
-const config={window:{},document:{querySelector:()=>true}};vm.runInNewContext(read('backend-config.js'),config);
+const config={window:{},document:{querySelector:()=>true,createElement:()=>({dataset:{}}),body:{appendChild:()=>{}}}};vm.runInNewContext(read('backend-config.js'),config);
 assert.ok(!String(config.window.WHATSUP_DOG_BACKEND.publishableKey).startsWith('sb_secret_'));
 if(config.window.WHATSUP_DOG_BACKEND.publishableKey.startsWith('eyJ'))assert.equal(JSON.parse(Buffer.from(config.window.WHATSUP_DOG_BACKEND.publishableKey.split('.')[1],'base64url')).role,'anon');
 for(const tag of indexSource.matchAll(/(?:src|href)="([^"#]+)"/g)){if(!/^https?:/.test(tag[1]))assert.ok(fs.existsSync(tag[1].split('?')[0]),'Missing HTML asset '+tag[1]);}
-console.log(`PASS: JavaScript, PWA assets, breed catalog (${breedCatalog.length}), cache isolation, public config, 20 Nijkerk polygons`);
+console.log(`PASS: JavaScript, PWA assets, breed catalog (${breedCatalog.length}), enhanced reporting, community wiring, cache isolation, public config, 20 Nijkerk polygons`);
