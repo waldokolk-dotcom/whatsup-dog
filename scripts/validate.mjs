@@ -8,6 +8,10 @@ assert.match(appSource,/el\('deleteReport'\)\.onclick=\(\)=>deleteReport\(r\)/,'
 assert.match(smartSource,/id="resolveReport"[\s\S]*id="deleteReport"/,'Area detail actions missing');
 assert.match(smartSource,/\$\('resolveReport'\)\.onclick=\(\)=>markReportResolved\(r\)/,'Area resolve handler missing');
 assert.match(smartSource,/\$\('deleteReport'\)\.onclick=\(\)=>deleteReport\(r\)/,'Area delete handler missing');
+assert.match(appSource,/hiddenReports:'wd_hidden_reports_v1'/,'Hidden report storage missing');
+const backendSource=read('community-backend.js');
+assert.match(backendSource,/wd_hidden_reports_v1/,'Remote hidden report filter missing');
+assert.match(backendSource,/hiddenIds\.has\(row\.id\)/,'Remote refresh does not honor hidden reports');
 for(const f of fs.readdirSync('.').filter(f=>f.endsWith('.js')))execFileSync(process.execPath,['--check',f]);
 const manifest=JSON.parse(read('manifest.webmanifest'));assert.equal(manifest.scope,'./');assert.equal(manifest.start_url,'./');
 const geo=JSON.parse(read('data/nijkerk-losloopgebieden.geojson'));assert.equal(geo.features.length,20);

@@ -3,6 +3,7 @@
   const REPORTS_KEY='wd_reports_v1';
   const PROFILE_KEY='wd_profile_v1';
   const QUEUE_KEY='wd_shared_report_queue_v1';
+  const HIDDEN_KEY='wd_hidden_reports_v1';
   const SUPABASE_JS='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
   const state={client:null,user:null,channel:null,ready:false,refreshTimer:null,monitor:null,knownIds:new Set(),processing:false};
 
@@ -11,6 +12,7 @@
   const reports=()=>parse(REPORTS_KEY,[]);
   const profile=()=>parse(PROFILE_KEY,null);
   const queue=()=>parse(QUEUE_KEY,[]);
+  const hidden=()=>new Set(parse(HIDDEN_KEY,[]));
   function publicKeyValid(key){
     if(typeof key!=='string')return false;
     if(key.startsWith('sb_publishable_'))return key.length>20;
@@ -124,7 +126,9 @@
     const {data,error}=await state.client.from('reports').select('id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,geometry_type,polygon,photo_path,ai_suggestion,confirmed_count,created_at').eq('status','active').order('created_at',{ascending:false}).limit(Number(CFG.maxSharedReports)||200);
     if(error)throw error;
     const remote=[];
+    const hiddenIds=hidden();
     for(const row of data||[]){
+      if(hiddenIds.has(row.id))continue;
       const photoUrl=await signedPhoto(row.photo_path);
       remote.push({id:row.id,type:row.type,subtype:row.subtype,text:row.text,lat:Number(row.lat),lng:Number(row.lng),time:relativeTime(row.created_at),author:row.author_name||'Hondenbezitter',authorAvatar:row.author_avatar||'🐶',confirmed:Number(row.confirmed_count||0),geometryType:row.geometry_type||'point',polygon:Array.isArray(row.polygon)?row.polygon:null,photoDataUrl:photoUrl,photoPath:row.photo_path||null,aiSuggestion:row.ai_suggestion||null,_remote:true,userId:row.user_id,createdAt:row.created_at});
     }
