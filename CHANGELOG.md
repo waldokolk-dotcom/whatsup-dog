@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0] - 2026-09-13
+- Profielfoto kan vanuit fotobibliotheek/album gekozen worden.
+- Meldingen krijgen hoelang en mate van ergernis/impact 1-5.
+- Deelbare CSV-lijst voor gemeente of andere organisaties met datum, wat, waar, hoelang, ergernis, omschrijving, status en kaartlink.
+- Gesprekken kunnen persistent gewist worden; standaardgesprekken komen niet meer terug na wissen.
+- Mobile UX Agent controleert deze functies vóór release.
+- Release Agent bewaakt versie en offline-cache.
+
 ## [1.5.0] - 2026-09-13
 - Centrale SemVer-versiebron.
 - Mobile UX kwaliteitscontrole.
