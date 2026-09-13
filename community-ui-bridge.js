@@ -11,6 +11,8 @@
     try{window.WHATSUP_DOG_SMART_REPORT_V3?.render?.()}catch(err){console.warn('Gedeelde vlakken konden niet worden hertekend',err)}
   }
   loadDialogUi();
+  import('./version.js?v=1.5.0').catch(err=>console.warn('Versiecontroller kon niet laden',err));
+  import('./mobile-ui.js?v=1.5.0').catch(err=>console.warn('Mobiele UI kon niet laden',err));
   import('./profile-ui.js?v=1').catch(err=>console.warn('Profiel-UI kon niet laden',err));
   document.addEventListener('wd:shared-reports-updated',redrawSharedShapes);
   document.addEventListener('DOMContentLoaded',()=>setTimeout(redrawSharedShapes,350),{once:true});
