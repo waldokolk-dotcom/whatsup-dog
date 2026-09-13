@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.2] - 2026-09-13
+- Vaste nep-ongelezenbadge “3” bij standaardchat verwijderd.
+- Na het maken/kiezen van een herkenningsfoto zijn “Foto verwijderen” en “Verder met melding” duidelijk beschikbaar.
+- Na terugkomst uit de camera scrolt de app naar de foto-acties zodat de gebruiker niet vastloopt.
+- Kolom “Wat” in het meldingenoverzicht toont Nederlandse categorienamen in plaats van interne Engelse codes.
+
 ## [1.6.1] - 2026-09-13
 - Koptekst “Rond jullie” verwijderd van Home.
 - Meldingenlijst is nu eerst in de app te bekijken als tabel, ook op laptop.
