@@ -12,7 +12,7 @@ const reportTypes=[
 ];
 const vegetationKinds=['Grasaren','Berenklauw','Eikenprocessierups','Brandnetels','Giftige plant','Stekelige struiken','Anders'];
 const breeds=['Labrador Retriever','Golden Retriever','Duitse Herder','Franse Bulldog','Poedel','Border Collie','Berner Sennenhond','Teckel','Beagle','Boxer','Chihuahua','Shih Tzu','Mopshond','Cocker Spaniël','Jack Russell Terriër','Rottweiler','Siberische Husky','Pomeriaan','Maltezer','Bichon Frisé','Cavalier King Charles Spaniël','Staffordshire Bull Terriër','Whippet','Yorkshire Terriër','Kruising / Mix','Anders'];
-let selectedAvatar=avatars[0],selectedBreed=breeds[0],selectedReportType=null,selectedVegetation=null,activeFilter='all';
+let selectedAvatar=avatars[0],selectedBreed=breeds[0],selectedReportType=null,selectedVegetation=null,selectedLostKind=null,activeFilter='all';
 let map,reportLayer,offleashLayer,onleashLayer,currentArea=null;
 const el=id=>document.getElementById(id);
 function loadJSON(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}}
@@ -67,7 +67,8 @@ function setupReports(){
   el('reportFab')?.addEventListener('click',()=>{resetReportForm();el('reportDialog').showModal()});
   el('reportTypes').innerHTML=reportTypes.map(t=>`<button type="button" class="report-type" data-report-type="${t.id}"><span>${t.icon}</span>${t.label}</button>`).join('');
   el('vegetationKinds').innerHTML=vegetationKinds.map(v=>`<button type="button" class="subtype" data-subtype="${v}">${v}</button>`).join('');
-  el('reportTypes').addEventListener('click',e=>{const b=e.target.closest('[data-report-type]');if(!b)return;selectedReportType=b.dataset.reportType;selectedVegetation=null;document.querySelectorAll('.report-type').forEach(x=>x.classList.toggle('selected',x===b));el('reportDetails').classList.remove('hidden');el('vegetationKinds').classList.toggle('hidden',selectedReportType!=='vegetation')});
+  el('reportTypes').addEventListener('click',e=>{const b=e.target.closest('[data-report-type]');if(!b)return;selectedReportType=b.dataset.reportType;selectedVegetation=null;selectedLostKind=null;document.querySelectorAll('.report-type').forEach(x=>x.classList.toggle('selected',x===b));el('reportDetails').classList.remove('hidden');el('vegetationKinds').classList.toggle('hidden',selectedReportType!=='vegetation');el('lostKinds')?.classList.toggle('hidden',selectedReportType!=='lost')});
+  el('lostKinds')?.addEventListener('click',e=>{const b=e.target.closest('[data-lost-kind]');if(!b)return;selectedLostKind=b.dataset.lostKind;document.querySelectorAll('[data-lost-kind]').forEach(x=>x.classList.toggle('selected',x===b))});
   el('vegetationKinds').addEventListener('click',e=>{const b=e.target.closest('[data-subtype]');if(!b)return;selectedVegetation=b.dataset.subtype;document.querySelectorAll('.subtype').forEach(x=>x.classList.toggle('selected',x===b))});
   el('reportForm').addEventListener('submit',e=>{e.preventDefault();if(!selectedReportType){toast('Kies eerst wat je hebt gespot');return}if(selectedReportType==='vegetation'&&!selectedVegetation){toast('Welke vegetatie heb je gezien?');return}const center=map.getCenter(),p=profile(),text=el('reportText').value.trim()||defaultReportText(selectedReportType,selectedVegetation),reports=allReports();reports.push({id:crypto.randomUUID?.()||String(Date.now()),type:selectedReportType,subtype:selectedVegetation,text,lat:center.lat,lng:center.lng,time:'Zojuist',author:p?.name||'Anonieme hond',confirmed:0});saveJSON(STORAGE.reports,reports);drawReports();updateProfileUI();el('reportDialog').close();toast('🐾 Dankjewel! Je melding staat op de kaart.')})
 }

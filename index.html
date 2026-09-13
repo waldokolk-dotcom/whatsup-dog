@@ -9,7 +9,7 @@
   <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="stylesheet" href="./vendor/leaflet/leaflet.css" crossorigin="" />
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="styles.css?v=6" /><link rel="stylesheet" href="breed.css?v=1" />
   <link rel="stylesheet" href="home.css?v=5" />
   <title>Whatsup dog</title>
 </head>
@@ -61,7 +61,7 @@
         <div id="map" class="map" aria-label="Kaart met meldingen en hondenlosloopgebieden"></div>
         <div class="map-brand-card"><img class="dog-logo-img" src="icon.svg" width="38" height="38" style="border-radius:12px" alt=""><div><strong>Whatsup dog</strong><small>Samen op pad. Een mooiere buurt.</small></div></div>
         <button id="profileQuick" class="map-search avatar-btn" aria-label="Profiel openen"><span id="profileQuickAvatar">🐶</span></button>
-        <div class="map-toolbar"><div class="chip-row" id="filterRow"><button class="chip active" data-filter="all">Alles</button><button class="chip" data-filter="danger">⚠️ Gevaar</button><button class="chip" data-filter="vegetation">🌿 Vegetatie</button><button class="chip blue" data-filter="offleash">🐕 Losloop</button></div></div>
+        <div class="map-toolbar"><div class="chip-row" id="filterRow"><button class="chip active" data-filter="all">Alles</button><button class="chip" data-filter="danger">⚠️ Gevaar</button><button class="chip" data-filter="vegetation">🌿 Vegetatie</button><button class="chip" data-filter="lost">🚨 Vermist / gevonden</button><button class="chip blue" data-filter="offleash">🐕 Losloop</button></div></div>
         <button id="locateBtn" class="map-fab locate" aria-label="Mijn locatie">◎</button>
         <div class="map-bottom-card"><div class="layer-row"><div class="layer-symbol">◆</div><div class="layer-copy"><b>Officiële hondenlocaties</b><small>Rechtstreeks uit de gemeentelijke GIS-laag</small></div><label class="toggle" aria-label="Losloopgebieden tonen"><input id="offleashToggle" type="checkbox" checked><span></span></label></div><button id="reportFab" class="report-fab"><span>＋</span> MELDEN</button></div>
       </section>
@@ -107,7 +107,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="./vendor/leaflet/leaflet.js" crossorigin=""></script>
-  <script src="app.js?v=7"></script><script src="breed-catalog.js?v=1"></script>
+  <script src="app.js?v=7"></script><script src="breed-catalog.js?v=1"></script><script src="breed-catalog-expanded.js?v=1"></script>
   <script src="official-areas.js?v=9"></script>
   <script src="home.js?v=5"></script>
 </body>
