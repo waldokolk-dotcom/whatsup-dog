@@ -1,6 +1,6 @@
 import fs from 'node:fs';import assert from 'node:assert/strict';import vm from 'node:vm';import {execFileSync} from 'node:child_process';
 const read=p=>fs.readFileSync(p,'utf8');
-const appSource=read('app.js'),smartSource=read('smart-report-v3.js'),indexSource=read('index.html'),breedSource=read('breed-catalog.js');
+const appSource=read('app.js'),smartSource=read('smart-report-v3.js'),indexSource=read('index.html'),breedSource=read('breed-catalog.js'),lifecycleSource=read('report-lifecycle.js'),backendConfigSource=read('backend-config.js'),lifecycleMigration=read('supabase/migrations/20260913000100_report_lifecycle.sql');
 assert.equal((appSource.match(/function deleteReport\(/g)||[]).length,1,'Duplicate deleteReport handler');
 assert.match(appSource,/id="resolveReport"[\s\S]*id="deleteReport"/,'Point detail actions missing');
 assert.match(appSource,/el\('resolveReport'\)\.onclick=\(\)=>markReportResolved\(r\)/,'Point resolve handler missing');
@@ -15,6 +15,12 @@ assert.match(appSource,/hiddenReports:'wd_hidden_reports_v1'/,'Hidden report sto
 const backendSource=read('community-backend.js');
 assert.match(backendSource,/wd_hidden_reports_v1/,'Remote hidden report filter missing');
 assert.match(backendSource,/hiddenIds\.has\(row\.id\)/,'Remote refresh does not honor hidden reports');
+assert.match(backendConfigSource,/report-lifecycle\.js\?v=1/,'Persistent report lifecycle controller is not loaded');
+assert.match(lifecycleSource,/set_own_report_status/,'Report lifecycle must persist owner status to Supabase');
+assert.match(lifecycleSource,/LEGACY_CUTOFF/,'Legacy pre-release report cleanup missing');
+assert.match(lifecycleSource,/wd_shared_report_queue_v1/,'Deleting an unsynced report must clear the sync queue');
+assert.match(lifecycleMigration,/create or replace function public\.set_own_report_status/,'Owner report lifecycle RPC missing');
+assert.match(lifecycleMigration,/user_id=\(select auth\.uid\(\)\)/,'Lifecycle RPC must be owner-scoped');
 assert.equal((indexSource.match(/breed-catalog\.js/g)||[]).length,1,'Exactly one breed catalog must be loaded');
 assert.doesNotMatch(indexSource,/breed-catalog-expanded\.js|breed-custom\.js|breed-custom\.css/,'Legacy breed picker assets still referenced');
 assert.match(indexSource,/breed-catalog\.js\?v=2/,'Breed catalog cache-busting version missing');
@@ -36,10 +42,11 @@ const context={self:{registration:{scope:'https://example.test/whatsup-dog/'},ad
 vm.runInNewContext(read('sw.js'),context);
 let pending;events.install({waitUntil:p=>pending=p});await pending;
 for(const file of core){const clean=file.split('?')[0];assert.ok(clean==='./'||fs.existsSync(clean),'Missing precache '+file);}
+assert.ok(core.includes('./report-lifecycle.js?v=1'),'Report lifecycle is not precached');
 events.activate({waitUntil:p=>pending=p});await pending;
 assert.deepEqual(deleted,['whatsup-dog:https://example.test/whatsup-dog/:v1']);
 const config={window:{},document:{querySelector:()=>true,createElement:()=>({dataset:{}}),body:{appendChild:()=>{}}}};vm.runInNewContext(read('backend-config.js'),config);
 assert.ok(!String(config.window.WHATSUP_DOG_BACKEND.publishableKey).startsWith('sb_secret_'));
 if(config.window.WHATSUP_DOG_BACKEND.publishableKey.startsWith('eyJ'))assert.equal(JSON.parse(Buffer.from(config.window.WHATSUP_DOG_BACKEND.publishableKey.split('.')[1],'base64url')).role,'anon');
 for(const tag of indexSource.matchAll(/(?:src|href)="([^"#]+)"/g)){if(!/^https?:/.test(tag[1]))assert.ok(fs.existsSync(tag[1].split('?')[0]),'Missing HTML asset '+tag[1]);}
-console.log(`PASS: JavaScript, PWA assets, breed catalog (${breedCatalog.length}), enhanced reporting, community wiring, cache isolation, public config, 20 Nijkerk polygons`);
+console.log(`PASS: JavaScript, PWA assets, breed catalog (${breedCatalog.length}), enhanced reporting, persistent report lifecycle, community wiring, cache isolation, public config, 20 Nijkerk polygons`);

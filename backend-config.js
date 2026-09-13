@@ -11,11 +11,14 @@ window.WHATSUP_DOG_BACKEND={
   signedPhotoSeconds:3600
 };
 
-if(!document.querySelector('script[data-wd-community-ui]')){
-  const bridge=document.createElement('script');
-  bridge.src='./community-ui-bridge.js?v=1';
-  bridge.async=false;
-  bridge.dataset.wdCommunityUi='1';
-  document.body.appendChild(bridge);
+function loadWhatsupDogSupportScript(selector,src,datasetKey){
+  if(document.querySelector(selector))return;
+  const script=document.createElement('script');
+  script.src=src;
+  script.async=false;
+  script.dataset[datasetKey]='1';
+  document.body.appendChild(script);
 }
 
+loadWhatsupDogSupportScript('script[data-wd-community-ui]','./community-ui-bridge.js?v=1','wdCommunityUi');
+loadWhatsupDogSupportScript('script[data-wd-report-lifecycle]','./report-lifecycle.js?v=1','wdReportLifecycle');
