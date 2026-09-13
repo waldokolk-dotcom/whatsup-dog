@@ -1,0 +1,23 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+
+const mobile=fs.readFileSync('mobile-ui.js','utf8');
+const profile=fs.readFileSync('profile-ui.js','utf8');
+const dialog=fs.readFileSync('dialog-ui.js','utf8');
+const index=fs.readFileSync('index.html','utf8');
+execFileSync(process.execPath,['--check','mobile-ui.js']);
+execFileSync(process.execPath,['--check','profile-ui.js']);
+execFileSync(process.execPath,['--check','dialog-ui.js']);
+assert.match(mobile,/--wd-touch:44px/,'Touch target baseline must be 44px');
+assert.match(mobile,/font-size:16px!important/,'Inputs must prevent iOS auto zoom');
+assert.match(mobile,/safe-area-inset-bottom/,'Bottom safe area support missing');
+assert.match(mobile,/max-width:600px/,'Phone breakpoint missing');
+assert.match(mobile,/max-width:380px/,'Small-phone breakpoint missing');
+assert.match(mobile,/orientation:landscape/,'Phone landscape handling missing');
+assert.match(mobile,/pointer:coarse/,'Touch-device handling missing');
+assert.match(dialog,/pointerdown/,'Dialogs must support pointer dragging');
+assert.match(profile,/#mapPlusBtn\{display:none!important\}/,'Duplicate map report plus must remain removed');
+assert.match(profile,/Eigen foto/,'Own dog photo option missing');
+assert.doesNotMatch(index,/id="mapPlusBtn"[^>]*style="[^"]*display\s*:\s*block/i,'Duplicate report button is forced visible');
+console.log('PASS Mobile UX Agent: phone breakpoints, safe areas, touch, iOS inputs, dialogs, profile photo and single report CTA');
