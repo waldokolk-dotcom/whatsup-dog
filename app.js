@@ -28,13 +28,13 @@ function initMap(){
   if(typeof L==='undefined'){el('map').innerHTML='<div style="padding:140px 24px;text-align:center">De kaart kon niet laden. Controleer je internetverbinding.</div>';return}
   const p=profile();
   const start=p?.homeLat!=null&&p?.homeLng!=null&&Number.isFinite(Number(p.homeLat))&&Number.isFinite(Number(p.homeLng))?[Number(p.homeLat),Number(p.homeLng)]:[52.2182,5.4835];
-  map=L.map('map',{zoomControl:false,attributionControl:true}).setView(start,14);
+  map=L.map('map',{zoomControl:false,attributionControl:true}).setView(start,14);L.control.zoom({position:'bottomright'}).addTo(map);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
   reportLayer=L.layerGroup().addTo(map);offleashLayer=L.featureGroup().addTo(map);onleashLayer=L.featureGroup();
   drawReports();
   el('locateBtn')?.addEventListener('click',locateUser);
   setupFilters();
-  el('offleashToggle')?.addEventListener('change',e=>{if(e.target.checked){offleashLayer.addTo(map)}else if(map.hasLayer(offleashLayer)){map.removeLayer(offleashLayer)}});
+  el('offleashToggle')?.addEventListener('change',e=>{if(e.target.checked){offleashLayer.addTo(map)}else if(map.hasLayer(offleashLayer)){map.removeLayer(offleashLayer)}});let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>map?.invalidateSize({pan:false}),120)},{passive:true});
 }
 function allReports(){return loadJSON(STORAGE.reports,[])}
 function matchesFilter(r){if(activeFilter==='all')return true;if(activeFilter==='offleash')return false;return r.type===activeFilter}
