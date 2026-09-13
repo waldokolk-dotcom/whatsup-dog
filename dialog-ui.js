@@ -39,14 +39,14 @@
       .sheet-card::-webkit-scrollbar-track,.onboarding-body::-webkit-scrollbar-track{background:transparent;margin:22px 0}
       .sheet-card::-webkit-scrollbar-thumb,.onboarding-body::-webkit-scrollbar-thumb{background:rgba(59,36,24,.32);border:3px solid transparent;background-clip:padding-box;border-radius:999px}
       .dialog-drag-handle{
-        position:sticky;top:-26px;z-index:40;width:96px;height:30px;margin:-8px auto 0;
+        position:sticky;top:-26px;z-index:40;width:112px;height:34px;margin:-10px auto 0;
         display:grid;place-items:center;touch-action:none;cursor:grab;user-select:none;
       }
-      .dialog-drag-handle::before{content:"";width:54px;height:6px;border-radius:999px;background:rgba(59,36,24,.32)}
+      .dialog-drag-handle::before{content:"";width:58px;height:6px;border-radius:999px;background:rgba(59,36,24,.35)}
       .dialog-drag-handle:active,.onboarding-card.is-dragging,.sheet-card.is-dragging{cursor:grabbing!important}
       .onboarding-card>.dialog-drag-handle{
         position:absolute;top:10px;left:50%;transform:translateX(-50%);margin:0;
-        background:rgba(255,253,248,.80);border-radius:999px;backdrop-filter:blur(5px)
+        background:rgba(255,253,248,.84);border-radius:999px;backdrop-filter:blur(5px)
       }
       .wd-close-branded{
         display:grid!important;place-items:center!important;padding:0!important;
@@ -64,7 +64,7 @@
   }
 
   function brandCloseButtons(root=document){
-    root.querySelectorAll('.dialog-close,[data-close-dialog]').forEach(button=>{
+    root.querySelectorAll('button').forEach(button=>{
       if(button.dataset.wdBrandedClose==='1')return;
       if(button.textContent.trim()!=='×')return;
       button.dataset.wdBrandedClose='1';
@@ -76,11 +76,14 @@
 
   function clampOffset(card,x,y){
     const rect=card.getBoundingClientRect();
-    const margin=8;
     const halfW=rect.width/2,halfH=rect.height/2;
-    const maxX=Math.max(0,window.innerWidth/2-halfW-margin);
-    const maxY=Math.max(0,window.innerHeight/2-halfH-margin);
-    return {x:Math.max(-maxX,Math.min(maxX,x)),y:Math.max(-maxY,Math.min(maxY,y))};
+    const minVisibleX=Math.min(180,Math.max(96,rect.width*.28));
+    const minVisibleY=Math.min(110,Math.max(72,rect.height*.18));
+    const minX=minVisibleX-window.innerWidth/2-halfW;
+    const maxX=window.innerWidth/2+halfW-minVisibleX;
+    const minY=minVisibleY-window.innerHeight/2-halfH;
+    const maxY=window.innerHeight/2+halfH-minVisibleY;
+    return {x:Math.max(minX,Math.min(maxX,x)),y:Math.max(minY,Math.min(maxY,y))};
   }
 
   function setOffset(card,x,y){
@@ -110,7 +113,7 @@
       if(e.pointerType==='mouse'&&e.button!==0)return;
       const target=e.target;
       const onHandle=target.closest?.('.dialog-drag-handle');
-      const inTopZone=e.clientY-card.getBoundingClientRect().top<=120;
+      const inTopZone=e.clientY-card.getBoundingClientRect().top<=140;
       if(!onHandle&&(!inTopZone||target.closest?.(INTERACTIVE)))return;
       drag={pointerId:e.pointerId,startPointerX:e.clientX,startPointerY:e.clientY,startX:Number(card.dataset.dragX||0),startY:Number(card.dataset.dragY||0)};
       card.classList.add('is-dragging');
