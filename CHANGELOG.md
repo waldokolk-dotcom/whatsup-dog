@@ -6,6 +6,9 @@
 - Vanuit dezelfde lijst kan nog steeds worden gedeeld of als CSV gedownload.
 - Chat legt duidelijk uit dat echte aangemelde gebruikers nog niet als selecteerbare namenlijst beschikbaar zijn.
 - Bestaande voorbeeld-/groepsgesprekken blijven herkenbaar gescheiden van echte gebruikers.
+- Privacyveilige opt-in toegevoegd: “Vindbaar in Whatsup dog” staat standaard uit.
+- Alleen hondnaam/profielnaam, avatar, ras en woonplaats worden na opt-in vindbaar; geen e-mail of exacte thuislocatie.
+- Vindbare gebruikers verschijnen als selecteerbare Hondenmensen en kunnen een privégesprek starten.
 
 ## [1.6.0] - 2026-09-13
 - Profielfoto kan vanuit fotobibliotheek/album gekozen worden.
