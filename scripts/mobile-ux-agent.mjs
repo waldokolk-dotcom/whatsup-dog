@@ -1,0 +1,26 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+
+const mobile=fs.readFileSync('mobile-ui.js','utf8');
+const profile=fs.readFileSync('profile-ui.js','utf8');
+const dialog=fs.readFileSync('dialog-ui.js','utf8');
+const community=fs.readFileSync('community-tools.js','utf8');
+const bridge=fs.readFileSync('community-ui-bridge.js','utf8');
+const index=fs.readFileSync('index.html','utf8');
+for(const file of ['mobile-ui.js','profile-ui.js','dialog-ui.js','community-tools.js']) execFileSync(process.execPath,['--check',file]);
+assert.ok(mobile.includes('--wd-touch:44px'),'Touch target baseline must be 44px');
+assert.ok(mobile.includes('safe-area-inset-bottom'),'Bottom safe area support missing');
+assert.ok(dialog.includes('pointerdown'),'Dialogs must support pointer dragging');
+assert.ok(profile.includes('#mapPlusBtn{display:none!important}'),'Duplicate map report plus must remain removed');
+assert.ok(profile.includes('Eigen foto'),'Own dog photo option missing');
+assert.ok(community.includes("removeAttribute('capture')"),'Avatar photo must allow album/library selection');
+assert.ok(community.includes('reportDuration'),'Report duration field missing');
+assert.ok(community.includes('reportAnnoyance'),'Report annoyance 1-5 field missing');
+assert.ok(community.includes('shareMunicipalList'),'Municipal share/export missing');
+assert.ok(community.includes('Bekijk meldingenlijst'),'In-app report list preview missing');
+assert.ok(community.includes('chatDirectoryNote'),'Chat directory explanation missing');
+assert.ok(community.includes('HIDDEN_CHATS_KEY'),'Persistent chat deletion missing');
+assert.ok(bridge.includes('community-tools.js?v=1.6.1'),'Community tools loader must match v1.6.1');
+assert.ok(!index.includes('Rond jullie'),'Deprecated home heading must stay removed');
+console.log('PASS Mobile UX Agent v1.6.1');
