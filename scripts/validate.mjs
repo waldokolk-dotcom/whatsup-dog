@@ -1,5 +1,13 @@
 import fs from 'node:fs';import assert from 'node:assert/strict';import vm from 'node:vm';import {execFileSync} from 'node:child_process';
 const read=p=>fs.readFileSync(p,'utf8');
+const appSource=read('app.js'),smartSource=read('smart-report-v3.js');
+assert.equal((appSource.match(/function deleteReport\(/g)||[]).length,1,'Duplicate deleteReport handler');
+assert.match(appSource,/id="resolveReport"[\s\S]*id="deleteReport"/,'Point detail actions missing');
+assert.match(appSource,/el\('resolveReport'\)\.onclick=\(\)=>markReportResolved\(r\)/,'Point resolve handler missing');
+assert.match(appSource,/el\('deleteReport'\)\.onclick=\(\)=>deleteReport\(r\)/,'Point delete handler missing');
+assert.match(smartSource,/id="resolveReport"[\s\S]*id="deleteReport"/,'Area detail actions missing');
+assert.match(smartSource,/\$\('resolveReport'\)\.onclick=\(\)=>markReportResolved\(r\)/,'Area resolve handler missing');
+assert.match(smartSource,/\$\('deleteReport'\)\.onclick=\(\)=>deleteReport\(r\)/,'Area delete handler missing');
 for(const f of fs.readdirSync('.').filter(f=>f.endsWith('.js')))execFileSync(process.execPath,['--check',f]);
 const manifest=JSON.parse(read('manifest.webmanifest'));assert.equal(manifest.scope,'./');assert.equal(manifest.start_url,'./');
 const geo=JSON.parse(read('data/nijkerk-losloopgebieden.geojson'));assert.equal(geo.features.length,20);
