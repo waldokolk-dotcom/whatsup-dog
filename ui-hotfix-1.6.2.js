@@ -1,5 +1,6 @@
 (()=>{
   const TYPE_NL={danger:'Gevaar',vegetation:'Vegetatie',dirty:'Vervuiling',road:'Pad / weg',fun:'Leuke plek',walk:'Samen wandelen',spotted:'Hond gespot',lost:'Vermist / gevonden'};
+  let scheduled=false;
 
   function injectStyles(){
     if(document.getElementById('wd-hotfix-162-style'))return;
@@ -11,56 +12,36 @@
     `;document.head.appendChild(s);
   }
 
-  function removeFakeUnreadBadges(){
-    document.querySelectorAll('#chatList .chat-count').forEach(el=>el.remove());
-  }
+  function removeFakeUnreadBadges(){document.querySelectorAll('#chatList .chat-count').forEach(el=>el.remove())}
+
+  function setTextIfChanged(node,text){if(node&&node.textContent!==text)node.textContent=text}
 
   function improvePhotoFlow(){
     const remove=document.getElementById('removePhotoV2');
     const recognize=document.getElementById('recognizePhotoV2');
     const preview=document.getElementById('photoPreviewWrapV2');
-    if(remove){remove.textContent='🗑️ Foto verwijderen';remove.classList.add('wd-remove-photo-text');remove.setAttribute('aria-label','Foto verwijderen')}
-    if(recognize)recognize.textContent=recognize.disabled?'✨ Herken deze foto':'✨ Herken deze foto';
+    if(remove){setTextIfChanged(remove,'🗑️ Foto verwijderen');remove.classList.add('wd-remove-photo-text');remove.setAttribute('aria-label','Foto verwijderen')}
+    if(recognize&&recognize.disabled)setTextIfChanged(recognize,'✨ Herken deze foto');
     if(preview&&!document.getElementById('continueAfterPhotoV2')){
       const btn=document.createElement('button');btn.type='button';btn.id='continueAfterPhotoV2';btn.textContent='Verder met melding ↓';
-      btn.addEventListener('click',()=>{
-        const target=document.getElementById('reportAdminMeta')||document.getElementById('pickOnMapV2')||document.getElementById('reportText');
-        target?.scrollIntoView({behavior:'smooth',block:'center'});
-      });
+      btn.addEventListener('click',()=>{const target=document.getElementById('reportAdminMeta')||document.getElementById('pickOnMapV2')||document.getElementById('reportText');target?.scrollIntoView({behavior:'smooth',block:'center'})});
       const note=document.createElement('p');note.className='wd-photo-ready-note';note.textContent='Foto staat klaar. Je kunt hem laten herkennen, verwijderen of verdergaan met de melding.';
-      preview.insertAdjacentElement('afterend',remove||note);
-      if(remove)remove.insertAdjacentElement('afterend',recognize||note);
-      if(recognize){recognize.insertAdjacentElement('afterend',btn);btn.insertAdjacentElement('afterend',note)}else{preview.insertAdjacentElement('afterend',btn);btn.insertAdjacentElement('afterend',note)}
+      if(remove&&!remove.isConnected)preview.insertAdjacentElement('afterend',remove);
+      const anchor=remove?.isConnected?remove:preview;
+      if(recognize&&!recognize.isConnected)anchor.insertAdjacentElement('afterend',recognize);
+      const after=recognize?.isConnected?recognize:anchor;after.insertAdjacentElement('afterend',btn);btn.insertAdjacentElement('afterend',note)
     }
   }
 
-  function afterPhotoPicked(){
-    setTimeout(()=>{
-      improvePhotoFlow();
-      const wrap=document.getElementById('photoPreviewWrapV2');
-      if(wrap?.classList.contains('has-photo')){
-        document.getElementById('recognizePhotoV2')?.scrollIntoView({behavior:'smooth',block:'center'});
-      }
-    },120);
-  }
+  function afterPhotoPicked(){setTimeout(()=>{improvePhotoFlow();const wrap=document.getElementById('photoPreviewWrapV2');if(wrap?.classList.contains('has-photo'))document.getElementById('recognizePhotoV2')?.scrollIntoView({behavior:'smooth',block:'center'})},120)}
 
-  function installPhotoListeners(){
-    ['reportCameraV2','reportPhotoV2'].forEach(id=>{
-      const input=document.getElementById(id);if(!input||input.dataset.wdHotfix162)return;input.dataset.wdHotfix162='1';input.addEventListener('change',afterPhotoPicked);
-    });
-  }
+  function installPhotoListeners(){['reportCameraV2','reportPhotoV2'].forEach(id=>{const input=document.getElementById(id);if(!input||input.dataset.wdHotfix162)return;input.dataset.wdHotfix162='1';input.addEventListener('change',afterPhotoPicked)})}
 
-  function translateReportList(){
-    const table=document.querySelector('#reportListWrap .report-list-table');if(!table)return;
-    table.querySelectorAll('tbody tr').forEach(row=>{
-      const cell=row.children?.[1];if(!cell)return;const raw=(cell.textContent||'').trim().toLowerCase();if(TYPE_NL[raw])cell.innerHTML=`<b>${TYPE_NL[raw]}</b>`;
-    });
-  }
+  function translateReportList(){const table=document.querySelector('#reportListWrap .report-list-table');if(!table)return;table.querySelectorAll('tbody tr').forEach(row=>{const cell=row.children?.[1];if(!cell)return;const raw=(cell.textContent||'').trim().toLowerCase();if(TYPE_NL[raw]&&cell.textContent.trim()!==TYPE_NL[raw])cell.innerHTML=`<b>${TYPE_NL[raw]}</b>`})}
 
-  function boot(){
-    injectStyles();removeFakeUnreadBadges();improvePhotoFlow();installPhotoListeners();translateReportList();
-    const obs=new MutationObserver(()=>{removeFakeUnreadBadges();improvePhotoFlow();installPhotoListeners();translateReportList()});
-    obs.observe(document.body,{childList:true,subtree:true});
-  }
+  function reconcile(){scheduled=false;removeFakeUnreadBadges();improvePhotoFlow();installPhotoListeners();translateReportList()}
+  function scheduleReconcile(){if(scheduled)return;scheduled=true;requestAnimationFrame(reconcile)}
+
+  function boot(){injectStyles();reconcile();const obs=new MutationObserver(scheduleReconcile);obs.observe(document.body,{childList:true,subtree:true})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
