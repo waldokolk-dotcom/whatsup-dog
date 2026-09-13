@@ -26,7 +26,9 @@ assert.ok(hotfix.includes('removeFakeUnreadBadges'),'Fake default unread badges 
 assert.ok(hotfix.includes('Foto verwijderen'),'Photo removal action must be explicit');
 assert.ok(hotfix.includes('Verder met melding'),'Photo flow must provide a clear continuation action');
 assert.ok(hotfix.includes("danger:'Gevaar'"),'Report type codes must be translated to Dutch');
-assert.ok(bridge.includes('community-tools.js?v=1.6.2'),'Community tools loader must match v1.6.2');
-assert.ok(bridge.includes('ui-hotfix-1.6.2.js?v=1'),'v1.6.2 hotfix loader missing');
+assert.ok(hotfix.includes('setTextIfChanged'),'Hotfix text mutations must be idempotent');
+assert.ok(hotfix.includes('scheduleReconcile'),'MutationObserver work must be scheduled and deduplicated');
+assert.ok(bridge.includes('community-tools.js?v=1.6.3'),'Community tools loader must match v1.6.3');
+assert.ok(bridge.includes('ui-hotfix-1.6.2.js?v=2'),'Stability hotfix loader missing');
 assert.ok(!index.includes('Rond jullie'),'Deprecated home heading must stay removed');
-console.log('PASS Mobile UX Agent v1.6.2');
+console.log('PASS Mobile UX Agent v1.6.3 stability');
