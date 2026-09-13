@@ -11,7 +11,8 @@ const reportTypes=[
   {id:'lost',icon:'🚨',label:'Vermist / gevonden',marker:'lost'}
 ];
 const vegetationKinds=['Grasaren','Berenklauw','Eikenprocessierups','Brandnetels','Giftige plant','Stekelige struiken','Anders'];
-let selectedAvatar=avatars[0],selectedReportType=null,selectedVegetation=null,activeFilter='all';
+const breeds=['Labrador Retriever','Golden Retriever','Duitse Herder','Franse Bulldog','Poedel','Border Collie','Berner Sennenhond','Teckel','Beagle','Boxer','Chihuahua','Shih Tzu','Mopshond','Cocker Spaniël','Jack Russell Terriër','Rottweiler','Siberische Husky','Pomeriaan','Maltezer','Bichon Frisé','Cavalier King Charles Spaniël','Staffordshire Bull Terriër','Whippet','Yorkshire Terriër','Kruising / Mix','Anders'];
+let selectedAvatar=avatars[0],selectedBreed=breeds[0],selectedReportType=null,selectedVegetation=null,activeFilter='all';
 let map,reportLayer,offleashLayer,onleashLayer,currentArea=null;
 const el=id=>document.getElementById(id);
 function loadJSON(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}}

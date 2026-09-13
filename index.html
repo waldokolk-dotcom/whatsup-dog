@@ -96,7 +96,7 @@
       <div class="onboarding-body"><button type="button" class="dialog-close" data-close-dialog aria-label="Sluiten">×</button><h2>Welkom bij<br>Whatsup dog <span>♡</span></h2><p class="intro">Samen maken we elke wandeling leuker, veiliger en socialer.</p><ul class="welcome-points"><li>🐾 Ontdek mooie losloopgebieden</li><li>👥 Ontmoet andere hondenliefhebbers</li><li>🌿 Deel meldingen en houd de buurt veilig</li><li>❤️ Voor blije honden, blije mensen</li></ul>
         <label class="field"><span>Naam van jezelf of je hond</span><div class="input-icon"><b>●</b><input id="onboardingName" maxlength="40" placeholder="Bijv. Max, Sophie of Bailey" required></div></label>
         <label class="field"><span>Waar woont je hond?</span><div class="input-icon"><b>●</b><input id="onboardingHome" maxlength="80" autocomplete="address-level2" placeholder="Bijv. Nijkerk" required></div><small>Alleen woonplaats. Geen straat of huisnummer.</small></label>
-        <div class="field"><span>Kies een avatar</span><div id="avatarGrid" class="avatar-grid"></div></div><p class="privacy-note">🔒 Woonplaats gebruiken we alleen om de kaart goed te openen. Je live locatie wordt niet openbaar gedeeld.</p><button id="saveProfile" class="continue-btn" type="submit">Verder <span>→</span></button>
+        <div class="field"><span>Kies een avatar</span><div id="avatarGrid" class="avatar-grid"></div><input id="breedSearch" class="breed-search" placeholder="Zoek je hondenras..." autocomplete="off"><div id="breedGrid" class="breed-grid"></div></div><p class="privacy-note">🔒 Woonplaats gebruiken we alleen om de kaart goed te openen. Je live locatie wordt niet openbaar gedeeld.</p><button id="saveProfile" class="continue-btn" type="submit">Verder <span>→</span></button>
       </div>
     </form>
   </dialog>
@@ -107,7 +107,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="./vendor/leaflet/leaflet.js" crossorigin=""></script>
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=7"></script><script src="breed-catalog.js?v=1"></script>
   <script src="official-areas.js?v=9"></script>
   <script src="home.js?v=5"></script>
 </body>
