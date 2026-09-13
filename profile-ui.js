@@ -22,7 +22,9 @@
       .profile-avatar-big.wd-has-photo,.home-avatar.wd-has-photo,.avatar-btn.wd-has-photo{overflow:hidden;padding:0!important}
       #homeAvatar.wd-has-photo,#profileQuickAvatar.wd-has-photo,#navProfileAvatar.wd-has-photo{width:100%;height:100%;display:block;border-radius:50%;overflow:hidden}
       #navProfileAvatar.wd-has-photo{width:30px;height:30px;margin:auto}
-      @media(max-width:560px){.avatar-grid{grid-template-columns:repeat(5,minmax(50px,1fr))!important}.leaflet-bottom.leaflet-right{right:12px!important;bottom:280px!important}.map-actions{right:12px!important}}
+      .feedback-card{margin-top:14px;padding:14px;border:1px solid rgba(59,36,24,.12);border-radius:18px;background:#fff}.feedback-card b{display:block;margin-bottom:3px}.feedback-card p{margin:0 0 10px;color:#71655c;font-size:12px;line-height:1.45}.feedback-card button{width:100%;min-height:46px}
+      #feedbackDialog .feedback-sheet{max-width:560px}.feedback-options{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 14px}.feedback-options label{position:relative}.feedback-options input{position:absolute;opacity:0;pointer-events:none}.feedback-options span{min-height:44px;padding:8px;border:1.5px solid #d9cfc2;border-radius:12px;display:grid;place-items:center;background:#fff;font-weight:900;font-size:12px;text-align:center}.feedback-options input:checked+span{background:#3b2418;color:#fff;border-color:#3b2418}.feedback-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.feedback-note{font-size:11px;line-height:1.4;color:#71655c;margin-top:10px}
+      @media(max-width:560px){.avatar-grid{grid-template-columns:repeat(5,minmax(50px,1fr))!important}.leaflet-bottom.leaflet-right{right:12px!important;bottom:280px!important}.map-actions{right:12px!important}.feedback-options{grid-template-columns:1fr}.feedback-actions{grid-template-columns:1fr}}
     `;document.head.appendChild(s);
   }
 
@@ -84,8 +86,20 @@
     const s=document.createElement('script');s.src='./directory-ui.js?v=1';s.async=false;s.dataset.wdDirectoryUi='1';document.body.appendChild(s);
   }
 
+  function injectFeedback(){
+    const view=document.getElementById('view-profile');if(!view||document.getElementById('feedbackCard'))return;
+    const card=document.createElement('section');card.id='feedbackCard';card.className='feedback-card';card.innerHTML='<b>💬 Help Whatsup dog beter maken</b><p>Zie je een fout, is iets onduidelijk of mis je een functie? Deel het direct.</p><button id="openFeedback" type="button" class="primary">Geef feedback</button>';
+    view.appendChild(card);
+    const dlg=document.createElement('dialog');dlg.id='feedbackDialog';dlg.className='sheet-dialog';dlg.innerHTML=`<form id="feedbackForm" class="sheet-card feedback-sheet"><button type="button" class="dialog-close" data-close-dialog aria-label="Sluiten">×</button><div class="sheet-paw">💬</div><h2>Geef feedback</h2><p>Wat wil je ons laten weten?</p><div class="feedback-options"><label><input type="radio" name="feedbackType" value="Bug" required><span>🐞 Iets werkt niet</span></label><label><input type="radio" name="feedbackType" value="Onduidelijk" required><span>❓ Iets is onduidelijk</span></label><label><input type="radio" name="feedbackType" value="Wens" required><span>💡 Ik mis iets</span></label></div><label class="field"><span>Jouw feedback</span><textarea id="feedbackText" rows="5" maxlength="1200" placeholder="Beschrijf kort wat je zag, verwachtte of graag anders wilt." required></textarea></label><div class="feedback-actions"><button id="shareFeedback" type="submit" class="primary">Delen</button><button id="copyFeedback" type="button" class="outline-btn">Kopiëren</button></div><p class="feedback-note">We voegen alleen het app-versienummer en type apparaat/browser toe. Geen GPS, e-mail of exacte locatie.</p></form>`;
+    document.body.appendChild(dlg);
+    document.getElementById('openFeedback').addEventListener('click',()=>dlg.showModal());
+    const build=()=>{const type=document.querySelector('input[name="feedbackType"]:checked')?.value||'Feedback';const text=document.getElementById('feedbackText')?.value.trim()||'';const version=window.WHATSUP_DOG_RELEASE?.version||'onbekend';return `Whatsup dog feedback\nType: ${type}\nVersie: ${version}\nApparaat/browser: ${navigator.userAgent}\n\n${text}`};
+    document.getElementById('copyFeedback').addEventListener('click',async()=>{const text=build();if(!document.getElementById('feedbackText').value.trim()){window.toast?.('Schrijf eerst je feedback');return}try{await navigator.clipboard.writeText(text);window.toast?.('Feedback gekopieerd')}catch{window.toast?.('Kopiëren lukte niet')}});
+    document.getElementById('feedbackForm').addEventListener('submit',async e=>{e.preventDefault();const text=build();if(!document.getElementById('feedbackText').value.trim())return;try{if(navigator.share){await navigator.share({title:'Feedback op Whatsup dog',text});window.toast?.('Dankjewel voor je feedback 🐾');dlg.close();e.target.reset();return}}catch(err){if(err?.name==='AbortError')return;console.warn(err)}try{await navigator.clipboard.writeText(text);window.toast?.('Feedback gekopieerd — stuur hem via WhatsApp of e-mail')}catch{window.toast?.('Delen lukt niet op dit apparaat')}});
+  }
+
   function boot(){
-    injectStyles();removeDuplicateReportButton();enrichAvatarGrid();patchProfileRefresh();renderProfilePhoto();loadDirectoryUi();
+    injectStyles();removeDuplicateReportButton();enrichAvatarGrid();patchProfileRefresh();renderProfilePhoto();loadDirectoryUi();injectFeedback();
     document.addEventListener('click',()=>setTimeout(()=>{enrichAvatarGrid();renderProfilePhoto()},0));
     window.addEventListener('storage',e=>{if(e.key===PHOTO_KEY)renderProfilePhoto()});
   }
