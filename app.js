@@ -105,4 +105,7 @@ function setupChat(){
 function setupAlerts(){el('clearReports')?.addEventListener('click',()=>{const rows=allReports().filter(r=>r._remote);if(!allReports().length){toast('Er zijn geen meldingen om te wissen');return}if(!confirm('Lokale meldingen van dit toestel wissen? Gedeelde meldingen blijven online bestaan.'))return;saveJSON(STORAGE.reports,rows);drawReports();updateProfileUI();toast('Lokale meldingen gewist');window.WhatsupDogCommunity?.refresh?.()});el('pushDemo')?.addEventListener('click',async()=>{if(!('Notification'in window)){toast('Deze browser ondersteunt geen webmeldingen');return}if(Notification.permission==='default')await Notification.requestPermission();if(Notification.permission==='granted'){new Notification('🌿❗ Whatsup dog',{body:'Vegetatie gemeld in je wandelgebied.'});toast('Testmelding verstuurd')}else toast('Meldingen zijn niet toegestaan.')})}
 function registerServiceWorker(){if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{})}
 
-setupDialogs();setupNavigation();initMap();setupProfile();setupReports();setupAreaDetail();setupChat();setupAlerts();registerServiceWorker();
+setupDialogs();setupNavigation();initMap();setupProfile();setupReports();setupAreaDetail();setupChat();setupAlerts();
+// Persist the all-clear selection before the community refresh can rehydrate remote rows.
+el('clearReports')?.addEventListener('click',()=>{const hidden=loadJSON(STORAGE.hiddenReports,[]),ids=allReports().map(r=>r?.id).filter(Boolean);for(const id of ids)if(!hidden.includes(id))hidden.push(id);saveJSON(STORAGE.hiddenReports,hidden);saveJSON(STORAGE.reports,[]);drawReports();updateProfileUI()});
+registerServiceWorker();
