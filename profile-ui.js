@@ -20,27 +20,25 @@
       .photo-avatar-choice input{display:none}
       .wd-profile-photo{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important;display:block!important}
       .profile-avatar-big.wd-has-photo,.home-avatar.wd-has-photo,.avatar-btn.wd-has-photo{overflow:hidden;padding:0!important}
-      #navProfileAvatar.wd-has-photo{width:30px;height:30px;border-radius:50%;overflow:hidden;display:block}
+      #homeAvatar.wd-has-photo,#profileQuickAvatar.wd-has-photo,#navProfileAvatar.wd-has-photo{width:100%;height:100%;display:block;border-radius:50%;overflow:hidden}
+      #navProfileAvatar.wd-has-photo{width:30px;height:30px;margin:auto}
       @media(max-width:560px){.avatar-grid{grid-template-columns:repeat(5,minmax(50px,1fr))!important}.leaflet-bottom.leaflet-right{right:12px!important;bottom:280px!important}.map-actions{right:12px!important}}
     `;document.head.appendChild(s);
   }
 
   function removeDuplicateReportButton(){document.getElementById('mapPlusBtn')?.remove()}
-
   function photoData(){try{return localStorage.getItem(PHOTO_KEY)||''}catch{return''}}
   function savePhoto(data){try{if(data)localStorage.setItem(PHOTO_KEY,data);else localStorage.removeItem(PHOTO_KEY)}catch(err){console.warn('Profielfoto kon niet lokaal worden opgeslagen',err)}}
-
   function makeImg(src){const img=document.createElement('img');img.src=src;img.alt='Foto van je hond';img.className='wd-profile-photo';return img}
+
   function renderProfilePhoto(){
     const src=photoData();
-    const targets=[
-      ['profileAvatarBig',true],['profileQuick',true],['homeAvatar',false],['profileQuickAvatar',false],['navProfileAvatar',false]
-    ];
-    targets.forEach(([id,container])=>{
+    const ids=['profileAvatarBig','homeAvatar','profileQuickAvatar','navProfileAvatar'];
+    ids.forEach(id=>{
       const node=document.getElementById(id);if(!node)return;
-      if(!src){node.classList.remove('wd-has-photo');return}
-      if(container){node.innerHTML='';node.appendChild(makeImg(src));node.classList.add('wd-has-photo')}
-      else{node.innerHTML='';node.appendChild(makeImg(src));node.classList.add('wd-has-photo')}
+      const host=id==='homeAvatar'?node.closest('.home-avatar'):id==='profileQuickAvatar'?node.closest('.avatar-btn'):node;
+      if(!src){node.classList.remove('wd-has-photo');host?.classList.remove('wd-has-photo');return}
+      node.innerHTML='';node.appendChild(makeImg(src));node.classList.add('wd-has-photo');host?.classList.add('wd-has-photo');
     });
   }
 
@@ -60,7 +58,7 @@
     const grid=document.getElementById('avatarGrid');if(!grid||grid.dataset.wdEnhanced==='1')return;
     grid.dataset.wdEnhanced='1';
     const existing=new Set([...grid.querySelectorAll('[data-avatar]')].map(x=>x.dataset.avatar));
-    EXTRA_AVATARS.forEach((a,i)=>{
+    EXTRA_AVATARS.forEach(a=>{
       if(existing.has(a))return;
       const b=document.createElement('button');b.type='button';b.className='avatar-choice';b.dataset.avatar=a;b.setAttribute('aria-label',`Avatar ${a}`);b.textContent=a;grid.appendChild(b);
     });
