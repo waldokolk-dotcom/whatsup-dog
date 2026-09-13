@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1] - 2026-09-13
+- Koptekst “Rond jullie” verwijderd van Home.
+- Meldingenlijst is nu eerst in de app te bekijken als tabel, ook op laptop.
+- Vanuit dezelfde lijst kan nog steeds worden gedeeld of als CSV gedownload.
+- Chat legt duidelijk uit dat echte aangemelde gebruikers nog niet als selecteerbare namenlijst beschikbaar zijn.
+- Bestaande voorbeeld-/groepsgesprekken blijven herkenbaar gescheiden van echte gebruikers.
+
 ## [1.6.0] - 2026-09-13
 - Profielfoto kan vanuit fotobibliotheek/album gekozen worden.
 - Meldingen krijgen hoelang en mate van ergernis/impact 1-5.
