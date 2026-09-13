@@ -34,6 +34,8 @@ function initMap(){
   reportLayer=L.layerGroup().addTo(map);offleashLayer=L.featureGroup().addTo(map);onleashLayer=L.featureGroup();
   drawReports();
   el('locateBtn')?.addEventListener('click',locateUser);
+  el('mapZoomBtn')?.addEventListener('click',zoomToDogAreas);
+  el('mapPlusBtn')?.addEventListener('click',()=>{resetReportForm();el('reportDialog')?.showModal()});
   setupFilters();
   el('offleashToggle')?.addEventListener('change',e=>{if(e.target.checked){offleashLayer.addTo(map)}else if(map.hasLayer(offleashLayer)){map.removeLayer(offleashLayer)}});let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>map?.invalidateSize({pan:false}),120)},{passive:true});
 }
