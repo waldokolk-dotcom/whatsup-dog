@@ -1,6 +1,6 @@
 import fs from 'node:fs';import assert from 'node:assert/strict';import vm from 'node:vm';import {execFileSync} from 'node:child_process';
 const read=p=>fs.readFileSync(p,'utf8');
-const appSource=read('app.js'),smartSource=read('smart-report-v3.js');
+const appSource=read('app.js'),smartSource=read('smart-report-v3.js'),indexSource=read('index.html'),breedSource=read('breed-catalog.js');
 assert.equal((appSource.match(/function deleteReport\(/g)||[]).length,1,'Duplicate deleteReport handler');
 assert.match(appSource,/id="resolveReport"[\s\S]*id="deleteReport"/,'Point detail actions missing');
 assert.match(appSource,/el\('resolveReport'\)\.onclick=\(\)=>markReportResolved\(r\)/,'Point resolve handler missing');
@@ -12,6 +12,14 @@ assert.match(appSource,/hiddenReports:'wd_hidden_reports_v1'/,'Hidden report sto
 const backendSource=read('community-backend.js');
 assert.match(backendSource,/wd_hidden_reports_v1/,'Remote hidden report filter missing');
 assert.match(backendSource,/hiddenIds\.has\(row\.id\)/,'Remote refresh does not honor hidden reports');
+assert.equal((indexSource.match(/breed-catalog\.js/g)||[]).length,1,'Exactly one breed catalog must be loaded');
+assert.doesNotMatch(indexSource,/breed-catalog-expanded\.js|breed-custom\.js|breed-custom\.css/,'Legacy breed picker assets still referenced');
+assert.match(indexSource,/breed-catalog\.js\?v=2/,'Breed catalog cache-busting version missing');
+assert.match(indexSource,/breed\.css\?v=2/,'Breed styles cache-busting version missing');
+const breedContext={window:{},document:{getElementById:()=>null}};vm.runInNewContext(breedSource,breedContext);
+const breedCatalog=breedContext.window.WHATSUP_DOG_BREEDS;assert.ok(Array.isArray(breedCatalog),'Breed catalog export missing');assert.ok(breedCatalog.length>=200,'Breed catalog unexpectedly small');
+const breedNames=breedCatalog.map(x=>x.name),sortedBreedNames=[...breedNames].sort(new Intl.Collator('nl',{sensitivity:'base',numeric:true}).compare);assert.deepEqual(breedNames,sortedBreedNames,'Breed catalog is not alphabetical');assert.equal(new Set(breedNames).size,breedNames.length,'Duplicate breed names');
+const stabij=breedCatalog.find(x=>x.name==='Friese Stabij (Stabijhoun)');assert.ok(stabij,'Friese Stabij missing');assert.ok(stabij.aliases.includes('Stabijhoun'),'Stabijhoun alias missing');assert.ok(stabij.popular,'Friese Stabij should be marked popular');assert.ok(breedCatalog.find(x=>x.name==='Labrador Retriever')?.popular,'Popular breed marker missing');
 for(const f of fs.readdirSync('.').filter(f=>f.endsWith('.js')))execFileSync(process.execPath,['--check',f]);
 const manifest=JSON.parse(read('manifest.webmanifest'));assert.equal(manifest.scope,'./');assert.equal(manifest.start_url,'./');
 const geo=JSON.parse(read('data/nijkerk-losloopgebieden.geojson'));assert.equal(geo.features.length,20);
@@ -26,5 +34,5 @@ assert.deepEqual(deleted,['whatsup-dog:https://example.test/whatsup-dog/:v1']);
 const config={window:{},document:{querySelector:()=>true}};vm.runInNewContext(read('backend-config.js'),config);
 assert.ok(!String(config.window.WHATSUP_DOG_BACKEND.publishableKey).startsWith('sb_secret_'));
 if(config.window.WHATSUP_DOG_BACKEND.publishableKey.startsWith('eyJ'))assert.equal(JSON.parse(Buffer.from(config.window.WHATSUP_DOG_BACKEND.publishableKey.split('.')[1],'base64url')).role,'anon');
-for(const tag of read('index.html').matchAll(/(?:src|href)="([^"#]+)"/g)){if(!/^https?:/.test(tag[1]))assert.ok(fs.existsSync(tag[1].split('?')[0]),'Missing HTML asset '+tag[1]);}
-console.log('PASS: JavaScript, PWA assets, cache isolation, public config, 20 Nijkerk polygons');
+for(const tag of indexSource.matchAll(/(?:src|href)="([^"#]+)"/g)){if(!/^https?:/.test(tag[1]))assert.ok(fs.existsSync(tag[1].split('?')[0]),'Missing HTML asset '+tag[1]);}
+console.log(`PASS: JavaScript, PWA assets, breed catalog (${breedCatalog.length}), cache isolation, public config, 20 Nijkerk polygons`);
