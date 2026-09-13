@@ -22,6 +22,9 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/validate.mjs
+      - run: node scripts/dialog-ui-check.mjs
+      - run: node scripts/mobile-ux-agent.mjs
+      - run: node scripts/release-agent.mjs
       - uses: supabase/setup-cli@v1
         with:
           version: latest
