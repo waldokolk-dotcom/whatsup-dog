@@ -61,7 +61,7 @@ function setupProfile(){
   const p=profile();if(!p||!p.homePlace)setTimeout(()=>openProfileDialog(true),220)
 }
 function openProfileDialog(first=false){const p=profile();el('onboardingName').value=p?.name||'';el('onboardingHome').value=p?.homePlace||'';selectedAvatar=p?.avatar||avatars[0];document.querySelectorAll('.avatar-choice').forEach(x=>x.classList.toggle('selected',x.dataset.avatar===selectedAvatar));if(!el('onboardingDialog').open)el('onboardingDialog').showModal();if(first)setTimeout(()=>el('onboardingName').focus(),120)}
-function updateProfileUI(){const p=profile(),avatar=p?.avatar||'🐶',name=p?.name||'Jouw hond';el('profileQuickAvatar').textContent=avatar;el('navProfileAvatar').textContent=avatar;el('profileAvatarBig').textContent=avatar;el('profileName').textContent=name;el('profileSubtitle').textContent=p?.homePlace?`Woont in ${p.homePlace} · klaar om te snuffelen`:(p?'Klaar om te snuffelen':'Maak je hondenprofiel af');el('myReportCount').textContent=allReports().length}
+function updateProfileUI(){const p=profile(),avatar=p?.avatar||'🐶',name=p?.name||'Jouw hond';el('profileQuickAvatar').textContent=avatar;el('navProfileAvatar').textContent=avatar;el('profileAvatarBig').textContent=avatar;el('profileName').textContent=name;el('profileBreed').textContent=p?.breed||'Ras nog niet gekozen';el('profileSubtitle').textContent=p?.homePlace?`Woont in ${p.homePlace} · klaar om te snuffelen`:(p?'Klaar om te snuffelen':'Maak je hondenprofiel af');el('myReportCount').textContent=allReports().length}
 
 function setupReports(){
   el('reportFab')?.addEventListener('click',()=>{resetReportForm();el('reportDialog').showModal()});
