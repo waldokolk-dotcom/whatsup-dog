@@ -2,7 +2,7 @@
   function loadDialogUi(){
     if(document.querySelector('script[data-wd-dialog-ui]'))return;
     const script=document.createElement('script');
-    script.src='./dialog-ui.js?v=1';
+    script.src='./dialog-ui.js?v=2';
     script.async=false;
     script.dataset.wdDialogUi='1';
     document.body.appendChild(script);
