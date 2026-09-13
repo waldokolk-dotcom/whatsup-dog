@@ -88,9 +88,10 @@
   function resetSmart(){clearPhoto();stopPick({clear:true});S.geometryMode='point';S.point=null;S.polygon=null;S.ai=null;$('geometryPointV2')?.classList.add('active');$('geometryAreaV2')?.classList.remove('active');if($('pickOnMapV2'))$('pickOnMapV2').textContent='📍 Kies de exacte plek op de kaart';updateLocationStatus()}
 
   function saveReport(e){
-    e.preventDefault();e.stopImmediatePropagation();if(!selectedReportType){toast('Kies eerst wat je hebt gespot');return}if(selectedReportType==='vegetation'&&!selectedVegetation){toast('Kies welk soort vegetatie je ziet, of kies “Anders”.');return}if(S.geometryMode==='area'&&!S.polygon){toast('Teken eerst het gebied op de kaart');return}
+    e.preventDefault();e.stopImmediatePropagation();if(!selectedReportType){toast('Kies eerst wat je hebt gespot');return}if(selectedReportType==='vegetation'&&!selectedVegetation){toast('Kies welk soort vegetatie je ziet, of kies “Anders”.');return}if(selectedReportType==='lost'&&!selectedLostKind){toast('Kies vermist of gevonden');return}if(S.geometryMode==='area'&&!S.polygon){toast('Teken eerst het gebied op de kaart');return}
+    const subtype=selectedReportType==='lost'?(selectedLostKind==='missing'?'Vermiste hond':'Gevonden hond'):selectedVegetation;
     const p=profile(),reports=allReports();let loc;if(S.geometryMode==='area')loc=polygonCenter(S.polygon);else if(S.point)loc=S.point;else{const c=map.getCenter();loc={lat:c.lat,lng:c.lng}};
-    const report={id:crypto.randomUUID?.()||String(Date.now()),type:selectedReportType,subtype:selectedVegetation,text:$('reportText').value.trim()||defaultReportText(selectedReportType,selectedVegetation),lat:loc.lat,lng:loc.lng,time:'Zojuist',createdAt:new Date().toISOString(),author:p?.name||'Anonieme hond',confirmed:0,geometryType:S.geometryMode==='area'?'polygon':'point',polygon:S.geometryMode==='area'?S.polygon:null,photoDataUrl:S.photo||null,photoName:S.photoName||null,aiSuggestion:S.ai||null,photoPrivacy:'canvas-reencoded-no-original-exif'};
+    const report={id:crypto.randomUUID?.()||String(Date.now()),type:selectedReportType,subtype,text:$('reportText').value.trim()||defaultReportText(selectedReportType,subtype),lat:loc.lat,lng:loc.lng,time:'Zojuist',createdAt:new Date().toISOString(),author:p?.name||'Anonieme hond',confirmed:0,geometryType:S.geometryMode==='area'?'polygon':'point',polygon:S.geometryMode==='area'?S.polygon:null,photoDataUrl:S.photo||null,photoName:S.photoName||null,aiSuggestion:S.ai||null,photoPrivacy:'canvas-reencoded-no-original-exif'};
     try{reports.push(report);saveJSON(STORAGE.reports,reports)}catch(err){console.warn(err);toast('Opslag op dit toestel zit vol. Verwijder een oude foto of melding.');return}
     drawReports();renderPolygons();updateProfileUI();reportDialog()?.close();stopPick({clear:true});toast(report.geometryType==='polygon'?'🐾 Gebied staat op de kaart.':'🐾 Melding staat op de kaart.');resetSmart();
   }
@@ -106,7 +107,7 @@
     const originalOpen=window.openReportDetail;if(typeof originalOpen==='function')window.openReportDetail=r=>(r?.photoDataUrl||r?.aiSuggestion||r?.geometryType==='polygon'?openEnhancedDetail(r):originalOpen(r));
     $('reportForm')?.addEventListener('submit',saveReport,true);
     $('reportTypes')?.addEventListener('click',e=>{if(!e.target.closest('[data-report-type]'))return;setTimeout(()=>{updateSummary();$('reportDetails')?.scrollIntoView({behavior:'smooth',block:'start'})},50)});
-    $('reportFab')?.addEventListener('click',()=>setTimeout(()=>{resetSmart();updateSummary()},0));$('filterRow')?.addEventListener('click',()=>setTimeout(renderPolygons,30));
+    const resetOnOpen=()=>setTimeout(()=>{resetSmart();updateSummary()},0);$('reportFab')?.addEventListener('click',resetOnOpen);$('mapPlusBtn')?.addEventListener('click',resetOnOpen);$('filterRow')?.addEventListener('click',()=>setTimeout(renderPolygons,30));
     setTimeout(renderPolygons,250);window.WHATSUP_DOG_SMART_REPORT_V3={state:S,reset:resetSmart,render:renderPolygons};
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
