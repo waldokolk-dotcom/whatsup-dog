@@ -1,32 +1,36 @@
 name: Publish PWA to GitHub Pages
 on:
-  workflow_dispatch:
-  workflow_run:
-    workflows: ["Validate app and Supabase"]
-    types: [completed]
+  push:
     branches: [main]
+  workflow_dispatch:
 permissions:
   contents: read
   pages: write
   id-token: write
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   deploy:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: node scripts/validate.mjs
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase start
+      - run: supabase db reset
+      - run: supabase test db
+      - run: node scripts/api-e2e.mjs
+      - if: always()
+        run: supabase stop --no-backup
       - run: node scripts/build-site.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
