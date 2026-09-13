@@ -12,135 +12,43 @@
   function injectStyles(){
     if(document.getElementById('wd-community-tools-style'))return;
     const s=document.createElement('style');s.id='wd-community-tools-style';s.textContent=`
-      .report-admin-meta{margin:12px 0;padding:13px;border:1px solid rgba(59,36,24,.12);border-radius:16px;background:#fff}
-      .report-admin-meta h3{margin:0 0 9px;font-size:14px}.report-admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-      .report-admin-grid label{display:grid;gap:5px;font-size:11px;font-weight:900}.report-admin-grid select{width:100%;min-height:44px;border:1.5px solid #ddd3c4;border-radius:12px;background:#fff;padding:9px 10px;color:#3b2418;font-size:16px}
+      .report-admin-meta{margin:12px 0;padding:13px;border:1px solid rgba(59,36,24,.12);border-radius:16px;background:#fff}.report-admin-meta h3{margin:0 0 9px;font-size:14px}.report-admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.report-admin-grid label{display:grid;gap:5px;font-size:11px;font-weight:900}.report-admin-grid select{width:100%;min-height:44px;border:1.5px solid #ddd3c4;border-radius:12px;background:#fff;padding:9px 10px;color:#3b2418;font-size:16px}
       .annoyance-scale{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.annoyance-scale label{position:relative}.annoyance-scale input{position:absolute;opacity:0;pointer-events:none}.annoyance-scale span{min-height:44px;border:1.5px solid #d8cec0;border-radius:12px;background:#fff;display:grid;place-items:center;font-weight:1000;font-size:16px}.annoyance-scale input:checked+span{background:#3b2418;color:#fff;border-color:#3b2418}.annoyance-help{margin:6px 0 0;color:#71655c;font-size:10px}
-      .municipal-export{margin:14px 0;background:#fff;border:1px solid rgba(59,36,24,.12);border-radius:20px;padding:14px}.municipal-export h3{margin:0 0 4px}.municipal-export p{margin:0 0 10px;color:#71655c;font-size:12px;line-height:1.4}.municipal-export button{width:100%;min-height:48px}
-      .chat-thread[data-wd-hidden="1"]{display:none!important}
-      @media(max-width:560px){.report-admin-grid{grid-template-columns:1fr}.municipal-export{margin-left:0;margin-right:0}}
+      .municipal-export{margin:14px 0;background:#fff;border:1px solid rgba(59,36,24,.12);border-radius:20px;padding:14px}.municipal-export h3{margin:0 0 4px}.municipal-export p{margin:0 0 10px;color:#71655c;font-size:12px;line-height:1.4}.municipal-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.municipal-actions button{min-height:48px}.report-list-wrap{display:none;margin-top:12px;border-top:1px solid rgba(59,36,24,.1);padding-top:12px}.report-list-wrap.open{display:block}.report-list-count{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.report-list-count b{font-size:13px}.report-list-scroll{overflow:auto;max-height:54vh;border:1px solid #e4dbcf;border-radius:14px;background:#fff}.report-list-table{width:100%;border-collapse:collapse;min-width:760px;font-size:12px}.report-list-table th,.report-list-table td{padding:10px 9px;text-align:left;vertical-align:top;border-bottom:1px solid #eee6dc}.report-list-table th{position:sticky;top:0;background:#f7f0e2;z-index:1;font-size:11px}.report-list-table a{color:#176fa8;font-weight:800}.report-list-empty{padding:18px;text-align:center;color:#71655c}
+      .chat-directory-note{margin:10px 0 12px;padding:11px 12px;border-radius:14px;background:#f5efe3;border:1px solid rgba(59,36,24,.1);font-size:11px;line-height:1.45;color:#66594f}.chat-directory-note b{display:block;color:#3b2418;margin-bottom:2px}.chat-thread[data-wd-hidden="1"]{display:none!important}
+      @media(max-width:560px){.report-admin-grid{grid-template-columns:1fr}.municipal-actions{grid-template-columns:1fr}.report-list-scroll{max-height:48vh}}
     `;document.head.appendChild(s);
   }
 
-  function enableAlbumPicker(){
-    const input=document.getElementById('dogProfilePhotoInput');if(!input)return;
-    input.removeAttribute('capture');
-    const label=input.closest('.photo-avatar-choice');
-    if(label&&!label.dataset.albumReady){
-      label.dataset.albumReady='1';
-      const span=label.querySelector('span');if(span)span.textContent='🖼️';
-      for(const node of [...label.childNodes])if(node.nodeType===Node.TEXT_NODE&&node.textContent.trim())node.textContent=' Album';
-      label.title='Kies uit fotobibliotheek, camera of bestanden';
-      label.setAttribute('aria-label','Foto van je hond kiezen uit album, camera of bestanden');
-    }
-  }
+  function enableAlbumPicker(){const input=document.getElementById('dogProfilePhotoInput');if(!input)return;input.removeAttribute('capture');const label=input.closest('.photo-avatar-choice');if(label&&!label.dataset.albumReady){label.dataset.albumReady='1';const span=label.querySelector('span');if(span)span.textContent='🖼️';for(const node of [...label.childNodes])if(node.nodeType===Node.TEXT_NODE&&node.textContent.trim())node.textContent=' Album';label.title='Kies uit fotobibliotheek, camera of bestanden';label.setAttribute('aria-label','Foto van je hond kiezen uit album, camera of bestanden')}}
 
-  function injectReportMeta(){
-    const details=document.getElementById('reportDetails');if(!details||document.getElementById('reportAdminMeta'))return;
-    const section=document.createElement('section');section.id='reportAdminMeta';section.className='report-admin-meta';section.innerHTML=`
-      <h3>Voor een bruikbare melding</h3>
-      <div class="report-admin-grid">
-        <label>Hoelang speelt dit al?
-          <select id="reportDuration" required>
-            <option value="" selected disabled>Kies…</option>
-            <option>Net gezien</option><option>Minder dan 1 dag</option><option>1–3 dagen</option><option>4–7 dagen</option><option>Meer dan 1 week</option><option>Onbekend</option>
-          </select>
-        </label>
-        <div><b style="font-size:11px">Mate van ergernis / impact</b>
-          <div class="annoyance-scale" role="radiogroup" aria-label="Mate van ergernis of impact van 1 tot 5">
-            ${[1,2,3,4,5].map(n=>`<label><input required type="radio" name="reportAnnoyance" value="${n}"><span>${n}</span></label>`).join('')}
-          </div><p class="annoyance-help">1 = gering · 5 = zeer ernstig / hinderlijk</p>
-        </div>
-      </div>`;
-    const smart=document.getElementById('smartReportToolsV2');
-    if(smart)smart.insertAdjacentElement('afterend',section);else details.prepend(section);
-  }
+  function injectReportMeta(){const details=document.getElementById('reportDetails');if(!details||document.getElementById('reportAdminMeta'))return;const section=document.createElement('section');section.id='reportAdminMeta';section.className='report-admin-meta';section.innerHTML=`<h3>Voor een bruikbare melding</h3><div class="report-admin-grid"><label>Hoelang speelt dit al?<select id="reportDuration" required><option value="" selected disabled>Kies…</option><option>Net gezien</option><option>Minder dan 1 dag</option><option>1–3 dagen</option><option>4–7 dagen</option><option>Meer dan 1 week</option><option>Onbekend</option></select></label><div><b style="font-size:11px">Mate van ergernis / impact</b><div class="annoyance-scale" role="radiogroup" aria-label="Mate van ergernis of impact van 1 tot 5">${[1,2,3,4,5].map(n=>`<label><input required type="radio" name="reportAnnoyance" value="${n}"><span>${n}</span></label>`).join('')}</div><p class="annoyance-help">1 = gering · 5 = zeer ernstig / hinderlijk</p></div></div>`;const smart=document.getElementById('smartReportToolsV2');if(smart)smart.insertAdjacentElement('afterend',section);else details.prepend(section)}
 
-  function installReportMetadataSave(){
-    if(window.saveJSON?.__wdCommunityTools)return;
-    const base=window.saveJSON;if(typeof base!=='function')return;
-    const wrapped=function(key,value){
-      if(key===REPORTS_KEY&&Array.isArray(value)&&document.getElementById('reportDialog')?.open){
-        const duration=document.getElementById('reportDuration')?.value||'';
-        const annoyance=Number(document.querySelector('input[name="reportAnnoyance"]:checked')?.value||0);
-        if(duration&&annoyance>=1&&annoyance<=5&&value.length){
-          const last=value[value.length-1];
-          if(last&&typeof last==='object'&&!last.duration){
-            last.duration=duration;last.annoyance=annoyance;
-            last.aiSuggestion={...(last.aiSuggestion&&typeof last.aiSuggestion==='object'?last.aiSuggestion:{}),reportMeta:{duration,annoyance}};
-          }
-        }
-      }
-      return base(key,value);
-    };
-    wrapped.__wdCommunityTools=true;window.saveJSON=wrapped;
-  }
+  function installReportMetadataSave(){if(window.saveJSON?.__wdCommunityTools)return;const base=window.saveJSON;if(typeof base!=='function')return;const wrapped=function(key,value){if(key===REPORTS_KEY&&Array.isArray(value)&&document.getElementById('reportDialog')?.open){const duration=document.getElementById('reportDuration')?.value||'';const annoyance=Number(document.querySelector('input[name="reportAnnoyance"]:checked')?.value||0);if(duration&&annoyance>=1&&annoyance<=5&&value.length){const last=value[value.length-1];if(last&&typeof last==='object'&&!last.duration){last.duration=duration;last.annoyance=annoyance;last.aiSuggestion={...(last.aiSuggestion&&typeof last.aiSuggestion==='object'?last.aiSuggestion:{}),reportMeta:{duration,annoyance}}}}}return base(key,value)};wrapped.__wdCommunityTools=true;window.saveJSON=wrapped}
 
   function metaOf(r){const m=r?.aiSuggestion?.reportMeta||{};return{duration:r?.duration||m.duration||'Onbekend',annoyance:Number(r?.annoyance||m.annoyance)||''}}
   function typeLabel(r){try{return (window.reportTypes||reportTypes||[]).find(t=>t.id===r.type)?.label||r.subtype||r.type||'Melding'}catch{return r.subtype||r.type||'Melding'}}
   function csvCell(value){const s=String(value??'').replace(/\r?\n/g,' ');return `"${s.replace(/"/g,'""')}"`}
-  function buildMunicipalCsv(){
-    const rows=read(REPORTS_KEY,[]).filter(r=>r&&r.id);
-    const header=['Datum','Wat','Waar','Hoelang','Ergernis 1-5','Omschrijving','Status','Kaartlink'];
-    const body=rows.map(r=>{
-      const meta=metaOf(r),lat=Number(r.lat),lng=Number(r.lng),where=Number.isFinite(lat)&&Number.isFinite(lng)?`${lat.toFixed(6)}, ${lng.toFixed(6)}`:'Onbekend';
-      const mapLink=Number.isFinite(lat)&&Number.isFinite(lng)?`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`:'';
-      const date=r.createdAt?new Date(r.createdAt).toLocaleString('nl-NL'):(r.time||'Onbekend');
-      const what=r.subtype||typeLabel(r);return [date,what,where,meta.duration,meta.annoyance||'Onbekend',r.text||'',r.resolved?'Opgelost':'Actief',mapLink].map(csvCell).join(';');
-    });
-    return '\uFEFF'+[header.map(csvCell).join(';'),...body].join('\r\n');
-  }
+  function reportRows(){return read(REPORTS_KEY,[]).filter(r=>r&&r.id)}
+  function reportData(r){const meta=metaOf(r),lat=Number(r.lat),lng=Number(r.lng),has=Number.isFinite(lat)&&Number.isFinite(lng);return{date:r.createdAt?new Date(r.createdAt).toLocaleString('nl-NL'):(r.time||'Onbekend'),what:r.subtype||typeLabel(r),where:has?`${lat.toFixed(6)}, ${lng.toFixed(6)}`:'Onbekend',duration:meta.duration,annoyance:meta.annoyance||'Onbekend',text:r.text||'',status:r.resolved?'Opgelost':'Actief',mapLink:has?`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`:''}}
+  function buildMunicipalCsv(){const header=['Datum','Wat','Waar','Hoelang','Ergernis 1-5','Omschrijving','Status','Kaartlink'];const body=reportRows().map(r=>{const d=reportData(r);return [d.date,d.what,d.where,d.duration,d.annoyance,d.text,d.status,d.mapLink].map(csvCell).join(';')});return '\uFEFF'+[header.map(csvCell).join(';'),...body].join('\r\n')}
 
-  async function shareMunicipalList(){
-    const reports=read(REPORTS_KEY,[]);if(!reports.length){window.toast?.('Er zijn nog geen meldingen om te delen');return}
-    const csv=buildMunicipalCsv(),name=`whatsup-dog-meldingen-${new Date().toISOString().slice(0,10)}.csv`;
-    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const file=new File([blob],name,{type:'text/csv'});
-    try{
-      if(navigator.canShare?.({files:[file]})){await navigator.share({title:'Whatsup dog meldingenlijst',text:'Overzicht van meldingen met locatie, duur en mate van ergernis.',files:[file]});window.toast?.('Meldingenlijst gedeeld');return}
-    }catch(err){if(err?.name==='AbortError')return;console.warn(err)}
-    const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);window.toast?.('Meldingenlijst gedownload');
-  }
+  function renderReportList(){const wrap=document.getElementById('reportListWrap');if(!wrap)return;const rows=reportRows();wrap.innerHTML=`<div class="report-list-count"><b>${rows.length} melding${rows.length===1?'':'en'}</b><small>Nieuwste gegevens van dit toestel</small></div>${rows.length?`<div class="report-list-scroll"><table class="report-list-table"><thead><tr><th>Datum</th><th>Wat</th><th>Waar</th><th>Hoelang</th><th>Ergernis</th><th>Status</th><th>Omschrijving</th></tr></thead><tbody>${rows.map(r=>{const d=reportData(r);return `<tr><td>${esc(d.date)}</td><td><b>${esc(d.what)}</b></td><td>${d.mapLink?`<a href="${esc(d.mapLink)}" target="_blank" rel="noopener">${esc(d.where)}</a>`:esc(d.where)}</td><td>${esc(d.duration)}</td><td><b>${esc(d.annoyance)}</b>/5</td><td>${esc(d.status)}</td><td>${esc(d.text)}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="report-list-empty">Nog geen meldingen om te tonen.</div>'}`}
+  function toggleReportList(){const wrap=document.getElementById('reportListWrap');if(!wrap)return;renderReportList();const open=!wrap.classList.contains('open');wrap.classList.toggle('open',open);const btn=document.getElementById('viewMunicipalReports');if(btn)btn.textContent=open?'Verberg meldingenlijst':'Bekijk meldingenlijst'}
 
-  function injectMunicipalExport(){
-    const view=document.getElementById('view-alerts');if(!view||document.getElementById('municipalExport'))return;
-    const card=document.createElement('section');card.id='municipalExport';card.className='municipal-export';card.innerHTML='<h3>📋 Meldingen delen</h3><p>Maak een lijst voor bijvoorbeeld de gemeente met wat, waar, hoelang en de mate van ergernis/impact (1–5).</p><button type="button" class="primary" id="shareMunicipalReports">Deel meldingenlijst</button>';
-    const settings=view.querySelector('.settings-card');settings?.insertAdjacentElement('afterend',card);card.querySelector('button').addEventListener('click',shareMunicipalList);
-  }
+  async function shareMunicipalList(){const reports=reportRows();if(!reports.length){window.toast?.('Er zijn nog geen meldingen om te delen');return}const csv=buildMunicipalCsv(),name=`whatsup-dog-meldingen-${new Date().toISOString().slice(0,10)}.csv`;const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const file=new File([blob],name,{type:'text/csv'});try{if(navigator.canShare?.({files:[file]})){await navigator.share({title:'Whatsup dog meldingenlijst',text:'Overzicht van meldingen met locatie, duur en mate van ergernis.',files:[file]});window.toast?.('Meldingenlijst gedeeld');return}}catch(err){if(err?.name==='AbortError')return;console.warn(err)}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);window.toast?.('Meldingenlijst gedownload')}
+
+  function injectMunicipalExport(){const view=document.getElementById('view-alerts');if(!view||document.getElementById('municipalExport'))return;const card=document.createElement('section');card.id='municipalExport';card.className='municipal-export';card.innerHTML='<h3>📋 Meldingenoverzicht</h3><p>Bekijk eerst de meldingen in de app. Daarna kun je hetzelfde overzicht delen of als CSV downloaden voor bijvoorbeeld de gemeente.</p><div class="municipal-actions"><button type="button" class="outline-btn" id="viewMunicipalReports">Bekijk meldingenlijst</button><button type="button" class="primary" id="shareMunicipalReports">Deel / download lijst</button></div><div id="reportListWrap" class="report-list-wrap"></div>';const settings=view.querySelector('.settings-card');settings?.insertAdjacentElement('afterend',card);document.getElementById('viewMunicipalReports')?.addEventListener('click',toggleReportList);document.getElementById('shareMunicipalReports')?.addEventListener('click',shareMunicipalList)}
+
+  function injectChatDirectoryNote(){const view=document.getElementById('view-chat');if(!view||document.getElementById('chatDirectoryNote'))return;const note=document.createElement('div');note.id='chatDirectoryNote';note.className='chat-directory-note';note.innerHTML='<b>Persoonlijke contacten</b>Echte aangemelde gebruikers zijn nog niet als namenlijst beschikbaar. De huidige gesprekken zijn lokale voorbeeld-/groepsgesprekken. Een veilige gebruikersdirectory wordt apart geactiveerd zodra profielen daarvoor gedeeld mogen worden.';const segments=view.querySelector('.segment-row');segments?.insertAdjacentElement('afterend',note)}
 
   function hiddenChats(){return new Set(read(HIDDEN_CHATS_KEY,[]))}
   function rememberHidden(id){if(!id)return;const s=hiddenChats();s.add(String(id));write(HIDDEN_CHATS_KEY,[...s])}
-  function applyHiddenChats(){
-    const hidden=hiddenChats();document.querySelectorAll('#chatList [data-chat-id]').forEach(row=>{const hide=hidden.has(String(row.dataset.chatId));row.dataset.wdHidden=hide?'1':'0'});
-    const visible=[...document.querySelectorAll('#chatList [data-chat-id]')].some(row=>row.dataset.wdHidden!=='1');
-    const list=document.getElementById('chatList');if(list&&!visible&&list.querySelector('[data-chat-id]')){let empty=list.querySelector('.wd-chat-empty');if(!empty){empty=document.createElement('p');empty.className='chat-empty wd-chat-empty';empty.textContent='Geen gesprekken meer. Start een nieuw gesprek wanneer je wilt.';list.appendChild(empty)}}
-  }
+  function applyHiddenChats(){const hidden=hiddenChats();document.querySelectorAll('#chatList [data-chat-id]').forEach(row=>{const hide=hidden.has(String(row.dataset.chatId));row.dataset.wdHidden=hide?'1':'0'});const visible=[...document.querySelectorAll('#chatList [data-chat-id]')].some(row=>row.dataset.wdHidden!=='1');const list=document.getElementById('chatList');if(list&&!visible&&list.querySelector('[data-chat-id]')){let empty=list.querySelector('.wd-chat-empty');if(!empty){empty=document.createElement('p');empty.className='chat-empty wd-chat-empty';empty.textContent='Geen gesprekken meer. Start een nieuw gesprek wanneer je wilt.';list.appendChild(empty)}}}
+  function installChatDeletion(){const list=document.getElementById('chatList');if(list&&!list.dataset.wdObserve){list.dataset.wdObserve='1';new MutationObserver(applyHiddenChats).observe(list,{childList:true,subtree:true});applyHiddenChats()}document.addEventListener('click',e=>{const row=e.target.closest?.('#chatList [data-chat-id]');if(row)lastChatId=String(row.dataset.chatId||'')},true);document.addEventListener('click',e=>{const clearOne=e.target.closest?.('#clearConversation');if(clearOne){const id=lastChatId;setTimeout(()=>{const conversation=document.getElementById('chatConversation');if(!conversation?.classList.contains('hidden'))return;if(id){rememberHidden(id);const msgs=read(CHAT_KEY,[]).filter(m=>String(m.id)!==id&&String(m.chatId)!==id);write(CHAT_KEY,msgs)}applyHiddenChats()},0);return}const clearAll=e.target.closest?.('#clearChat');if(!clearAll)return;e.preventDefault();e.stopImmediatePropagation();if(!confirm('Alle gesprekken en eigen berichten op dit toestel wissen?'))return;write(CHAT_KEY,[]);write(HIDDEN_CHATS_KEY,DEFAULT_CHAT_IDS);window.toast?.('Alle gesprekken gewist');setTimeout(()=>location.reload(),180)},true)}
 
-  function installChatDeletion(){
-    const list=document.getElementById('chatList');if(list&&!list.dataset.wdObserve){list.dataset.wdObserve='1';new MutationObserver(applyHiddenChats).observe(list,{childList:true,subtree:true});applyHiddenChats()}
-    document.addEventListener('click',e=>{
-      const row=e.target.closest?.('#chatList [data-chat-id]');if(row)lastChatId=String(row.dataset.chatId||'');
-    },true);
-    document.addEventListener('click',e=>{
-      const clearOne=e.target.closest?.('#clearConversation');if(clearOne){
-        const id=lastChatId;setTimeout(()=>{
-          const conversation=document.getElementById('chatConversation');if(!conversation?.classList.contains('hidden'))return;
-          if(id){rememberHidden(id);const msgs=read(CHAT_KEY,[]).filter(m=>String(m.id)!==id&&String(m.chatId)!==id);write(CHAT_KEY,msgs)}applyHiddenChats();
-        },0);return;
-      }
-      const clearAll=e.target.closest?.('#clearChat');if(!clearAll)return;
-      e.preventDefault();e.stopImmediatePropagation();
-      if(!confirm('Alle gesprekken en eigen berichten op dit toestel wissen?'))return;
-      write(CHAT_KEY,[]);write(HIDDEN_CHATS_KEY,DEFAULT_CHAT_IDS);window.toast?.('Alle gesprekken gewist');setTimeout(()=>location.reload(),180);
-    },true);
-  }
+  function resetMetaOnNewReport(){document.getElementById('reportFab')?.addEventListener('click',()=>setTimeout(()=>{const d=document.getElementById('reportDuration');if(d)d.value='';document.querySelectorAll('input[name="reportAnnoyance"]').forEach(x=>x.checked=false)},0))}
 
-  function resetMetaOnNewReport(){
-    document.getElementById('reportFab')?.addEventListener('click',()=>setTimeout(()=>{const d=document.getElementById('reportDuration');if(d)d.value='';document.querySelectorAll('input[name="reportAnnoyance"]').forEach(x=>x.checked=false)},0));
-  }
-
-  function boot(){injectStyles();enableAlbumPicker();injectReportMeta();installReportMetadataSave();injectMunicipalExport();installChatDeletion();resetMetaOnNewReport();
-    const obs=new MutationObserver(()=>{enableAlbumPicker();injectReportMeta();injectMunicipalExport();applyHiddenChats()});obs.observe(document.body,{childList:true,subtree:true});
-    window.WHATSUP_DOG_COMMUNITY_TOOLS={buildMunicipalCsv,shareMunicipalList,applyHiddenChats};
-  }
+  function boot(){injectStyles();enableAlbumPicker();injectReportMeta();installReportMetadataSave();injectMunicipalExport();injectChatDirectoryNote();installChatDeletion();resetMetaOnNewReport();const obs=new MutationObserver(()=>{enableAlbumPicker();injectReportMeta();injectMunicipalExport();injectChatDirectoryNote();applyHiddenChats()});obs.observe(document.body,{childList:true,subtree:true});document.addEventListener('wd:shared-reports-updated',()=>{if(document.getElementById('reportListWrap')?.classList.contains('open'))renderReportList()});window.WHATSUP_DOG_COMMUNITY_TOOLS={buildMunicipalCsv,shareMunicipalList,renderReportList,applyHiddenChats}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,60),{once:true});else setTimeout(boot,60);
 })();
