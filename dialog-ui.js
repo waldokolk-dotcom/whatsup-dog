@@ -1,6 +1,7 @@
 (()=>{
   const STYLE_ID='wd-dialog-ui-style';
   const CARD_SELECTOR='.sheet-card,.onboarding-card';
+  const INTERACTIVE='button,input,textarea,label,a,select,option,[contenteditable="true"]';
 
   function injectStyles(){
     if(document.getElementById(STYLE_ID))return;
@@ -38,16 +39,20 @@
       .sheet-card::-webkit-scrollbar-track,.onboarding-body::-webkit-scrollbar-track{background:transparent;margin:22px 0}
       .sheet-card::-webkit-scrollbar-thumb,.onboarding-body::-webkit-scrollbar-thumb{background:rgba(59,36,24,.32);border:3px solid transparent;background-clip:padding-box;border-radius:999px}
       .dialog-drag-handle{
-        position:sticky;top:-26px;z-index:40;width:64px;height:24px;margin:-6px auto 2px;
+        position:sticky;top:-26px;z-index:40;width:96px;height:30px;margin:-8px auto 0;
         display:grid;place-items:center;touch-action:none;cursor:grab;user-select:none;
       }
-      .dialog-drag-handle::before{content:"";width:44px;height:5px;border-radius:999px;background:rgba(59,36,24,.28)}
-      .dialog-drag-handle:active{cursor:grabbing}
+      .dialog-drag-handle::before{content:"";width:54px;height:6px;border-radius:999px;background:rgba(59,36,24,.32)}
+      .dialog-drag-handle:active,.onboarding-card.is-dragging,.sheet-card.is-dragging{cursor:grabbing!important}
       .onboarding-card>.dialog-drag-handle{
-        position:absolute;top:8px;left:50%;transform:translateX(-50%);margin:0;
-        background:rgba(255,253,248,.72);border-radius:999px;backdrop-filter:blur(5px)
+        position:absolute;top:10px;left:50%;transform:translateX(-50%);margin:0;
+        background:rgba(255,253,248,.80);border-radius:999px;backdrop-filter:blur(5px)
       }
-      .dialog-close{border-radius:50%!important}
+      .wd-close-branded{
+        display:grid!important;place-items:center!important;padding:0!important;
+        background:#f0e5c9!important;border:0!important;border-radius:50%!important;
+      }
+      .wd-close-branded img{width:24px;height:24px;display:block;pointer-events:none}
       @media(max-width:520px){
         .onboarding-card,.sheet-card{width:calc(100vw - 12px)!important;max-height:calc(100dvh - 12px)!important;border-radius:24px!important}
         .onboarding-card{height:calc(100dvh - 12px)!important}
@@ -56,6 +61,17 @@
       @media(prefers-reduced-motion:reduce){.onboarding-card,.sheet-card{transition:none!important}}
     `;
     document.head.appendChild(style);
+  }
+
+  function brandCloseButtons(root=document){
+    root.querySelectorAll('.dialog-close,[data-close-dialog]').forEach(button=>{
+      if(button.dataset.wdBrandedClose==='1')return;
+      if(button.textContent.trim()!=='×')return;
+      button.dataset.wdBrandedClose='1';
+      button.classList.add('wd-close-branded');
+      button.innerHTML='<img src="./icon.svg" alt="" aria-hidden="true">';
+      if(!button.getAttribute('aria-label'))button.setAttribute('aria-label','Sluiten');
+    });
   }
 
   function clampOffset(card,x,y){
@@ -67,9 +83,14 @@
     return {x:Math.max(-maxX,Math.min(maxX,x)),y:Math.max(-maxY,Math.min(maxY,y))};
   }
 
+  function setOffset(card,x,y){
+    const next=clampOffset(card,x,y);
+    card.dataset.dragX=String(next.x);card.dataset.dragY=String(next.y);
+    card.style.setProperty('--dialog-x',`${next.x}px`);card.style.setProperty('--dialog-y',`${next.y}px`);
+  }
+
   function resetCard(card){
-    card.dataset.dragX='0';card.dataset.dragY='0';
-    card.style.setProperty('--dialog-x','0px');card.style.setProperty('--dialog-y','0px');
+    setOffset(card,0,0);
     const scroller=card.classList.contains('onboarding-card')?card.querySelector('.onboarding-body'):card;
     if(scroller)scroller.scrollTop=0;
   }
@@ -83,50 +104,64 @@
     handle.setAttribute('tabindex','0');
     handle.setAttribute('aria-label','Popup verslepen');
     card.prepend(handle);
+
     let drag=null;
-    handle.addEventListener('pointerdown',e=>{
-      if(e.button!==undefined&&e.button!==0)return;
-      const startX=Number(card.dataset.dragX||0),startY=Number(card.dataset.dragY||0);
-      drag={pointerId:e.pointerId,startPointerX:e.clientX,startPointerY:e.clientY,startX,startY};
-      handle.setPointerCapture?.(e.pointerId);e.preventDefault();
-    });
-    handle.addEventListener('pointermove',e=>{
+    const startDrag=e=>{
+      if(e.pointerType==='mouse'&&e.button!==0)return;
+      const target=e.target;
+      const onHandle=target.closest?.('.dialog-drag-handle');
+      const inTopZone=e.clientY-card.getBoundingClientRect().top<=120;
+      if(!onHandle&&(!inTopZone||target.closest?.(INTERACTIVE)))return;
+      drag={pointerId:e.pointerId,startPointerX:e.clientX,startPointerY:e.clientY,startX:Number(card.dataset.dragX||0),startY:Number(card.dataset.dragY||0)};
+      card.classList.add('is-dragging');
+      card.setPointerCapture?.(e.pointerId);
+      e.preventDefault();
+    };
+    const moveDrag=e=>{
       if(!drag||e.pointerId!==drag.pointerId)return;
-      const next=clampOffset(card,drag.startX+e.clientX-drag.startPointerX,drag.startY+e.clientY-drag.startPointerY);
-      card.dataset.dragX=String(next.x);card.dataset.dragY=String(next.y);
-      card.style.setProperty('--dialog-x',`${next.x}px`);card.style.setProperty('--dialog-y',`${next.y}px`);
-    });
-    const end=e=>{if(drag&&(!e||e.pointerId===drag.pointerId))drag=null};
-    handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
+      setOffset(card,drag.startX+e.clientX-drag.startPointerX,drag.startY+e.clientY-drag.startPointerY);
+      e.preventDefault();
+    };
+    const endDrag=e=>{
+      if(!drag||e.pointerId!==drag.pointerId)return;
+      drag=null;card.classList.remove('is-dragging');
+      try{card.releasePointerCapture?.(e.pointerId)}catch{}
+    };
+
+    card.addEventListener('pointerdown',startDrag);
+    card.addEventListener('pointermove',moveDrag);
+    card.addEventListener('pointerup',endDrag);
+    card.addEventListener('pointercancel',endDrag);
+
     handle.addEventListener('keydown',e=>{
       const step=e.shiftKey?30:12;
       const dx=e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0;
       const dy=e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0;
       if(!dx&&!dy){if(e.key==='Home'){resetCard(card);e.preventDefault()}return}
-      const next=clampOffset(card,Number(card.dataset.dragX||0)+dx,Number(card.dataset.dragY||0)+dy);
-      card.dataset.dragX=String(next.x);card.dataset.dragY=String(next.y);
-      card.style.setProperty('--dialog-x',`${next.x}px`);card.style.setProperty('--dialog-y',`${next.y}px`);e.preventDefault();
+      setOffset(card,Number(card.dataset.dragX||0)+dx,Number(card.dataset.dragY||0)+dy);e.preventDefault();
     });
   }
 
   function setupDialog(dialog){
     const card=dialog.querySelector(CARD_SELECTOR);if(!card)return;
-    enableDrag(card);
+    enableDrag(card);brandCloseButtons(dialog);
     dialog.addEventListener('close',()=>resetCard(card));
-    const observer=new MutationObserver(()=>{if(dialog.open&&!dialog.dataset.wasOpen){dialog.dataset.wasOpen='1';resetCard(card)}else if(!dialog.open){delete dialog.dataset.wasOpen}});
-    observer.observe(dialog,{attributes:true,attributeFilter:['open']});
+    const observer=new MutationObserver(()=>{
+      brandCloseButtons(dialog);
+      if(dialog.open&&!dialog.dataset.wasOpen){dialog.dataset.wasOpen='1';resetCard(card)}
+      else if(!dialog.open){delete dialog.dataset.wasOpen}
+    });
+    observer.observe(dialog,{attributes:true,childList:true,subtree:true,attributeFilter:['open']});
     if(dialog.open){dialog.dataset.wasOpen='1';resetCard(card)}
   }
 
   function boot(){
-    injectStyles();
+    injectStyles();brandCloseButtons();
     document.querySelectorAll('dialog').forEach(setupDialog);
-    window.addEventListener('resize',()=>document.querySelectorAll(CARD_SELECTOR).forEach(card=>{
-      const next=clampOffset(card,Number(card.dataset.dragX||0),Number(card.dataset.dragY||0));
-      card.dataset.dragX=String(next.x);card.dataset.dragY=String(next.y);
-      card.style.setProperty('--dialog-x',`${next.x}px`);card.style.setProperty('--dialog-y',`${next.y}px`);
-    }),{passive:true});
-    window.WHATSUP_DOG_DIALOG_UI={reset:()=>document.querySelectorAll(CARD_SELECTOR).forEach(resetCard)};
+    const bodyObserver=new MutationObserver(()=>brandCloseButtons());
+    bodyObserver.observe(document.body,{childList:true,subtree:true});
+    window.addEventListener('resize',()=>document.querySelectorAll(CARD_SELECTOR).forEach(card=>setOffset(card,Number(card.dataset.dragX||0),Number(card.dataset.dragY||0))),{passive:true});
+    window.WHATSUP_DOG_DIALOG_UI={reset:()=>document.querySelectorAll(CARD_SELECTOR).forEach(resetCard),brandCloseButtons};
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
