@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.0] - 2026-09-14
+- Foto kan optioneel direct aan een melding worden toegevoegd vanuit camera, fotobibliotheek of bestanden.
+- Foto wordt voor verzending verkleind en als JPEG opgeslagen om mobiele uploads beheersbaar te houden.
+- Voorvertoning en verwijderen vóór publiceren toegevoegd, met privacywaarschuwing tegen herkenbare personen en privégegevens.
+- Foto blijft lokaal aan de melding gekoppeld en is na herladen zichtbaar in de meldingsdetails.
+- De bestaande Supabase-keten kan dezelfde foto uploaden naar private Storage en via signed URL aan andere gebruikers tonen.
+- Autonome Playwright-gebruikstest uitgebreid met foto kiezen → preview → publiceren → herladen → terugzien op kleine telefoon, moderne telefoon en desktop.
+
 ## [1.6.3] - 2026-09-13
 - Verholpen dat de pagina kon vastlopen door een zichzelf herhaald triggerende MutationObserver.
 - UI-hotfixes zijn nu idempotent: teksten worden alleen aangepast wanneer ze echt veranderen.

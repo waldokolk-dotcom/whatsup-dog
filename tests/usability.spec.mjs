@@ -12,6 +12,7 @@ function loadWhatsupDogSupportScript(selector,src,datasetKey){
 }
 loadWhatsupDogSupportScript('script[data-wd-community-ui]','./community-ui-bridge.js?v=1','wdCommunityUi');
 loadWhatsupDogSupportScript('script[data-wd-report-lifecycle]','./report-lifecycle.js?v=1','wdReportLifecycle');
+loadWhatsupDogSupportScript('script[data-wd-report-photo]','./report-photo.js?v=1.7.0','wdReportPhoto');
 `;
 
 async function installSafeRoutes(page,{geocode='success'}={}){
@@ -89,7 +90,7 @@ test('new user can complete onboarding and understand the next step without help
   await expectNoHorizontalOverflow(page);
 });
 
-test('core report journey can be completed and survives reload',async({page})=>{
+test('core report journey with photo can be completed and survives reload',async({page})=>{
   await installSafeRoutes(page);
   await seedProfile(page);
   await openApp(page);
@@ -101,6 +102,10 @@ test('core report journey can be completed and survives reload',async({page})=>{
   await page.locator('[data-report-type="danger"]').click();
   await expect(page.locator('#reportDetails')).not.toHaveClass(/hidden/);
   await expect(page.locator('#reportDuration')).toBeVisible();
+  await expect(page.locator('#reportPhotoInput')).toBeAttached();
+  const svg=Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30"><rect width="40" height="30" fill="orange"/></svg>');
+  await page.locator('#reportPhotoInput').setInputFiles({name:'pad.svg',mimeType:'image/svg+xml',buffer:svg});
+  await expect(page.locator('#reportPhotoPreview')).toHaveClass(/show/);
   await page.locator('#reportDuration').selectOption({label:'Net gezien'});
   await page.locator('input[name="reportAnnoyance"][value="4"]').check({force:true});
   await page.locator('#reportText').fill('Glas op het wandelpad bij het park');
@@ -113,12 +118,15 @@ test('core report journey can be completed and survives reload',async({page})=>{
   expect(stored[0].text).toContain('Glas op het wandelpad');
   expect(stored[0].duration).toBe('Net gezien');
   expect(stored[0].annoyance).toBe(4);
+  expect(stored[0].photoDataUrl).toMatch(/^data:image\/jpeg;base64,/);
 
   await page.reload();
   await page.locator('.bottom-nav [data-view="profile"]').click();
   await expect(page.locator('#myReportCount')).toHaveText('1');
   await page.locator('.bottom-nav [data-view="map"]').click();
   await expect(page.locator('.marker-badge')).toHaveCount(1);
+  await page.locator('.marker-badge').first().click();
+  await expect(page.locator('.report-detail-photo')).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
 
