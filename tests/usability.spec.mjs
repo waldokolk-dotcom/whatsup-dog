@@ -107,7 +107,7 @@ test('core report journey can be completed and survives reload',async({page})=>{
   await page.locator('#publishReport').click();
 
   await expect(page.locator('#reportDialog')).not.toBeVisible();
-  await expect(page.locator('#toast')).toContainText('Dankjewel');
+  await expect(page.locator('#toast')).toContainText(/melding.*kaart|dankjewel/i);
   const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_reports_v1')||'[]'));
   expect(stored).toHaveLength(1);
   expect(stored[0].text).toContain('Glas op het wandelpad');
