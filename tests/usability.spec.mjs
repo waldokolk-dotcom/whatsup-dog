@@ -107,7 +107,9 @@ test('core report journey with photo can be completed and survives reload',async
   await page.locator('#reportPhotoInput').setInputFiles({name:'pad.svg',mimeType:'image/svg+xml',buffer:svg});
   await expect(page.locator('#reportPhotoPreview')).toHaveClass(/show/);
   await page.locator('#reportDuration').selectOption({label:'Net gezien'});
-  await page.locator('input[name="reportAnnoyance"][value="4"]').check({force:true});
+  const impact4=page.locator('.annoyance-scale label').filter({hasText:/^4$/});
+  await impact4.click();
+  await expect(page.locator('input[name="reportAnnoyance"][value="4"]')).toBeChecked();
   await page.locator('#reportText').fill('Glas op het wandelpad bij het park');
   await page.locator('#publishReport').click();
 
