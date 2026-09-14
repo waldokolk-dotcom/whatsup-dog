@@ -25,6 +25,7 @@ jobs:
       - run: node scripts/dialog-ui-check.mjs
       - run: node scripts/mobile-ux-agent.mjs
       - run: node scripts/release-agent.mjs
+      - run: node scripts/hosted-e2e-safety-check.mjs
       - name: Install browser usability test tooling
         run: |
           npm install --no-audit --no-fund
