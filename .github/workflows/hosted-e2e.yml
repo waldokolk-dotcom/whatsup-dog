@@ -1,0 +1,30 @@
+name: Hosted production E2E
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type RUN_HOSTED_E2E to allow a short-lived synthetic production test with cleanup'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: hosted-production-e2e
+  cancel-in-progress: false
+jobs:
+  hosted-e2e:
+    if: github.event.inputs.confirmation == 'RUN_HOSTED_E2E'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify hosted E2E safety invariants
+        run: node scripts/hosted-e2e-safety-check.mjs
+      - name: Run controlled hosted production E2E
+        env:
+          ALLOW_PRODUCTION_E2E: ${{ github.event.inputs.confirmation }}
+          WHATSUP_DOG_E2E_SERVICE_ROLE_KEY: ${{ secrets.WHATSUP_DOG_E2E_SERVICE_ROLE_KEY }}
+        run: node scripts/hosted-e2e.mjs
