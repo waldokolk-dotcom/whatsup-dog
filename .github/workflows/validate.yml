@@ -1,5 +1,7 @@
 name: Validate app and Supabase
-on: [push, pull_request, workflow_dispatch]
+on:
+  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -43,4 +45,7 @@ jobs:
       - run: supabase test db
       - run: node scripts/api-e2e.mjs
       - if: always()
-        run: supabase stop --no-backup
+        run: |
+          if command -v supabase >/dev/null 2>&1; then
+            supabase stop --no-backup
+          fi

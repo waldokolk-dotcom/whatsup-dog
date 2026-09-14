@@ -54,7 +54,7 @@ async function expectPrimaryTouchTargets(page){
   }
 }
 
-test('new user can understand onboarding and reach the map without help',async({page})=>{
+test('new user can complete onboarding and understand the next step without help',async({page})=>{
   await installSafeRoutes(page);
   await openApp(page);
 
@@ -64,12 +64,24 @@ test('new user can understand onboarding and reach the map without help',async({
   await expect(page.locator('#saveProfile')).toBeVisible();
   await expectNoHorizontalOverflow(page);
 
-  await page.locator('#onboardingName').fill('Bowie');
-  await page.locator('#onboardingHome').fill('Nijkerk');
+  const name=page.locator('#onboardingName');
+  const home=page.locator('#onboardingHome');
+  await name.fill('Bowie');
+  await expect(name).toHaveValue('Bowie');
+  await home.fill('Nijkerk');
+  await expect(home).toHaveValue('Nijkerk');
   await page.locator('#avatarGrid .avatar-choice').nth(1).click();
   await page.locator('#saveProfile').click();
 
   await expect(onboarding).not.toBeVisible();
+  await expect(page.locator('#view-home')).toHaveClass(/active/);
+  await expect(page.locator('#homeHello')).toContainText('Bowie');
+  await expect(page.locator('#homeSubtitle')).toContainText('Nijkerk');
+  await expect(page.locator('#homeWalk')).toContainText('Wandelen');
+  await expect(page.locator('#homeReport')).toContainText('Melden');
+  await expect(page.locator('#homeOffleash')).toContainText('Losloop');
+
+  await page.locator('#homeWalk').click();
   await expect(page.locator('#view-map')).toHaveClass(/active/);
   await page.locator('.bottom-nav [data-view="profile"]').click();
   await expect(page.locator('#profileName')).toHaveText('Bowie');
@@ -88,6 +100,9 @@ test('core report journey can be completed and survives reload',async({page})=>{
   await expect(page.locator('#reportDialog')).toBeVisible();
   await page.locator('[data-report-type="danger"]').click();
   await expect(page.locator('#reportDetails')).not.toHaveClass(/hidden/);
+  await expect(page.locator('#reportDuration')).toBeVisible();
+  await page.locator('#reportDuration').selectOption({label:'Net gezien'});
+  await page.locator('input[name="reportAnnoyance"][value="4"]').check({force:true});
   await page.locator('#reportText').fill('Glas op het wandelpad bij het park');
   await page.locator('#publishReport').click();
 
@@ -96,6 +111,8 @@ test('core report journey can be completed and survives reload',async({page})=>{
   const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_reports_v1')||'[]'));
   expect(stored).toHaveLength(1);
   expect(stored[0].text).toContain('Glas op het wandelpad');
+  expect(stored[0].duration).toBe('Net gezien');
+  expect(stored[0].annoyance).toBe(4);
 
   await page.reload();
   await page.locator('.bottom-nav [data-view="profile"]').click();
@@ -127,11 +144,17 @@ test('invalid onboarding location gives a recoverable error instead of a dead en
   await openApp(page);
 
   await expect(page.locator('#onboardingDialog')).toBeVisible();
-  await page.locator('#onboardingName').fill('Bowie');
-  await page.locator('#onboardingHome').fill('Bestaatnietstad');
+  const name=page.locator('#onboardingName');
+  const home=page.locator('#onboardingHome');
+  await name.fill('Bowie');
+  await expect(name).toHaveValue('Bowie');
+  await home.fill('Bestaatnietstad');
+  await expect(home).toHaveValue('Bestaatnietstad');
   await page.locator('#saveProfile').click();
 
   await expect(page.locator('#toast')).toContainText('kon ik niet vinden');
   await expect(page.locator('#onboardingDialog')).toBeVisible();
   await expect(page.locator('#saveProfile')).toBeEnabled();
+  await expect(name).toHaveValue('Bowie');
+  await expect(home).toHaveValue('Bestaatnietstad');
 });
