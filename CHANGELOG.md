@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1] - 2026-09-15
+
+### Fixed
+- De schakelaar `Vindbaar in Whatsup dog` toont nu zichtbaar of de communityfunctie beschikbaar is en blijft uitgeschakeld wanneer de hosted databasefunctie ontbreekt.
+- Een mislukte opslag wordt niet langer stil teruggedraaid: de gebruiker krijgt een permanente statusmelding en een duidelijke toast.
+- Een idempotente herstelmigratie borgt de ontbrekende profiel-directorykolommen en RPC's voor de hosted database.
+
 ## [1.8.0] - 2026-09-15
 
 ### Added
