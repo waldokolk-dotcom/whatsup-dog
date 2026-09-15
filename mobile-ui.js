@@ -27,9 +27,6 @@
         .map-brand-card{max-width:205px!important;left:10px!important;top:10px!important}
         .map-brand-card strong{font-size:17px!important}.map-brand-card small{font-size:9px!important}
         .map-search{right:10px!important;top:10px!important}
-        .map-toolbar{top:70px!important;padding:0 8px!important}
-        .map-bottom-card{left:8px!important;right:8px!important;border-radius:20px!important}
-        .map-bottom-card .report-fab{width:100%!important;min-height:48px!important}
         .report-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
         .report-type{min-height:90px!important;padding:10px 6px!important}
         .sheet-card h2{font-size:24px!important}
@@ -53,7 +50,13 @@
         .map-toolbar{top:60px!important}
       }
       @media(pointer:coarse){button{touch-action:manipulation}.dialog-drag-handle{min-height:36px}}
+      .map-bottom-card{left:auto!important;right:12px!important;bottom:14px!important;border-radius:0!important}
+      .map-bottom-card .report-fab{width:auto!important;min-height:54px!important}
+      .map-toolbar{top:78px!important;padding:0!important}
     `;document.head.appendChild(s);
+    const layers=document.getElementById('layersButton'),filters=document.getElementById('filterRow');
+    layers?.addEventListener('click',()=>{const open=filters?.hasAttribute('hidden');filters?.toggleAttribute('hidden',!open);layers.setAttribute('aria-expanded',String(Boolean(open)))});
+    filters?.addEventListener('click',e=>{if(e.target.closest('.chip')){filters.setAttribute('hidden','');layers?.setAttribute('aria-expanded','false')}});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inject,{once:true});else inject();
 })();
