@@ -145,6 +145,7 @@ test('phone install help is A2 and switches between Apple and other phones',asyn
   await page.locator('.bottom-nav [data-view="profile"]').click();
   await page.locator('#installHelpButton').click();
   await expect(page.locator('#installHelpDialog')).toBeVisible();
+  await page.locator('#installAppleTab').click();
   await expect(page.locator('#installSteps li')).toHaveCount(4);
   await expect(page.locator('#installSteps')).toContainText('vierkant met de pijl omhoog');
   await page.locator('#installOtherTab').click();
