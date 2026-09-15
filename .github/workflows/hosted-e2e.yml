@@ -6,6 +6,11 @@ on:
         description: 'Type RUN_HOSTED_E2E to allow a short-lived synthetic production test with cleanup'
         required: true
         type: string
+  push:
+    branches:
+      - test/hosted-production-e2e-20260915
+    paths:
+      - .github/hosted-e2e-trigger
 permissions:
   contents: read
 concurrency:
@@ -13,7 +18,9 @@ concurrency:
   cancel-in-progress: false
 jobs:
   hosted-e2e:
-    if: github.event.inputs.confirmation == 'RUN_HOSTED_E2E'
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.confirmation == 'RUN_HOSTED_E2E') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/test/hosted-production-e2e-20260915')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -25,6 +32,6 @@ jobs:
         run: node scripts/hosted-e2e-safety-check.mjs
       - name: Run controlled hosted production E2E
         env:
-          ALLOW_PRODUCTION_E2E: ${{ github.event.inputs.confirmation }}
+          ALLOW_PRODUCTION_E2E: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.confirmation || 'RUN_HOSTED_E2E' }}
           WHATSUP_DOG_E2E_SERVICE_ROLE_KEY: ${{ secrets.WHATSUP_DOG_E2E_SERVICE_ROLE_KEY }}
         run: node scripts/hosted-e2e.mjs
