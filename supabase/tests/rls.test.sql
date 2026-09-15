@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(22);
+select plan(26);
 insert into auth.users(id) values ('11111111-1111-4111-8111-111111111111'),('22222222-2222-4222-8222-222222222222'),('33333333-3333-4333-8333-333333333333');
 insert into private.moderators values('33333333-3333-4333-8333-333333333333');
 insert into public.chat_rooms(id,name,created_by) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Private test','11111111-1111-4111-8111-111111111111');
@@ -13,8 +13,11 @@ select lives_ok($$insert into public.reports(id,user_id,author_name,type,text,la
 select is((select extensions.st_x(geom) from public.reports where id='test-point'),5.4::double precision,'Longitude is X');
 select lives_ok($$insert into public.reports(id,user_id,author_name,type,text,lat,lng,geometry_type,polygon) values('test-polygon',auth.uid(),'Test','danger','Polygon',52.2,5.4,'polygon','[[52.2,5.4],[52.3,5.4],[52.3,5.5]]')$$,'Leaflet polygon accepted');
 select throws_ok($$insert into public.reports(id,user_id,author_name,type,text,lat,lng,geometry_type,polygon) values('bad-polygon',auth.uid(),'Test','danger','Bad',52.2,5.4,'polygon','[[95,5.4],[52.3,5.4],[52.3,5.5]]')$$,'P0001','Coordinate out of range','Invalid geometry rejected');
-select throws_ok($$update public.reports set status='hidden' where id='test-point'$$,'42501',null,'Owner cannot moderate');
+select throws_ok($$update public.reports set status='hidden' where id='test-point'$$,'42501',null,'Owner cannot moderate directly');
 select throws_ok($$select public.moderate_report('test-point','hidden','No')$$,'42501','Moderator required','RPC checks moderator');
+select lives_ok($$insert into public.reports(id,user_id,author_name,type,text,lat,lng) values('test-owner-lifecycle',auth.uid(),'Test','danger','Owner lifecycle',52.2,5.4)$$,'Create owner lifecycle report');
+select lives_ok($$select public.set_own_report_status('test-owner-lifecycle','hidden')$$,'Owner can hide own report through lifecycle RPC');
+select is((select status from public.reports where id='test-owner-lifecycle'),'hidden','Owner lifecycle status persisted');
 select lives_ok($$insert into public.chat_messages(room_id,user_id,body) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',auth.uid(),'Private')$$,'Member sends chat');
 select lives_ok($$insert into public.push_subscriptions(user_id,endpoint,p256dh,auth) values(auth.uid(),'https://push.example.test/1','test-key','test-auth')$$,'Own push subscription');
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
@@ -25,6 +28,7 @@ select is((select count(*) from public.push_subscriptions),0::bigint,'Push endpo
 select throws_ok($$insert into public.chat_members(room_id,user_id) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',auth.uid())$$,'42501',null,'Cannot self-enrol');
 select throws_ok($$insert into public.chat_messages(room_id,user_id,body) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',auth.uid(),'Intrusion')$$,'42501',null,'Nonmember cannot send');
 select throws_ok($$insert into public.reports(id,user_id,author_name,type,text,lat,lng) values('spoof','11111111-1111-4111-8111-111111111111','Fake','danger','Bad',52,5)$$,'42501',null,'Cannot spoof report owner');
+select throws_ok($$select public.set_own_report_status('test-point','hidden')$$,'42501','Report not found or not owner','Non-owner cannot change owner report through lifecycle RPC');
 select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
 select lives_ok($$select public.moderate_report('test-point','hidden','Test moderation')$$,'Moderator hides report');
 select is((select count(*) from public.moderation_actions),1::bigint,'Audit action recorded');

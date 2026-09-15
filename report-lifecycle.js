@@ -25,6 +25,15 @@
     return true;
   }
 
+  async function localOnlyFallback(report,status,err){
+    console.warn(status==='hidden'?'Melding kon niet voor iedereen worden gewist':'Melding kon niet voor iedereen worden opgelost',err);
+    addHidden(report?.id);removeLocal(report?.id);closeDetail();
+    if(status==='hidden')message('Van jouw kaart verwijderd. Voor iedereen verwijderen lukt tijdelijk niet.');
+    else message('Van jouw kaart gehaald. Voor iedereen als opgelost markeren lukt tijdelijk niet.');
+    try{await window.WhatsupDogCommunity?.refresh?.()}catch{}
+    return false;
+  }
+
   function purgeLegacyReports(){
     const rows=reports();let changed=false;
     const keep=[];
@@ -40,26 +49,34 @@
     try{
       if(report?._remote){
         const global=await setOwnRemoteStatus(report,'resolved');
-        if(!global)addHidden(report.id);
+        if(!global)return localOnlyFallback(report,'resolved',new Error('remote-lifecycle-unavailable'));
       }
       removeLocal(report?.id);closeDetail();message('Melding gemarkeerd als opgelost');
       try{await window.WhatsupDogCommunity?.refresh?.()}catch{}
-    }catch(err){console.warn('Melding oplossen mislukt',err);message('Oplossen lukt nu niet. Probeer het nog eens.')}
+      return true;
+    }catch(err){
+      if(report?._remote)return localOnlyFallback(report,'resolved',err);
+      console.warn('Melding oplossen mislukt',err);message('Oplossen lukt nu niet. Probeer het nog eens.');return false;
+    }
   };
 
   window.deleteReport=async function(report){
-    if(!confirm('Deze melding wissen?'))return;
+    if(!confirm('Deze melding wissen?'))return false;
     try{
       if(report?._remote){
         const global=await setOwnRemoteStatus(report,'hidden');
-        if(!global)addHidden(report.id);
+        if(!global)return localOnlyFallback(report,'hidden',new Error('remote-lifecycle-unavailable'));
       }
       addHidden(report?.id);removeLocal(report?.id);closeDetail();message('Melding gewist');
       try{await window.WhatsupDogCommunity?.refresh?.()}catch{}
-    }catch(err){console.warn('Melding wissen mislukt',err);message('Wissen lukt nu niet. Probeer het nog eens.')}
+      return true;
+    }catch(err){
+      if(report?._remote)return localOnlyFallback(report,'hidden',err);
+      console.warn('Melding wissen mislukt',err);message('Wissen lukt nu niet. Probeer het nog eens.');return false;
+    }
   };
 
   document.addEventListener('wd:shared-reports-updated',purgeLegacyReports);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(purgeLegacyReports,700),{once:true});else setTimeout(purgeLegacyReports,700);
-  window.WHATSUP_DOG_REPORT_LIFECYCLE={legacyCutoff:LEGACY_CUTOFF,purgeLegacyReports};
+  window.WHATSUP_DOG_REPORT_LIFECYCLE={legacyCutoff:LEGACY_CUTOFF,purgeLegacyReports,localOnlyFallback:true};
 })();
