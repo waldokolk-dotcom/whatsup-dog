@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1] - 2026-09-15
+- Een gedeelde melding verwijderen of als opgelost markeren loopt niet meer vast wanneer de hosted lifecycle-RPC tijdelijk ontbreekt of niet bereikbaar is.
+- De melding verdwijnt in dat geval veilig van het eigen toestel en de app zegt expliciet dat verwijderen voor iedereen nog niet is gelukt; er wordt dus geen server-succes gesuggereerd.
+- Nieuwe regressietest bewaakt deze fail-safe gebruikersroute.
+- Nieuwe idempotente Supabase-migratie herstelt `set_own_report_status` voor de hosted productieomgeving en verbergt uitsluitend de synthetische productie-E2E-melding die bij de ontdekking van deze fout is achtergebleven.
+- RLS-tests zijn uitgebreid met owner-lifecycle en non-owner blokkade.
+
 ## [1.7.0] - 2026-09-14
 - Foto kan optioneel direct aan een melding worden toegevoegd vanuit camera, fotobibliotheek of bestanden.
 - Foto wordt voor verzending verkleind en als JPEG opgeslagen om mobiele uploads beheersbaar te houden.
