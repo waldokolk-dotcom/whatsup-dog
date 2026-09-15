@@ -23,6 +23,21 @@ async function installSafeRoutes(page,{geocode='success'}={}){
   });
 }
 
+async function installDirectoryBackend(page){
+  await installSafeRoutes(page);
+  await page.route('**/community-backend.js*',route=>route.fulfill({status:200,contentType:'application/javascript',body:`
+    window.__failDirectoryUpdate=false;
+    const directoryClient={
+      from:()=>({
+        select:()=>({eq:()=>({maybeSingle:async()=>({data:{discoverable:false,breed:null},error:null})})}),
+        update:()=>({eq:async()=>window.__failDirectoryUpdate?{error:{message:'network'}}:{error:null}})
+      }),
+      rpc:async()=>({data:[],error:null})
+    };
+    window.WhatsupDogCommunity={configured:true,client:directoryClient,user:{id:'00000000-0000-0000-0000-000000000001'}};
+  `}));
+}
+
 async function seedProfile(page){
   await page.addInitScript(profile=>localStorage.setItem('wd_profile_v1',JSON.stringify(profile)),{
     name:'Bowie',avatar:'🐶',homePlace:'Nijkerk',homeLat:52.2182,homeLng:5.4835,createdAt:'2026-09-14T00:00:00.000Z'
@@ -184,6 +199,40 @@ test('main navigation stays understandable and primary mobile actions remain tap
     await expect(page.locator(`#view-${view}`)).toHaveClass(/active/);
     await expectNoHorizontalOverflow(page);
   }
+});
+
+test('unavailable findability explains itself instead of acting like a dead switch',async({page})=>{
+  await installSafeRoutes(page);
+  await seedProfile(page);
+  await openApp(page);
+
+  await page.locator('.bottom-nav [data-view="profile"]').click();
+  const toggle=page.locator('#directoryOptIn');
+  const status=page.locator('#directoryOptInStatus');
+  await expect(toggle).toBeVisible();
+  await expect(toggle).toBeDisabled();
+  await expect(status).toContainText('Tijdelijk niet beschikbaar');
+  await expect(status).toHaveAttribute('role','status');
+  await expectNoHorizontalOverflow(page);
+});
+
+test('findability saves successfully and remains retryable after a failed save',async({page})=>{
+  await installDirectoryBackend(page);
+  await seedProfile(page);
+  await openApp(page);
+  await page.locator('.bottom-nav [data-view="profile"]').click();
+
+  const toggle=page.locator('#directoryOptIn');
+  const status=page.locator('#directoryOptInStatus');
+  await expect(toggle).toBeEnabled();
+  await toggle.check();
+  await expect(status).toContainText('Je profiel is vindbaar');
+
+  await page.evaluate(()=>{window.__failDirectoryUpdate=true});
+  await toggle.click();
+  await expect(toggle).toBeChecked();
+  await expect(toggle).toBeEnabled();
+  await expect(status).toContainText('probeer opnieuw');
 });
 
 test('invalid onboarding location gives a recoverable error instead of a dead end',async({page})=>{

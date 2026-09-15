@@ -15,6 +15,7 @@ const speciesSource=read('species-context.js');
 const designSource=read('design-system.css');
 const lifecycleMigration=read('supabase/migrations/20260913000100_report_lifecycle.sql');
 const lifecycleRecoveryMigration=read('supabase/migrations/20260915000100_reassert_report_lifecycle.sql');
+const directoryRecoveryMigration=read('supabase/migrations/20260915000200_reassert_profile_directory.sql');
 const version=versionSource.match(/version:'(\d+\.\d+\.\d+)'/)?.[1];
 assert.ok(version,'Central SemVer version missing');
 assert.match(speciesSource,/wd_profile_v1/,'Species context must use the persisted profile');
@@ -47,6 +48,11 @@ assert.match(lifecycleMigration,/user_id=\(select auth\.uid\(\)\)/,'Lifecycle RP
 assert.match(lifecycleRecoveryMigration,/create or replace function public\.set_own_report_status/,'Recovery migration must reassert lifecycle RPC');
 assert.match(lifecycleRecoveryMigration,/17bfd990-6e69-4861-be8d-1ecf6b7adea4/,'Exact failed live E2E fixture cleanup missing');
 assert.doesNotMatch(lifecycleRecoveryMigration,/delete\s+from|truncate\s|drop\s+table/i,'Recovery migration must not use broad destructive cleanup');
+assert.match(directoryRecoveryMigration,/add column if not exists discoverable boolean/,'Directory recovery must reassert the opt-in column');
+assert.match(directoryRecoveryMigration,/alter column discoverable set default false/,'Directory recovery must enforce privacy-safe opt-in default');
+assert.match(directoryRecoveryMigration,/alter column discoverable set not null/,'Directory recovery must reject ambiguous opt-in state');
+assert.match(directoryRecoveryMigration,/create or replace function public\.list_discoverable_profiles/,'Directory recovery must reassert the public directory RPC');
+assert.match(directoryRecoveryMigration,/create or replace function public\.start_private_chat/,'Directory recovery must reassert the private chat RPC');
 
 assert.equal((indexSource.match(/breed-catalog\.js/g)||[]).length,1,'Exactly one breed catalog must be loaded');
 assert.doesNotMatch(indexSource,/breed-catalog-expanded\.js|breed-custom\.js|breed-custom\.css/,'Legacy breed picker assets still referenced');
