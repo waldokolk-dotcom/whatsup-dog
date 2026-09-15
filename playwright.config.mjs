@@ -12,7 +12,8 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    browserName: 'chromium'
+    browserName: 'chromium',
+    serviceWorkers: 'block'
   },
   projects: [
     { name: 'mobile-small', use: { ...devices['iPhone SE'], browserName: 'chromium' } },

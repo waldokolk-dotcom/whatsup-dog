@@ -1,0 +1,12 @@
+:root{
+  --surface-canvas:#f7f3ea;--surface-raised:#fffdf8;--surface-strong:#2f231c;
+  --text-primary:#30241d;--text-muted:#756a61;--accent-action:#f2a625;
+  --accent-safe:#397844;--accent-info:#2476a8;--accent-danger:#c94a43;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;
+  --radius-control:14px;--radius-panel:24px;--elevation-panel:0 14px 36px rgba(48,36,29,.15)
+}
+[hidden]{display:none!important}
+.species-picker,.report-audience{border:0;padding:0;margin:16px 0}.species-picker legend,.report-audience legend{font-size:13px;font-weight:900;margin-bottom:8px}
+.species-options,.report-audience>div{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.species-options label,.report-audience label{position:relative}.species-options input,.report-audience input{position:absolute;opacity:0}.species-options span,.report-audience span{min-height:62px;border:1.5px solid rgba(48,36,29,.15);border-radius:var(--radius-control);background:var(--surface-raised);display:grid;place-items:center;align-content:center;gap:3px;padding:8px;text-align:center}.species-options small{font-size:9px;color:var(--text-muted);line-height:1.2}.species-options input:checked+span,.report-audience input:checked+span{border-color:var(--text-primary);box-shadow:0 0 0 2px var(--text-primary);background:#fff8e8}.species-options input:focus-visible+span,.report-audience input:focus-visible+span{outline:3px solid var(--accent-info);outline-offset:2px}
+.report-audience span{min-height:46px;font-weight:850}.mode-cat .home-paws,.mode-both .home-paws{display:none}.mode-cat .home-actions{grid-template-columns:1fr 1fr}.mode-cat .community-dog{display:none}.mode-cat .home-community-card .community-copy p{font-size:0}.mode-cat .home-community-card .community-copy p:after{content:'Deel tips en signalen met kattenmensen uit je buurt.';font-size:12px}.mode-cat .home-tip-card>span{font-size:0}.mode-cat .home-tip-card>span:after{content:'△';font-size:24px}.mode-both .home-actions{grid-template-columns:repeat(3,1fr)}
+@media(max-width:380px){.species-options{grid-template-columns:1fr}.species-options span{min-height:52px}.report-audience>div{gap:6px}.report-audience span{font-size:12px}}

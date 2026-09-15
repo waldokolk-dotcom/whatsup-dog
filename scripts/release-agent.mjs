@@ -5,6 +5,7 @@ const version=fs.readFileSync('version.js','utf8');
 const sw=fs.readFileSync('sw.js','utf8');
 const bridge=fs.readFileSync('community-ui-bridge.js','utf8');
 const changelog=fs.readFileSync('CHANGELOG.md','utf8');
+const species=fs.readFileSync('species-context.js','utf8');
 const match=version.match(/version:'(\d+\.\d+\.\d+)'/);
 assert.ok(match,'Central SemVer version missing');
 const v=match[1];
@@ -15,5 +16,7 @@ assert.match(bridge,new RegExp(`community-tools\\.js\\?v=${v.replaceAll('.','\\.
 assert.match(sw,new RegExp(`version\\.js\\?v=${v.replaceAll('.','\\.')}`),'Version metadata must be available offline');
 assert.match(sw,new RegExp(`mobile-ui\\.js\\?v=${v.replaceAll('.','\\.')}`),'Mobile UI must be available offline');
 assert.match(sw,new RegExp(`community-tools\\.js\\?v=${v.replaceAll('.','\\.')}`),'Community tools must be available offline');
+assert.match(sw,new RegExp(`species-context\\.js\\?v=${v.replaceAll('.','\\.')}`),'Species context must be available offline');
+assert.match(species,/speciesContext/,'Species product context missing');
 assert.doesNotMatch(sw,/CACHE=PREFIX\+'v(?:1[0-9]|2[0-9])'/,'PWA cache version was not advanced for v1.6.0');
 console.log(`PASS Release Agent: SemVer ${v}, changelog, v1.6 loaders and PWA cache`);

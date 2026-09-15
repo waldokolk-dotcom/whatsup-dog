@@ -21,5 +21,5 @@ function loadWhatsupDogSupportScript(selector,src,datasetKey){
 }
 
 loadWhatsupDogSupportScript('script[data-wd-community-ui]','./community-ui-bridge.js?v=1','wdCommunityUi');
-loadWhatsupDogSupportScript('script[data-wd-report-lifecycle]','./report-lifecycle.js?v=1.7.1','wdReportLifecycle');
+loadWhatsupDogSupportScript('script[data-wd-report-lifecycle]','./report-lifecycle.js?v=1.8.0','wdReportLifecycle');
 loadWhatsupDogSupportScript('script[data-wd-report-photo]','./report-photo.js?v=1.7.0','wdReportPhoto');

@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.8.0] - 2026-09-15
+
+### Added
+- DOG, CAT en rustige BOTH-context als persistent productmodel in onboarding en profiel.
+- Species-aware meldingen met expliciete relevantie voor hond, kat of beide.
+- Semantische design tokens en specialistische Design/Species QA-releasegates.
+
+### Changed
+- Kattencontext verbergt hondenlosloop en hond-specifieke meldtypes; BOTH gebruikt neutrale algemene iconografie.
+- Onboarding en kerncopy passen zich aan de gekozen dierencontext aan.
+
 ## [1.7.1] - 2026-09-15
 - Een gedeelde melding verwijderen of als opgelost markeren loopt niet meer vast wanneer de hosted lifecycle-RPC tijdelijk ontbreekt of niet bereikbaar is.
 - De melding verdwijnt in dat geval veilig van het eigen toestel en de app zegt expliciet dat verwijderen voor iedereen nog niet is gelukt; er wordt dus geen server-succes gesuggereerd.
