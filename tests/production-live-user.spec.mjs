@@ -14,11 +14,15 @@ async function onboard(page,name){
   await page.locator('#saveProfile').click();
   await expect(dialog).not.toBeVisible({timeout:20000});
   await page.waitForFunction(()=>Boolean(window.WhatsupDogCommunity?.user?.id),null,{timeout:20000});
-  await page.waitForFunction(()=>document.documentElement.dataset.community==='community-aan',null,{timeout:20000}).catch(()=>{});
-  return await page.evaluate(()=>({
-    userId:window.WhatsupDogCommunity?.user?.id||null,
-    status:document.querySelector('#profileStatus')?.textContent||''
-  }));
+  return await page.evaluate(async()=>{
+    const c=window.WhatsupDogCommunity.client;
+    const {data}=await c.auth.getUser();
+    return {
+      userId:data?.user?.id||null,
+      communityUserId:window.WhatsupDogCommunity?.user?.id||null,
+      status:document.querySelector('#profileStatus')?.textContent||''
+    };
+  });
 }
 
 async function refresh(page){
@@ -46,16 +50,44 @@ test('two ordinary users complete the real hosted report + photo lifecycle',asyn
     const identityB=await onboard(b,'E2E Hond B');
     expect(identityA.userId).toBeTruthy();
     expect(identityB.userId).toBeTruthy();
+    expect(identityA.userId).toBe(identityA.communityUserId);
+    expect(identityB.userId).toBe(identityB.communityUserId);
     expect(identityA.userId).not.toBe(identityB.userId);
 
-    // Profile RLS: an ordinary user must only be able to read its own private profile.
-    const visibleProfiles=await b.evaluate(async()=>{
+    // Wait until B's own profile has actually been synced; this removes profile-sync races from the privacy probe.
+    await expect.poll(async()=>b.evaluate(async()=>{
       const c=window.WhatsupDogCommunity.client;
-      const {data,error}=await c.from('profiles').select('id,display_name');
-      return {data,error:error?String(error.message||error):null,self:window.WhatsupDogCommunity.user.id};
-    });
-    expect(visibleProfiles.error).toBeNull();
-    expect(visibleProfiles.data.map(x=>x.id)).toEqual([visibleProfiles.self]);
+      const {data:{user}}=await c.auth.getUser();
+      const {data,error}=await c.from('profiles').select('id').eq('id',user.id);
+      if(error)return -1;
+      return data?.length||0;
+    }),{timeout:12000,intervals:[250,500,1000]}).toBe(1);
+
+    // Production privacy probe using the auth identity from the SAME Supabase client as the query.
+    const profileProbe=await b.evaluate(async otherId=>{
+      const c=window.WhatsupDogCommunity.client;
+      const {data:{user},error:userError}=await c.auth.getUser();
+      const self=user?.id||null;
+      const all=await c.from('profiles').select('id,display_name');
+      const own=await c.from('profiles').select('id,display_name').eq('id',self);
+      const other=await c.from('profiles').select('id,display_name').eq('id',otherId);
+      return {
+        self,
+        userError:userError?String(userError.message||userError):null,
+        all:{data:all.data||[],error:all.error?String(all.error.message||all.error):null},
+        own:{data:own.data||[],error:own.error?String(own.error.message||own.error):null},
+        other:{data:other.data||[],error:other.error?String(other.error.message||other.error):null}
+      };
+    },identityA.userId);
+    console.log('PROFILE_RLS_PROBE',JSON.stringify(profileProbe));
+    expect(profileProbe.userError).toBeNull();
+    expect(profileProbe.self).toBe(identityB.userId);
+    expect(profileProbe.own.error).toBeNull();
+    expect(profileProbe.own.data.map(x=>x.id)).toEqual([identityB.userId]);
+    expect(profileProbe.other.error).toBeNull();
+    expect(profileProbe.other.data).toEqual([]);
+    expect(profileProbe.all.error).toBeNull();
+    expect(profileProbe.all.data.map(x=>x.id)).toEqual([identityB.userId]);
 
     await a.locator('.bottom-nav [data-view="map"]').click();
     await expect(a.locator('#view-map')).toHaveClass(/active/);
@@ -64,7 +96,6 @@ test('two ordinary users complete the real hosted report + photo lifecycle',asyn
     await a.locator('[data-report-type="danger"]').click();
     await expect(a.locator('#reportDetails')).not.toHaveClass(/hidden/);
 
-    // Use the same visible photo flow users get. report-photo.js converts this to JPEG client-side.
     const svg=Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60"><rect width="80" height="60" fill="orange"/><circle cx="40" cy="30" r="15" fill="white"/></svg>');
     await a.locator('#reportPhotoInput').setInputFiles({name:'synthetic-production-check.svg',mimeType:'image/svg+xml',buffer:svg});
     await expect(a.locator('#reportPhotoPreview')).toHaveClass(/show/,{timeout:10000});
@@ -74,7 +105,6 @@ test('two ordinary users complete the real hosted report + photo lifecycle',asyn
     await a.locator('#publishReport').click();
     await expect(a.locator('#reportDialog')).not.toBeVisible();
 
-    // Wait until the normal client sync marks the local report as actually hosted.
     await a.waitForFunction(target=>{
       const rows=JSON.parse(localStorage.getItem('wd_reports_v1')||'[]');
       const r=rows.find(x=>x.text===target);
@@ -86,7 +116,6 @@ test('two ordinary users complete the real hosted report + photo lifecycle',asyn
     expect(hosted.userId).toBe(identityA.userId);
     expect(photoPath).toContain(`${identityA.userId}/${reportId}.jpg`);
 
-    // A second ordinary user must receive the active report and a readable signed photo URL.
     await refresh(b);
     await b.waitForFunction(id=>{
       const rows=JSON.parse(localStorage.getItem('wd_reports_v1')||'[]');
@@ -101,15 +130,16 @@ test('two ordinary users complete the real hosted report + photo lifecycle',asyn
     expect(photoReadable.ok).toBe(true);
     expect(photoReadable.status).toBe(200);
 
-    // A non-owner must not be able to change the report.
+    // RLS may represent a blocked update as zero changed rows instead of an HTTP error; verify the persisted value.
     const unauthorized=await b.evaluate(async id=>{
       const c=window.WhatsupDogCommunity.client;
-      const {error}=await c.from('reports').update({text:'unauthorized production change'}).eq('id',id);
-      return error?{blocked:true,message:error.message}:{blocked:false};
+      const update=await c.from('reports').update({text:'unauthorized production change'}).eq('id',id).select('id,text');
+      const read=await c.from('reports').select('id,text').eq('id',id).single();
+      return {updated:update.data||[],updateError:update.error?String(update.error.message||update.error):null,persisted:read.data||null,readError:read.error?String(read.error.message||read.error):null};
     },reportId);
-    expect(unauthorized.blocked).toBe(true);
+    expect(unauthorized.updated).toEqual([]);
+    expect(unauthorized.persisted?.text).toBe(text);
 
-    // Owner hides the report through the normal app lifecycle; public visibility must disappear.
     a.once('dialog',d=>d.accept());
     await a.evaluate(id=>{
       const report=JSON.parse(localStorage.getItem('wd_reports_v1')||'[]').find(r=>r.id===id);
@@ -134,7 +164,6 @@ test('two ordinary users complete the real hosted report + photo lifecycle',asyn
       cleanup:'public report hidden; synthetic anonymous users/private profile + hidden fixture retained for traceability'
     }));
   } finally {
-    // Best-effort privacy cleanup through normal user capability if an assertion failed after publication.
     if(reportId){
       try{
         a.once('dialog',d=>d.accept());
