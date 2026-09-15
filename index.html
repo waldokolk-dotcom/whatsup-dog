@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="styles.css?v=6" /><link rel="stylesheet" href="breed.css?v=2" />
   <link rel="stylesheet" href="home.css?v=5" />
   <link rel="stylesheet" href="smart-report.css?v=3" />
-  <link rel="stylesheet" href="design-system.css?v=1.9.0" />
+  <link rel="stylesheet" href="design-system.css?v=1.9.1" />
   <title>Whatsup dog</title>
 </head>
 <body>
@@ -33,89 +33,50 @@
           <div class="home-brand"><img src="icon.svg" alt=""><div><strong>Whatsup dog</strong><small>Samen op pad.</small></div></div>
           <button class="home-avatar" data-view="profile" aria-label="Profiel"><span id="homeAvatar">🐶</span></button>
         </header>
-
         <section class="home-hero">
-          <div class="home-paws">🐾</div>
-          <small id="homeHello">Welkom terug</small>
-          <h1 id="homeTitle">Wat gaan jullie doen?</h1>
-          <p id="homeSubtitle">Een fijne wandeling begint met weten wat er in de buurt speelt.</p>
-          <div class="home-actions">
-            <button id="homeWalk" class="home-action primary-action"><span>🗺️</span><b>Wandelen</b><small>Open de kaart</small></button>
-            <button id="homeReport" class="home-action report-action"><span>＋</span><b>Melden</b><small>Help de buurt</small></button>
-            <button id="homeOffleash" class="home-action"><span>🐕</span><b>Losloop</b><small>Vind een plek</small></button>
-          </div>
+          <div class="home-paws">🐾</div><small id="homeHello">Welkom terug</small><h1 id="homeTitle">Wat gaan jullie doen?</h1><p id="homeSubtitle">Een fijne wandeling begint met weten wat er in de buurt speelt.</p>
+          <div class="home-actions"><button id="homeWalk" class="home-action primary-action"><span>🗺️</span><b>Wandelen</b><small>Open de kaart</small></button><button id="homeReport" class="home-action report-action"><span>＋</span><b>Melden</b><small>Help de buurt</small></button><button id="homeOffleash" class="home-action"><span>🐕</span><b>Losloop</b><small>Vind een plek</small></button></div>
         </section>
-
-        <section class="home-section">
-          <div class="section-heading"><div><small>VANDAAG</small></div><button id="homeToAlerts" data-view="alerts">Alles →</button></div>
-          <div class="neighbourhood-card">
-            <div class="neighbourhood-icon" id="homeStatusIcon">✓</div>
-            <div><b id="homeStatusTitle">Even snuffelen…</b><p id="homeStatusText">We kijken wat er rond jullie speelt.</p></div>
-          </div>
-        </section>
-
-        <section class="home-section">
-          <div class="section-heading"><div><small>OFFICIËLE DATA</small><h2>Losloop in de buurt</h2></div><button id="homeAllAreas">Op kaart →</button></div>
-          <div id="homeAreas" class="home-area-list"><div class="home-loading">🐾 We halen de officiële hondenkaart op…</div></div>
-          <p class="home-source" id="homeAreaSource">Bron: officiële hondenkaart gemeente Nijkerk.</p>
-        </section>
-
-        <section class="home-community-card" id="homeCommunity">
-          <div class="community-copy"><small>WHATSUP DOG</small><h2>Wie loopt er mee?</h2><p>Praat met hondenmensen uit je buurt, deel tips of spreek samen af.</p><button data-view="chat">Open Whatsup dog →</button></div><div class="community-dog">🐕</div>
-        </section>
-
-        <section class="home-tip-card">
-          <span>🌿</span><div><small>SEIZOENSTIP</small><b>Let onderweg op grasaren</b><p>Meld irritante of gevaarlijke vegetatie direct op de kaart.</p></div><button id="homeVegetation">Melden</button>
-        </section>
+        <section class="home-section"><div class="section-heading"><div><small>VANDAAG</small></div><button id="homeToAlerts" data-view="alerts">Alles →</button></div><div class="neighbourhood-card"><div class="neighbourhood-icon" id="homeStatusIcon">✓</div><div><b id="homeStatusTitle">Even snuffelen…</b><p id="homeStatusText">We kijken wat er rond jullie speelt.</p></div></div></section>
+        <section class="home-section"><div class="section-heading"><div><small>OFFICIËLE DATA</small><h2>Losloop in de buurt</h2></div><button id="homeAllAreas">Op kaart →</button></div><div id="homeAreas" class="home-area-list"><div class="home-loading">🐾 We halen de officiële hondenkaart op…</div></div><p class="home-source" id="homeAreaSource">Bron: officiële hondenkaart gemeente Nijkerk.</p></section>
+        <section class="home-community-card" id="homeCommunity"><div class="community-copy"><small>WHATSUP DOG</small><h2>Wie loopt er mee?</h2><p>Praat met hondenmensen uit je buurt, deel tips of spreek samen af.</p><button data-view="chat">Open Whatsup dog →</button></div><div class="community-dog">🐕</div></section>
+        <section class="home-tip-card"><span>🌿</span><div><small>SEIZOENSTIP</small><b>Let onderweg op grasaren</b><p>Meld irritante of gevaarlijke vegetatie direct op de kaart.</p></div><button id="homeVegetation">Melden</button></section>
       </section>
 
       <section id="view-map" class="view map-view" aria-label="Kaart">
-        <div id="map" class="map" aria-label="Kaart met meldingen en hondenlosloopgebieden"></div>
-        <div class="map-brand-card"><div><strong>Kaart</strong><small>Signalen in jouw buurt</small></div></div>
-        <button id="profileQuick" class="map-search avatar-btn" aria-label="Profiel openen"><span id="profileQuickAvatar">🐶</span></button>
+        <div id="map" class="map" aria-label="Kaart met meldingen en hondenlosloopgebieden"></div><div class="map-brand-card"><div><strong>Kaart</strong><small>Signalen in jouw buurt</small></div></div><button id="profileQuick" class="map-search avatar-btn" aria-label="Profiel openen"><span id="profileQuickAvatar">🐶</span></button>
         <div class="map-toolbar"><button id="layersButton" class="layers-button" type="button" aria-expanded="false" aria-controls="filterRow"><svg><use href="#i-layers"/></svg><span>Lagen</span></button><div class="chip-row" id="filterRow" hidden><button class="chip active" data-filter="all">Alles</button><button class="chip" data-filter="danger">Gevaar</button><button class="chip" data-filter="vegetation">Vegetatie</button><button class="chip" data-filter="lost">Vermist / gevonden</button><button class="chip blue" data-filter="offleash">Losloop</button></div></div>
-        <div class="map-actions" aria-label="Kaartacties"><button id="locateBtn" class="map-fab locate" aria-label="Mijn locatie"><svg><use href="#i-locate"/></svg></button><button id="mapZoomBtn" class="map-fab" aria-label="Kaart centreren">⌖</button><button id="mapPlusBtn" class="map-fab" aria-label="Melding toevoegen">＋</button></div>
-        <div class="map-bottom-card"><div class="layer-row"><div class="layer-copy"><b>Officiële hondenlocaties</b><small>Gemeentelijke kaartlaag</small></div><label class="toggle" aria-label="Losloopgebieden tonen"><input id="offleashToggle" type="checkbox" checked><span></span></label></div><button id="reportFab" class="report-fab"><svg><use href="#i-plus"/></svg><span>Melden</span></button></div>
+        <div class="map-actions" aria-label="Kaartacties"><button id="locateBtn" class="map-fab locate" aria-label="Mijn locatie"><svg><use href="#i-locate"/></svg></button><button id="mapZoomBtn" class="map-fab" aria-label="Kaart centreren">⌖</button><button id="mapPlusBtn" class="map-fab" aria-label="Melding toevoegen">＋</button></div><div class="map-bottom-card"><div class="layer-row"><div class="layer-copy"><b>Officiële hondenlocaties</b><small>Gemeentelijke kaartlaag</small></div><label class="toggle" aria-label="Losloopgebieden tonen"><input id="offleashToggle" type="checkbox" checked><span></span></label></div><button id="reportFab" class="report-fab"><svg><use href="#i-plus"/></svg><span>Melden</span></button></div>
       </section>
 
-      <section id="view-chat" class="view page-view chat-page" aria-label="Whatsup dog chat">
-        <header class="page-brand"><div class="chat-logo">💬</div><div><h1>Whatsup dog</h1><p>Lokaal · Vriendelijk · Betrouwbaar · v1.4.0</p></div><button class="round-action" aria-label="Nieuw gesprek">＋</button><button class="text-action" id="clearChat" type="button">Wis</button></header>
-        <div class="segment-row"><button class="segment active">Alle gesprekken</button><button class="segment">In de buurt</button><button class="segment">Groepen</button><button class="segment">Tips</button><button class="segment">Wandelmaatjes</button></div>
-        <div id="chatList" class="chat-list"></div><div id="chatConversation" class="chat-conversation hidden" aria-live="polite"></div>
-        <p class="privacy-note">Berichten worden privé op dit toestel bewaard.</p><form id="chatForm" class="chat-compose"><input id="chatInput" maxlength="280" placeholder="Zeg iets hondigs…" autocomplete="off" /><button aria-label="Versturen">➤</button></form>
-      </section>
+      <section id="view-chat" class="view page-view chat-page" aria-label="Whatsup dog chat"><header class="page-brand"><div class="chat-logo">💬</div><div><h1>Whatsup dog</h1><p>Lokaal · Vriendelijk · Betrouwbaar · v1.4.0</p></div><button class="round-action" aria-label="Nieuw gesprek">＋</button><button class="text-action" id="clearChat" type="button">Wis</button></header><div class="segment-row"><button class="segment active">Alle gesprekken</button><button class="segment">In de buurt</button><button class="segment">Groepen</button><button class="segment">Tips</button><button class="segment">Wandelmaatjes</button></div><div id="chatList" class="chat-list"></div><div id="chatConversation" class="chat-conversation hidden" aria-live="polite"></div><p class="privacy-note">Berichten worden privé op dit toestel bewaard.</p><form id="chatForm" class="chat-compose"><input id="chatInput" maxlength="280" placeholder="Zeg iets hondigs…" autocomplete="off" /><button aria-label="Versturen">➤</button></form></section>
 
-      <section id="view-alerts" class="view page-view" aria-label="Meldingen">
-        <header class="page-brand"><div class="chat-logo">🔔</div><div><h1>Meldingen</h1><p>Alleen wat voor jou en je hond telt.</p></div><button class="text-action" id="clearReports" type="button">Wis</button></header>
-        <div class="settings-card"><label class="switch-row"><span><b>⚠️ Gevaren</b><small>Glas, gif, verkeer en andere risico's</small></span><input type="checkbox" checked></label><label class="switch-row"><span><b>🌿 Vegetatie</b><small>Grasaren, berenklauw, processierups</small></span><input type="checkbox" checked></label><label class="switch-row"><span><b>🚨 Vermiste hond</b><small>Urgente signalen in een groter gebied</small></span><input type="checkbox" checked></label><label class="switch-row"><span><b>🐾 Activiteiten</b><small>Wandelmaatjes en hondendingen</small></span><input type="checkbox"></label></div>
-        <button id="pushDemo" class="primary wide">🔔 Test een melding</button><p class="fineprint">Echte webpush wordt geactiveerd zodra de gedeelde backend klaarstaat.</p>
-      </section>
+      <section id="view-alerts" class="view page-view" aria-label="Meldingen"><header class="page-brand"><div class="chat-logo">🔔</div><div><h1>Meldingen</h1><p>Alleen wat voor jou en je hond telt.</p></div><button class="text-action" id="clearReports" type="button">Wis</button></header><div class="settings-card"><label class="switch-row"><span><b>⚠️ Gevaren</b><small>Glas, gif, verkeer en andere risico's</small></span><input type="checkbox" checked></label><label class="switch-row"><span><b>🌿 Vegetatie</b><small>Grasaren, berenklauw, processierups</small></span><input type="checkbox" checked></label><label class="switch-row"><span><b>🚨 Vermiste hond</b><small>Urgente signalen in een groter gebied</small></span><input type="checkbox" checked></label><label class="switch-row"><span><b>🐾 Activiteiten</b><small>Wandelmaatjes en hondendingen</small></span><input type="checkbox"></label></div><button id="pushDemo" class="primary wide">🔔 Test een melding</button><p class="fineprint">Echte webpush wordt geactiveerd zodra de gedeelde backend klaarstaat.</p></section>
 
       <section id="view-profile" class="view page-view" aria-label="Profiel">
         <header class="profile-hero"><div id="profileAvatarBig" class="profile-avatar-big">🐶</div><h1 id="profileName">Jouw hond</h1><p id="profileBreed">Ras nog niet gekozen</p><p id="profileSubtitle">Maak je hondenprofiel af</p></header>
         <button id="editProfile" class="primary wide">🐾 Profiel aanpassen</button>
+        <button id="installHelpButton" class="install-help-button" type="button"><span aria-hidden="true">＋</span><span><b>Zet Whatsup dog op je telefoon</b><small>Bekijk de stappen voor Apple of andere telefoons</small></span><span aria-hidden="true">›</span></button>
         <div class="privacy-card"><div class="privacy-icon">🔒</div><div><b>Privacy als uitgangspunt</b><p>Andere gebruikers zien je openbare hondenprofiel, nooit automatisch je e-mailadres of live GPS-locatie.</p></div></div>
         <div class="settings-card compact"><div class="data-row"><span>Mijn meldingen</span><b id="myReportCount">0</b></div><div class="data-row"><span>Bedankjes</span><b>0</b></div><div class="data-row"><span>Profielstatus</span><b id="profileStatus">Lokaal</b></div></div>
       </section>
     </main>
-
     <nav class="bottom-nav five-nav" aria-label="Hoofdnavigatie"><button class="nav-item active" data-view="home"><svg><use href="#i-home"/></svg><small>Home</small></button><button class="nav-item" data-view="map"><svg><use href="#i-map"/></svg><small>Kaart</small></button><button class="nav-item" data-view="chat"><svg><use href="#i-community"/></svg><small>Community</small></button><button class="nav-item" data-view="alerts"><span class="nav-badge">●</span><svg><use href="#i-bell"/></svg><small>Meldingen</small></button><button class="nav-item" data-view="profile"><svg><use href="#i-profile"/></svg><span id="navProfileAvatar" class="nav-avatar-data" aria-hidden="true"></span><small>Profiel</small></button></nav>
   </div>
 
   <dialog id="onboardingDialog" class="full-dialog onboarding-dialog">
     <form id="onboardingForm" class="onboarding-card">
-      <div class="onboarding-photo"><img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Happy-dog.jpg?width=900" alt="Blije hond buiten"><div class="photo-note">Goede wandelingen<br>maken betere dagen ♡</div></div>
-      <div class="onboarding-body"><button type="button" class="dialog-close" data-close-dialog aria-label="Sluiten">×</button><h2>Welkom bij<br>Whatsup dog <span>♡</span></h2><p class="intro" id="onboardingIntro">Kies eerst voor wie je de buurt veiliger en leuker wilt maken.</p>
-        <fieldset class="species-picker" id="speciesPicker"><legend>Welke dieren horen bij jou?</legend><div class="species-options"><label><input type="radio" name="speciesContext" value="dog" checked><span><b>Hond</b><small>Wandelen en losloop</small></span></label><label><input type="radio" name="speciesContext" value="cat"><span><b>Kat</b><small>Veiligheid en buurt</small></span></label><label><input type="radio" name="speciesContext" value="both"><span><b>Beide</b><small>Alles rustig bij elkaar</small></span></label></div></fieldset>
-        <ul class="welcome-points" id="welcomePoints"><li>Ontdek wat voor jouw dier relevant is</li><li>Bekijk signalen in de buurt</li><li>Deel een melding als dat nodig is</li></ul>
-        <label class="field"><span>Naam van jezelf of je hond</span><div class="input-icon"><b>●</b><input id="onboardingName" maxlength="40" placeholder="Bijv. Max, Sophie of Bailey" required></div></label>
-        <label class="field"><span>Waar woont je hond?</span><div class="input-icon"><b>●</b><input id="onboardingHome" maxlength="80" autocomplete="address-level2" placeholder="Bijv. Nijkerk" required></div><small>Alleen woonplaats. Geen straat of huisnummer.</small></label>
-        <div class="field" id="avatarField"><span>Kies een avatar</span><div id="avatarGrid" class="avatar-grid"></div></div>
-        <div class="field" id="breedField"><span>Kies het ras van je hond</span><input id="breedSearch" class="breed-search" placeholder="Zoek je hondenras..." aria-label="Zoek hondenras" autocomplete="off"><div id="breedGrid" class="breed-grid"></div></div>
-        <p class="privacy-note">🔒 Woonplaats gebruiken we alleen om de kaart goed te openen. Je live locatie wordt niet openbaar gedeeld.</p><button id="saveProfile" class="continue-btn" type="submit">Verder <span>→</span></button>
+      <div class="onboarding-photo"><img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Happy-dog.jpg?width=900" alt="Blije hond buiten"><div class="photo-note">Samen weet je wat er speelt.</div></div>
+      <div class="onboarding-body"><button type="button" class="dialog-close" data-close-dialog aria-label="Sluiten">×</button><div class="onboarding-progress" aria-label="Startprofiel, stap 1 van 2"><span></span><span></span></div><p class="eyebrow">STAP 1 VAN 2</p><h2>Voor wie gebruik je Whatsup dog?</h2><p class="intro" id="onboardingIntro">Kies hond, kat of beide. Je kunt dit later aanpassen.</p>
+        <fieldset class="species-picker" id="speciesPicker"><legend class="sr-only">Kies je dieren</legend><div class="species-options"><label><input type="radio" name="speciesContext" value="dog" checked><span><b>Hond</b><small>Wandelen en buurt</small></span></label><label><input type="radio" name="speciesContext" value="cat"><span><b>Kat</b><small>Veiligheid en buurt</small></span></label><label><input type="radio" name="speciesContext" value="both"><span><b>Beide</b><small>Alles bij elkaar</small></span></label></div></fieldset>
+        <div class="onboarding-basics"><p class="eyebrow">STAP 2 VAN 2</p><label class="field"><span>Naam</span><div class="input-icon"><b>●</b><input id="onboardingName" maxlength="40" placeholder="Bijv. Luna, Max of Sophie" required></div></label><label class="field"><span>Woonplaats</span><div class="input-icon"><b>●</b><input id="onboardingHome" maxlength="80" autocomplete="address-level2" placeholder="Bijv. Nijkerk" required></div><small>Geen straat of huisnummer nodig.</small></label></div>
+        <details class="onboarding-optional" id="onboardingOptional"><summary>Profiel verder aanvullen <small>optioneel</small></summary><div class="optional-body"><div class="field" id="avatarField"><span>Kies een avatar</span><div id="avatarGrid" class="avatar-grid"></div></div><div class="field" id="breedField"><span>Kies het ras van je hond</span><input id="breedSearch" class="breed-search" placeholder="Zoek je hondenras..." aria-label="Zoek hondenras" autocomplete="off"><div id="breedGrid" class="breed-grid"></div></div></div></details>
+        <p class="privacy-note">🔒 We gebruiken je woonplaats om de kaart in jouw buurt te openen. Je live locatie delen we niet openbaar.</p><button id="saveProfile" class="continue-btn" type="submit">Start Whatsup dog <span>→</span></button>
       </div>
     </form>
   </dialog>
+
+  <dialog id="installHelpDialog" class="sheet-dialog install-help-dialog"><div class="sheet-card install-help-sheet"><button type="button" class="dialog-close" data-close-dialog aria-label="Sluiten">×</button><p class="eyebrow">OP JE BEGINSCHERM</p><h2>Zet Whatsup dog op je telefoon</h2><p>Dan open je Whatsup dog net als een gewone app.</p><div class="install-tabs" role="tablist" aria-label="Kies je telefoon"><button id="installAppleTab" type="button" role="tab" aria-selected="true">Apple</button><button id="installOtherTab" type="button" role="tab" aria-selected="false">Andere telefoon</button></div><ol id="installSteps" class="install-steps"></ol><p class="fineprint" id="installTip"></p></div></dialog>
 
   <dialog id="reportDialog" class="sheet-dialog"><form id="reportForm" class="sheet-card report-sheet"><button type="button" class="dialog-close" data-close-dialog aria-label="Sluiten">×</button><div class="sheet-paw">◆</div><h2>Wat heb je gespot?</h2><p id="reportAudienceCopy">Help dieren en mensen in de buurt.</p><div id="reportTypes" class="report-grid"></div><div id="reportDetails" class="report-details hidden"><fieldset class="report-audience" id="reportAudience"><legend>Relevant voor</legend><div><label><input type="radio" name="reportSpecies" value="dog"><span>Hond</span></label><label><input type="radio" name="reportSpecies" value="cat"><span>Kat</span></label><label><input type="radio" name="reportSpecies" value="both" checked><span>Beide</span></label></div></fieldset><div id="vegetationKinds" class="subtype-grid hidden"></div><label class="field"><span>Korte omschrijving</span><textarea id="reportText" maxlength="220" rows="3" placeholder="Wat moeten mensen in de buurt weten?"></textarea></label><div class="location-card">📍 <span id="reportLocationText">Plaats op het midden van de kaart</span></div><button id="publishReport" class="report-fab inside" type="submit">MELDEN</button></div></form></dialog>
   <dialog id="detailDialog" class="sheet-dialog"><form class="sheet-card detail-sheet"><button type="button" class="dialog-close" data-close-dialog aria-label="Sluiten">×</button><div id="detailContent"></div></form></dialog>
@@ -123,12 +84,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="./vendor/leaflet/leaflet.js" crossorigin=""></script>
-  <script src="app.js?v=7"></script><script src="breed-catalog.js?v=2"></script>
-  <script src="official-areas.js?v=9"></script>
-  <script src="home.js?v=5"></script>
-  <script src="smart-report-v3.js?v=3"></script>
-  <script src="backend-config.js?v=4"></script>
-  <script src="community-backend.js?v=2"></script>
-  <script src="species-context.js?v=1.9.0"></script>
+  <script src="app.js?v=7"></script><script src="breed-catalog.js?v=2"></script><script src="install-guide.js?v=1.9.1"></script>
+  <script src="official-areas.js?v=9"></script><script src="home.js?v=5"></script><script src="smart-report-v3.js?v=3"></script><script src="backend-config.js?v=4"></script><script src="community-backend.js?v=2"></script><script src="species-context.js?v=1.9.1"></script>
 </body>
 </html>

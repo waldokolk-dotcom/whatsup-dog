@@ -1,5 +1,5 @@
 (()=>{
-  const release={version:'1.9.0',name:'Buurtspoor visual foundation',date:'2026-09-15'};
+  const release={version:'1.9.1',name:'Calm onboarding + install help',date:'2026-09-15'};
   window.WHATSUP_DOG_RELEASE=Object.freeze(release);
   function render(){
     document.documentElement.dataset.appVersion=release.version;

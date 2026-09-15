@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.9.1] - 2026-09-15
+
+### Changed
+- Eerste onboarding is teruggebracht tot twee rustige stappen: diersoort kiezen en naam plus woonplaats invullen.
+- Avatar en ras staan nu achter optionele progressive disclosure en domineren de eerste indruk niet meer.
+- Copy is korter en eenvoudiger gemaakt voor minder digitaal vaardige gebruikers.
+
+### Added
+- Profiel bevat A2-installatiehulp met vier concrete stappen voor Apple en vier voor andere telefoons.
+- Installatiehulp gebruikt herkenbare woorden als “vierkant met pijl omhoog” en “drie puntjes” in plaats van PWA-jargon.
+
 ## [1.9.0] - 2026-09-15
 
 ### Changed
