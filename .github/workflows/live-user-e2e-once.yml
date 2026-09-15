@@ -24,8 +24,8 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           npx playwright install --with-deps chromium
-      - name: Run two-user test against live Pages + live Supabase
-        run: npx playwright test tests/production-live-user.spec.mjs --project=mobile-modern
+      - name: Probe live report lifecycle without creating a report
+        run: npx playwright test tests/production-lifecycle-probe.spec.mjs --project=mobile-modern
       - name: Preserve evidence
         if: always()
         uses: actions/upload-artifact@v4
