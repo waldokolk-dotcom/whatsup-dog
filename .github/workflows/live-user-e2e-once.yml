@@ -1,0 +1,37 @@
+name: One-shot live user production E2E
+on:
+  push:
+    branches:
+      - test/hosted-production-e2e-20260915
+    paths:
+      - .github/live-user-e2e-trigger
+permissions:
+  contents: read
+concurrency:
+  group: one-shot-live-user-production-e2e
+  cancel-in-progress: false
+jobs:
+  live-user-e2e:
+    if: github.ref == 'refs/heads/test/hosted-production-e2e-20260915'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Run two-user test against live Pages + live Supabase
+        run: npx playwright test tests/production-live-user.spec.mjs --project=mobile-modern
+      - name: Preserve evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-user-production-e2e-evidence
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
