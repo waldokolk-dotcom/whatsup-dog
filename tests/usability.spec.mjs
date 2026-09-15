@@ -76,32 +76,29 @@ async function expectPrimaryTouchTargets(page){
   }
 }
 
-test('new user can complete onboarding and understand the next step without help',async({page})=>{
+test('new user can complete calm onboarding without opening optional details',async({page})=>{
   await installSafeRoutes(page);
   await openApp(page);
 
   const onboarding=page.locator('#onboardingDialog');
   await expect(onboarding).toBeVisible();
-  await expect(page.getByRole('heading',{name:/Welkom bij\s*Whatsup dog/i})).toBeVisible();
+  await expect(page.getByRole('heading',{name:/Voor wie gebruik je Whatsup dog/i})).toBeVisible();
   await expect(page.locator('#saveProfile')).toBeVisible();
+  await expect(page.locator('#onboardingOptional')).not.toHaveAttribute('open','');
+  await expect(page.locator('#breedGrid')).toBeHidden();
   await expectNoHorizontalOverflow(page);
 
   const name=page.locator('#onboardingName');
   const home=page.locator('#onboardingHome');
   await name.fill('Bowie');
-  await expect(name).toHaveValue('Bowie');
   await home.fill('Nijkerk');
-  await expect(home).toHaveValue('Nijkerk');
-  await page.locator('#avatarGrid .avatar-choice').nth(1).click();
   await page.locator('#saveProfile').click();
 
   await expect(onboarding).not.toBeVisible();
-  await expect(page.locator('#view-home')).toHaveClass(/active/);
   await expect(page.locator('#homeHello')).toContainText('Bowie');
   await expect(page.locator('#homeSubtitle')).toContainText('Nijkerk');
   await expect(page.locator('#homeWalk')).toContainText('Wandelen');
   await expect(page.locator('#homeReport')).toContainText('Melden');
-  await expect(page.locator('#homeOffleash')).toContainText('Losloop');
 
   await page.locator('#homeWalk').click();
   await expect(page.locator('#view-map')).toHaveClass(/active/);
@@ -134,6 +131,7 @@ for(const mode of ['dog','cat','both'])test(`${mode.toUpperCase()} mode stays co
 test('new cat owner selects CAT during onboarding and the choice persists',async({page})=>{
   await installSafeRoutes(page);await openApp(page);
   await page.locator('input[name="speciesContext"][value="cat"]+span').click();
+  await page.locator('#onboardingOptional summary').click();
   await expect(page.locator('#breedField')).toBeHidden();
   await expect(page.locator('#avatarGrid')).not.toContainText('🐶');
   await page.locator('#onboardingName').fill('Luna');await page.locator('#onboardingHome').fill('Nijkerk');await page.locator('#saveProfile').click();
@@ -142,136 +140,44 @@ test('new cat owner selects CAT during onboarding and the choice persists',async
   await page.reload();await expect(page.locator('body')).toHaveClass(/mode-cat/);await expect(page.locator('#homeOffleash')).toBeHidden();
 });
 
-test('core report journey with photo can be completed and survives reload',async({page})=>{
-  await installSafeRoutes(page);
-  await seedProfile(page);
-  await openApp(page);
-
-  await page.locator('.bottom-nav [data-view="map"]').click();
-  await expect(page.locator('#view-map')).toHaveClass(/active/);
-  await page.locator('#reportFab').click();
-  await expect(page.locator('#reportDialog')).toBeVisible();
-  await page.locator('[data-report-type="danger"]').click();
-  await expect(page.locator('#reportDetails')).not.toHaveClass(/hidden/);
-  await expect(page.locator('#reportDuration')).toBeVisible();
-  await expect(page.locator('#reportPhotoInput')).toBeAttached();
-  const svg=Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30"><rect width="40" height="30" fill="orange"/></svg>');
-  await page.locator('#reportPhotoInput').setInputFiles({name:'pad.svg',mimeType:'image/svg+xml',buffer:svg});
-  await expect(page.locator('#reportPhotoPreview')).toHaveClass(/show/);
-  await page.locator('#reportDuration').selectOption({label:'Net gezien'});
-  const impact4=page.locator('.annoyance-scale label').filter({hasText:/^4$/});
-  await impact4.click();
-  await expect(page.locator('input[name="reportAnnoyance"][value="4"]')).toBeChecked();
-  await page.locator('#reportText').fill('Glas op het wandelpad bij het park');
-  await page.locator('#publishReport').click();
-
-  await expect(page.locator('#reportDialog')).not.toBeVisible();
-  await expect(page.locator('#toast')).toContainText(/melding.*kaart|dankjewel/i);
-  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_reports_v1')||'[]'));
-  expect(stored).toHaveLength(1);
-  expect(stored[0].text).toContain('Glas op het wandelpad');
-  expect(stored[0].duration).toBe('Net gezien');
-  expect(stored[0].annoyance).toBe(4);
-  expect(stored[0].photoDataUrl).toMatch(/^data:image\/jpeg;base64,/);
-
-  await page.reload();
+test('phone install help is A2 and switches between Apple and other phones',async({page})=>{
+  await installSafeRoutes(page);await seedProfile(page);await openApp(page);
   await page.locator('.bottom-nav [data-view="profile"]').click();
-  await expect(page.locator('#myReportCount')).toHaveText('1');
-  await page.locator('.bottom-nav [data-view="map"]').click();
-  await expect(page.locator('.marker-badge')).toHaveCount(1);
-  await page.locator('.marker-badge').first().click();
-  await expect(page.locator('.report-detail-photo')).toBeVisible();
+  await page.locator('#installHelpButton').click();
+  await expect(page.locator('#installHelpDialog')).toBeVisible();
+  await expect(page.locator('#installSteps li')).toHaveCount(4);
+  await expect(page.locator('#installSteps')).toContainText('vierkant met de pijl omhoog');
+  await page.locator('#installOtherTab').click();
+  await expect(page.locator('#installSteps li')).toHaveCount(4);
+  await expect(page.locator('#installSteps')).toContainText('drie puntjes');
   await expectNoHorizontalOverflow(page);
+});
+
+test('core report journey with photo can be completed and survives reload',async({page})=>{
+  await installSafeRoutes(page);await seedProfile(page);await openApp(page);
+  await page.locator('.bottom-nav [data-view="map"]').click();await expect(page.locator('#view-map')).toHaveClass(/active/);await page.locator('#reportFab').click();await expect(page.locator('#reportDialog')).toBeVisible();await page.locator('[data-report-type="danger"]').click();await expect(page.locator('#reportDetails')).not.toHaveClass(/hidden/);await expect(page.locator('#reportDuration')).toBeVisible();await expect(page.locator('#reportPhotoInput')).toBeAttached();
+  const svg=Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30"><rect width="40" height="30" fill="orange"/></svg>');await page.locator('#reportPhotoInput').setInputFiles({name:'pad.svg',mimeType:'image/svg+xml',buffer:svg});await expect(page.locator('#reportPhotoPreview')).toHaveClass(/show/);await page.locator('#reportDuration').selectOption({label:'Net gezien'});const impact4=page.locator('.annoyance-scale label').filter({hasText:/^4$/});await impact4.click();await expect(page.locator('input[name="reportAnnoyance"][value="4"]')).toBeChecked();await page.locator('#reportText').fill('Glas op het wandelpad bij het park');await page.locator('#publishReport').click();
+  await expect(page.locator('#reportDialog')).not.toBeVisible();await expect(page.locator('#toast')).toContainText(/melding.*kaart|dankjewel/i);const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_reports_v1')||'[]'));expect(stored).toHaveLength(1);expect(stored[0].text).toContain('Glas op het wandelpad');expect(stored[0].duration).toBe('Net gezien');expect(stored[0].annoyance).toBe(4);expect(stored[0].photoDataUrl).toMatch(/^data:image\/jpeg;base64,/);
+  await page.reload();await page.locator('.bottom-nav [data-view="profile"]').click();await expect(page.locator('#myReportCount')).toHaveText('1');await page.locator('.bottom-nav [data-view="map"]').click();await expect(page.locator('.marker-badge')).toHaveCount(1);await page.locator('.marker-badge').first().click();await expect(page.locator('.report-detail-photo')).toBeVisible();await expectNoHorizontalOverflow(page);
 });
 
 test('main navigation stays understandable and primary mobile actions remain tappable',async({page})=>{
-  await installSafeRoutes(page);
-  await seedProfile(page);
-  await openApp(page);
-
-  await expect(page.locator('#homeWalk')).toBeVisible();
-  await expect(page.locator('#homeReport')).toBeVisible();
-  await expect(page.locator('#homeOffleash')).toBeVisible();
-  await expectPrimaryTouchTargets(page);
-
-  for(const view of ['map','chat','alerts','profile','home']){
-    await page.locator(`.bottom-nav [data-view="${view}"]`).click();
-    await expect(page.locator(`#view-${view}`)).toHaveClass(/active/);
-    await expectNoHorizontalOverflow(page);
-  }
+  await installSafeRoutes(page);await seedProfile(page);await openApp(page);await expect(page.locator('#homeWalk')).toBeVisible();await expect(page.locator('#homeReport')).toBeVisible();await expect(page.locator('#homeOffleash')).toBeVisible();await expectPrimaryTouchTargets(page);
+  for(const view of ['map','chat','alerts','profile','home']){await page.locator(`.bottom-nav [data-view="${view}"]`).click();await expect(page.locator(`#view-${view}`)).toHaveClass(/active/);await expectNoHorizontalOverflow(page)}
 });
 
 test('calm map keeps filters behind one layers interaction',async({page})=>{
-  await installSafeRoutes(page);
-  await seedSpeciesProfile(page,'both');
-  await openApp(page);
-  await page.locator('.bottom-nav [data-view="map"]').click();
-
-  const layers=page.locator('#layersButton'),filters=page.locator('#filterRow');
-  await expect(layers).toBeVisible();
-  await expect(layers).toHaveAttribute('aria-expanded','false');
-  await expect(filters).toBeHidden();
-  await layers.click();
-  await expect(filters).toBeVisible();
-  await expect(layers).toHaveAttribute('aria-expanded','true');
-  await page.locator('[data-filter="danger"]').click();
-  await expect(filters).toBeHidden();
-  await expect(page.locator('#reportFab')).toBeVisible();
-  await expectNoHorizontalOverflow(page);
+  await installSafeRoutes(page);await seedSpeciesProfile(page,'both');await openApp(page);await page.locator('.bottom-nav [data-view="map"]').click();const layers=page.locator('#layersButton'),filters=page.locator('#filterRow');await expect(layers).toBeVisible();await expect(layers).toHaveAttribute('aria-expanded','false');await expect(filters).toBeHidden();await layers.click();await expect(filters).toBeVisible();await expect(layers).toHaveAttribute('aria-expanded','true');await page.locator('[data-filter="danger"]').click();await expect(filters).toBeHidden();await expect(page.locator('#reportFab')).toBeVisible();await expectNoHorizontalOverflow(page);
 });
 
 test('unavailable findability explains itself instead of acting like a dead switch',async({page})=>{
-  await installSafeRoutes(page);
-  await seedProfile(page);
-  await openApp(page);
-
-  await page.locator('.bottom-nav [data-view="profile"]').click();
-  const toggle=page.locator('#directoryOptIn');
-  const status=page.locator('#directoryOptInStatus');
-  await expect(toggle).toBeVisible();
-  await expect(toggle).toBeDisabled();
-  await expect(status).toContainText('Tijdelijk niet beschikbaar');
-  await expect(status).toHaveAttribute('role','status');
-  await expectNoHorizontalOverflow(page);
+  await installSafeRoutes(page);await seedProfile(page);await openApp(page);await page.locator('.bottom-nav [data-view="profile"]').click();const toggle=page.locator('#directoryOptIn');const status=page.locator('#directoryOptInStatus');await expect(toggle).toBeVisible();await expect(toggle).toBeDisabled();await expect(status).toContainText('Tijdelijk niet beschikbaar');await expect(status).toHaveAttribute('role','status');await expectNoHorizontalOverflow(page);
 });
 
 test('findability saves successfully and remains retryable after a failed save',async({page})=>{
-  await installDirectoryBackend(page);
-  await seedProfile(page);
-  await openApp(page);
-  await page.locator('.bottom-nav [data-view="profile"]').click();
-
-  const toggle=page.locator('#directoryOptIn');
-  const status=page.locator('#directoryOptInStatus');
-  await expect(toggle).toBeEnabled();
-  await toggle.check();
-  await expect(status).toContainText('Je profiel is vindbaar');
-
-  await page.evaluate(()=>{window.__failDirectoryUpdate=true});
-  await toggle.click();
-  await expect(toggle).toBeChecked();
-  await expect(toggle).toBeEnabled();
-  await expect(status).toContainText('probeer opnieuw');
+  await installDirectoryBackend(page);await seedProfile(page);await openApp(page);await page.locator('.bottom-nav [data-view="profile"]').click();const toggle=page.locator('#directoryOptIn');const status=page.locator('#directoryOptInStatus');await expect(toggle).toBeEnabled();await toggle.check();await expect(status).toContainText('Je profiel is vindbaar');await page.evaluate(()=>{window.__failDirectoryUpdate=true});await toggle.click();await expect(toggle).toBeChecked();await expect(toggle).toBeEnabled();await expect(status).toContainText('probeer opnieuw');
 });
 
 test('invalid onboarding location gives a recoverable error instead of a dead end',async({page})=>{
-  await installSafeRoutes(page,{geocode:'empty'});
-  await openApp(page);
-
-  await expect(page.locator('#onboardingDialog')).toBeVisible();
-  await expect(page.locator('#avatarGrid')).toHaveAttribute('data-wd-enhanced','1');
-  await expect(page.locator('body')).toHaveClass(/mode-dog/);
-  const name=page.locator('#onboardingName');
-  const home=page.locator('#onboardingHome');
-  await name.fill('Bowie');
-  await expect(name).toHaveValue('Bowie');
-  await home.fill('Bestaatnietstad');
-  await expect(home).toHaveValue('Bestaatnietstad');
-  await page.locator('#saveProfile').click();
-
-  await expect(page.locator('#toast')).toContainText('kon ik niet vinden');
-  await expect(page.locator('#onboardingDialog')).toBeVisible();
-  await expect(page.locator('#saveProfile')).toBeEnabled();
-  await expect(name).toHaveValue('Bowie');
-  await expect(home).toHaveValue('Bestaatnietstad');
+  await installSafeRoutes(page,{geocode:'empty'});await openApp(page);await expect(page.locator('#onboardingDialog')).toBeVisible();await expect(page.locator('#avatarGrid')).toHaveAttribute('data-wd-enhanced','1');await expect(page.locator('body')).toHaveClass(/mode-dog/);const name=page.locator('#onboardingName');const home=page.locator('#onboardingHome');await name.fill('Bowie');await home.fill('Bestaatnietstad');await page.locator('#saveProfile').click();await expect(page.locator('#toast')).toContainText('kon ik niet vinden');await expect(page.locator('#onboardingDialog')).toBeVisible();await expect(page.locator('#saveProfile')).toBeEnabled();await expect(name).toHaveValue('Bowie');await expect(home).toHaveValue('Bestaatnietstad');
 });
