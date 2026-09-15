@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles.css?v=6" /><link rel="stylesheet" href="breed.css?v=2" />
   <link rel="stylesheet" href="home.css?v=5" />
   <link rel="stylesheet" href="smart-report.css?v=3" />
+  <link rel="stylesheet" href="design-system.css?v=1.8.0" />
   <title>Whatsup dog</title>
 </head>
 <body>
@@ -94,17 +95,19 @@
   <dialog id="onboardingDialog" class="full-dialog onboarding-dialog">
     <form id="onboardingForm" class="onboarding-card">
       <div class="onboarding-photo"><img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Happy-dog.jpg?width=900" alt="Blije hond buiten"><div class="photo-note">Goede wandelingen<br>maken betere dagen ♡</div></div>
-      <div class="onboarding-body"><button type="button" class="dialog-close" data-close-dialog aria-label="Sluiten">×</button><h2>Welkom bij<br>Whatsup dog <span>♡</span></h2><p class="intro">Samen maken we elke wandeling leuker, veiliger en socialer.</p><ul class="welcome-points"><li>🐾 Ontdek mooie losloopgebieden</li><li>👥 Ontmoet andere hondenliefhebbers</li><li>🌿 Deel meldingen en houd de buurt veilig</li><li>❤️ Voor blije honden, blije mensen</li></ul>
+      <div class="onboarding-body"><button type="button" class="dialog-close" data-close-dialog aria-label="Sluiten">×</button><h2>Welkom bij<br>Whatsup dog <span>♡</span></h2><p class="intro" id="onboardingIntro">Kies eerst voor wie je de buurt veiliger en leuker wilt maken.</p>
+        <fieldset class="species-picker" id="speciesPicker"><legend>Welke dieren horen bij jou?</legend><div class="species-options"><label><input type="radio" name="speciesContext" value="dog" checked><span><b>Hond</b><small>Wandelen en losloop</small></span></label><label><input type="radio" name="speciesContext" value="cat"><span><b>Kat</b><small>Veiligheid en buurt</small></span></label><label><input type="radio" name="speciesContext" value="both"><span><b>Beide</b><small>Alles rustig bij elkaar</small></span></label></div></fieldset>
+        <ul class="welcome-points" id="welcomePoints"><li>Ontdek wat voor jouw dier relevant is</li><li>Bekijk signalen in de buurt</li><li>Deel een melding als dat nodig is</li></ul>
         <label class="field"><span>Naam van jezelf of je hond</span><div class="input-icon"><b>●</b><input id="onboardingName" maxlength="40" placeholder="Bijv. Max, Sophie of Bailey" required></div></label>
         <label class="field"><span>Waar woont je hond?</span><div class="input-icon"><b>●</b><input id="onboardingHome" maxlength="80" autocomplete="address-level2" placeholder="Bijv. Nijkerk" required></div><small>Alleen woonplaats. Geen straat of huisnummer.</small></label>
-        <div class="field"><span>Kies een avatar</span><div id="avatarGrid" class="avatar-grid"></div></div>
-        <div class="field"><span>Kies het ras van je hond</span><input id="breedSearch" class="breed-search" placeholder="Zoek je hondenras..." aria-label="Zoek hondenras" autocomplete="off"><div id="breedGrid" class="breed-grid"></div></div>
+        <div class="field" id="avatarField"><span>Kies een avatar</span><div id="avatarGrid" class="avatar-grid"></div></div>
+        <div class="field" id="breedField"><span>Kies het ras van je hond</span><input id="breedSearch" class="breed-search" placeholder="Zoek je hondenras..." aria-label="Zoek hondenras" autocomplete="off"><div id="breedGrid" class="breed-grid"></div></div>
         <p class="privacy-note">🔒 Woonplaats gebruiken we alleen om de kaart goed te openen. Je live locatie wordt niet openbaar gedeeld.</p><button id="saveProfile" class="continue-btn" type="submit">Verder <span>→</span></button>
       </div>
     </form>
   </dialog>
 
-  <dialog id="reportDialog" class="sheet-dialog"><form id="reportForm" class="sheet-card report-sheet"><button type="button" class="dialog-close" data-close-dialog aria-label="Sluiten">×</button><div class="sheet-paw">🐾</div><h2>Wat heb je gespot?</h2><p>Help andere honden en baasjes in de buurt.</p><div id="reportTypes" class="report-grid"></div><div id="reportDetails" class="report-details hidden"><div id="vegetationKinds" class="subtype-grid hidden"></div><label class="field"><span>Korte omschrijving</span><textarea id="reportText" maxlength="220" rows="3" placeholder="Wat moeten andere hondenbezitters weten?"></textarea></label><div class="location-card">📍 <span id="reportLocationText">Plaats op het midden van de kaart</span></div><button id="publishReport" class="report-fab inside" type="submit">🐾 MELDEN</button></div></form></dialog>
+  <dialog id="reportDialog" class="sheet-dialog"><form id="reportForm" class="sheet-card report-sheet"><button type="button" class="dialog-close" data-close-dialog aria-label="Sluiten">×</button><div class="sheet-paw">◆</div><h2>Wat heb je gespot?</h2><p id="reportAudienceCopy">Help dieren en mensen in de buurt.</p><div id="reportTypes" class="report-grid"></div><div id="reportDetails" class="report-details hidden"><fieldset class="report-audience" id="reportAudience"><legend>Relevant voor</legend><div><label><input type="radio" name="reportSpecies" value="dog"><span>Hond</span></label><label><input type="radio" name="reportSpecies" value="cat"><span>Kat</span></label><label><input type="radio" name="reportSpecies" value="both" checked><span>Beide</span></label></div></fieldset><div id="vegetationKinds" class="subtype-grid hidden"></div><label class="field"><span>Korte omschrijving</span><textarea id="reportText" maxlength="220" rows="3" placeholder="Wat moeten mensen in de buurt weten?"></textarea></label><div class="location-card">📍 <span id="reportLocationText">Plaats op het midden van de kaart</span></div><button id="publishReport" class="report-fab inside" type="submit">MELDEN</button></div></form></dialog>
   <dialog id="detailDialog" class="sheet-dialog"><form class="sheet-card detail-sheet"><button type="button" class="dialog-close" data-close-dialog aria-label="Sluiten">×</button><div id="detailContent"></div></form></dialog>
   <dialog id="areaDialog" class="full-dialog area-dialog"><div class="area-card"><div class="area-photo"><img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Dog_park_photos_(14293243077).jpg?width=900" alt="Hond in een park"><button type="button" class="area-back" data-close-dialog aria-label="Terug">‹</button><button type="button" class="area-favorite" aria-label="Favoriet">♡</button></div><div class="area-body"><span class="official-pill">🐕 Officiële hondenlocatie</span><h2 id="areaName">Losloopgebied</h2><p id="areaMeta">Gemeente Nijkerk</p><p id="areaDescription">Een fijne plek om samen te snuffelen en te wandelen.</p><div class="feature-grid"><div>🐾<small>Officiële<br>geometrie</small></div><div>🌲<small>Op de<br>hondenkaart</small></div><div>〰️<small>Exacte<br>begrenzing</small></div><div>🗺️<small>Gemeente<br>Nijkerk</small></div></div><div class="area-actions"><button id="areaShowMap" class="outline-btn">🗺️ Toon op kaart</button><button id="areaRoute" class="blue-btn">➤ Route</button></div><div class="recent-head"><b>Recente meldingen</b><span>Bekijk alles →</span></div><div class="area-alert"><span>🌿⚠️</span><div><b>Vegetatie</b><p>Controleer meldingen in de buurt voordat je gaat wandelen.</p></div></div></div></div></dialog>
 
@@ -116,5 +119,6 @@
   <script src="smart-report-v3.js?v=3"></script>
   <script src="backend-config.js?v=4"></script>
   <script src="community-backend.js?v=2"></script>
+  <script src="species-context.js?v=1.8.0"></script>
 </body>
 </html>

@@ -11,10 +11,16 @@ const breedSource=read('breed-catalog.js');
 const lifecycleSource=read('report-lifecycle.js');
 const backendConfigSource=read('backend-config.js');
 const versionSource=read('version.js');
+const speciesSource=read('species-context.js');
+const designSource=read('design-system.css');
 const lifecycleMigration=read('supabase/migrations/20260913000100_report_lifecycle.sql');
 const lifecycleRecoveryMigration=read('supabase/migrations/20260915000100_reassert_report_lifecycle.sql');
 const version=versionSource.match(/version:'(\d+\.\d+\.\d+)'/)?.[1];
 assert.ok(version,'Central SemVer version missing');
+assert.match(speciesSource,/wd_profile_v1/,'Species context must use the persisted profile');
+assert.match(speciesSource,/mode-cat/,'CAT context missing');
+assert.match(speciesSource,/mode-both/,'BOTH context missing');
+assert.match(designSource,/--surface-canvas/,'Semantic design tokens missing');
 
 assert.equal((appSource.match(/function deleteReport\(/g)||[]).length,1,'Duplicate deleteReport handler');
 assert.match(appSource,/id="resolveReport"[\s\S]*id="deleteReport"/,'Point detail actions missing');

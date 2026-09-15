@@ -29,6 +29,12 @@ async function seedProfile(page){
   });
 }
 
+async function seedSpeciesProfile(page,speciesContext){
+  await page.addInitScript(profile=>localStorage.setItem('wd_profile_v1',JSON.stringify(profile)),{
+    name:speciesContext==='cat'?'Luna':speciesContext==='both'?'Boris & Luna':'Boris',avatar:speciesContext==='cat'?'🐈':speciesContext==='both'?'◆':'🐶',speciesContext,homePlace:'Nijkerk',homeLat:52.2182,homeLng:5.4835,createdAt:'2026-09-15T00:00:00.000Z'
+  });
+}
+
 async function openApp(page){
   await page.goto('/');
   await expect(page.locator('#app')).toBeVisible();
@@ -88,6 +94,37 @@ test('new user can complete onboarding and understand the next step without help
   await expect(page.locator('#profileName')).toHaveText('Bowie');
   await expect(page.locator('#profileSubtitle')).toContainText('Nijkerk');
   await expectNoHorizontalOverflow(page);
+});
+
+for(const mode of ['dog','cat','both'])test(`${mode.toUpperCase()} mode stays coherent after reload and navigation`,async({page})=>{
+  await installSafeRoutes(page);await seedSpeciesProfile(page,mode);await openApp(page);
+  await expect(page.locator('body')).toHaveClass(new RegExp(`mode-${mode}`));
+  if(mode==='cat'){
+    await expect(page.locator('#homeOffleash')).toBeHidden();
+    await expect(page.locator('[data-filter="offleash"]')).toBeHidden();
+    await expect(page.locator('#homeWalk')).toContainText('Bekijk buurt');
+  }else if(mode==='dog'){
+    await expect(page.locator('#homeOffleash')).toBeVisible();
+    await expect(page.locator('#homeWalk')).toContainText('Wandelen');
+  }else{
+    await expect(page.locator('#homeTitle')).toContainText('rondom jullie');
+    await expect(page.locator('#homeOffleash')).toContainText('Voor hond');
+  }
+  await page.locator('#homeReport').click();await expect(page.locator('#reportDialog')).toBeVisible();
+  const expected=mode==='both'?'both':mode;await expect(page.locator(`input[name="reportSpecies"][value="${expected}"]`)).toBeChecked();
+  await page.locator('#reportDialog [data-close-dialog]').click();await page.reload();
+  await expect(page.locator('body')).toHaveClass(new RegExp(`mode-${mode}`));await expectNoHorizontalOverflow(page);
+});
+
+test('new cat owner selects CAT during onboarding and the choice persists',async({page})=>{
+  await installSafeRoutes(page);await openApp(page);
+  await page.locator('input[name="speciesContext"][value="cat"]+span').click();
+  await expect(page.locator('#breedField')).toBeHidden();
+  await expect(page.locator('#avatarGrid')).not.toContainText('🐶');
+  await page.locator('#onboardingName').fill('Luna');await page.locator('#onboardingHome').fill('Nijkerk');await page.locator('#saveProfile').click();
+  await expect(page.locator('body')).toHaveClass(/mode-cat/);
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_profile_v1')).speciesContext)).toBe('cat');
+  await page.reload();await expect(page.locator('body')).toHaveClass(/mode-cat/);await expect(page.locator('#homeOffleash')).toBeHidden();
 });
 
 test('core report journey with photo can be completed and survives reload',async({page})=>{

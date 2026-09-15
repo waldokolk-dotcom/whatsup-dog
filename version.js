@@ -1,5 +1,5 @@
 (()=>{
-  const release={version:'1.7.1',name:'Reliable report removal',date:'2026-09-15'};
+  const release={version:'1.8.0',name:'Dog, cat & both foundation',date:'2026-09-15'};
   window.WHATSUP_DOG_RELEASE=Object.freeze(release);
   function render(){
     document.documentElement.dataset.appVersion=release.version;

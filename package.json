@@ -2,7 +2,9 @@
   "name": "whatsup-dog",
   "private": true,
   "scripts": {
-    "test:usability": "playwright test"
+    "test:usability": "playwright test",
+    "test:species": "node scripts/species-qa-agent.mjs",
+    "test:design": "node scripts/design-qa-agent.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.55.0"
