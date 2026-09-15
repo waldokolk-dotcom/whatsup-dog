@@ -259,7 +259,7 @@ test('invalid onboarding location gives a recoverable error instead of a dead en
   await openApp(page);
 
   await expect(page.locator('#onboardingDialog')).toBeVisible();
-  await expect(page.locator('#avatarGrid .avatar-choice')).toHaveCount(6);
+  await expect(page.locator('#avatarGrid')).toHaveAttribute('data-wd-enhanced','1');
   await expect(page.locator('body')).toHaveClass(/mode-dog/);
   const name=page.locator('#onboardingName');
   const home=page.locator('#onboardingHome');
