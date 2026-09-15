@@ -201,6 +201,25 @@ test('main navigation stays understandable and primary mobile actions remain tap
   }
 });
 
+test('calm map keeps filters behind one layers interaction',async({page})=>{
+  await installSafeRoutes(page);
+  await seedSpeciesProfile(page,'both');
+  await openApp(page);
+  await page.locator('.bottom-nav [data-view="map"]').click();
+
+  const layers=page.locator('#layersButton'),filters=page.locator('#filterRow');
+  await expect(layers).toBeVisible();
+  await expect(layers).toHaveAttribute('aria-expanded','false');
+  await expect(filters).toBeHidden();
+  await layers.click();
+  await expect(filters).toBeVisible();
+  await expect(layers).toHaveAttribute('aria-expanded','true');
+  await page.locator('[data-filter="danger"]').click();
+  await expect(filters).toBeHidden();
+  await expect(page.locator('#reportFab')).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
 test('unavailable findability explains itself instead of acting like a dead switch',async({page})=>{
   await installSafeRoutes(page);
   await seedProfile(page);

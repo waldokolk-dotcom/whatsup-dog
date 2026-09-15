@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.0] - 2026-09-15
+
+### Changed
+- Nieuwe visuele richting `Buurtspoor`: warm, volwassen en lokaal kleuren- en vormsysteem zonder specieskleurstereotypen.
+- Navigatie en primaire kaartbediening gebruiken consistente eigen lijniconen in plaats van platformafhankelijke emoji.
+- Kaartfilters staan rustig achter één `Lagen`-interactie; alleen locatie en `Melden` blijven permanent zichtbaar.
+- Typografie, radii, elevations en primaire acties zijn vereenvoudigd voor meer rust en een minder generieke uitstraling.
+
 ## [1.8.1] - 2026-09-15
 
 ### Fixed
