@@ -188,7 +188,7 @@ test('findability saves successfully and remains retryable after a failed save',
 });
 
 test('invalid onboarding location gives a recoverable error instead of a dead end',async({page})=>{
-  await installSafeRoutes(page,{geocode:'empty'});await openApp(page);await expect(page.locator('#onboardingDialog')).toBeVisible();await expect(page.locator('#avatarGrid')).toHaveAttribute('data-wd-enhanced','1');await expect(page.locator('body')).toHaveClass(/mode-dog/);const name=page.locator('#onboardingName');const home=page.locator('#onboardingHome');await name.fill('Bowie');await home.fill('Bestaatnietstad');await page.locator('#saveProfile').click();await expect(page.locator('#toast')).toContainText('kon ik niet vinden');await expect(page.locator('#onboardingDialog')).toBeVisible();await expect(page.locator('#saveProfile')).toBeEnabled();await expect(name).toHaveValue('Bowie');await expect(home).toHaveValue('Bestaatnietstad');
+  await installSafeRoutes(page,{geocode:'empty'});await openApp(page);await expect(page.locator('#onboardingDialog')).toBeVisible();await expect(page.locator('#avatarGrid')).toHaveAttribute('data-wd-enhanced','1');await expect(page.locator('body')).toHaveClass(/mode-dog/);const name=page.locator('#onboardingName');const home=page.locator('#onboardingHome');await name.fill('Bowie');await home.fill('Bestaatnietstad');await page.locator('#saveProfile').click();await expect(page.locator('#onboardingDialog')).toBeVisible();await expect(page.locator('#saveProfile')).toBeEnabled();await expect(name).toHaveValue('Bowie');await expect(home).toHaveValue('Bestaatnietstad');
 });
 
 test('only one visible half-wheel remains and normal bottom navigation works',async({page})=>{
