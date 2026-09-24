@@ -1,5 +1,10 @@
 begin;
 
+-- Preserve all existing report categories and add the wheel's genuine Other choice.
+alter table public.reports drop constraint if exists reports_type_check;
+alter table public.reports add constraint reports_type_check
+  check (type in ('danger','vegetation','dirty','road','fun','walk','spotted','lost','other'));
+
 -- Permanent account required to create private or group conversations. Guests still see public reports.
 create or replace function public.start_private_chat(target uuid)
 returns uuid language plpgsql security definer set search_path='' as $$
