@@ -218,6 +218,37 @@ test('only one visible half-wheel remains and normal bottom navigation works',as
   await expect(page.locator('#view-chat')).toHaveClass(/active/);
 });
 
+test('docked wheel shows the six aligned choices before opening and supports keyboard snap',async({page})=>{
+  await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
+  await expect(page.locator('#wdQuickReport .wd-dock-sector')).toHaveCount(6);
+  await expect(page.locator('#wdQuickReport')).toContainText('Gevaar');
+  await expect(page.locator('#wdQuickReport')).toContainText('Overig');
+  await page.locator('#wdQuickReport').click();
+  const wheel=page.locator('.wd-wheel-disc');
+  await expect(wheel).toBeFocused();
+  await expect(page.locator('#wdWheelSelection')).toContainText('Hond');
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('#wdWheelSelection')).toContainText('Kat');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#reportDialog')).toBeVisible();
+  await expect(page.locator('#wdQuickWheel')).toBeHidden();
+});
+
+test('one-finger wheel drag snaps to a choice and opens its quick form',async({page})=>{
+  await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
+  await page.locator('#wdQuickReport').click();
+  const box=await page.locator('.wd-wheel-disc').boundingBox();
+  expect(box).not.toBeNull();
+  const centerX=box.x+box.width/2,centerY=box.y+box.height/2,radius=box.width*.32;
+  await page.mouse.move(centerX+radius,centerY);
+  await page.mouse.down();
+  await page.mouse.move(centerX+radius*.5,centerY-radius*.87,{steps:10});
+  await page.mouse.up();
+  await expect(page.locator('#reportDialog')).toBeVisible();
+  await expect(page.locator('#wdQuickWheel')).toBeHidden();
+  await expect(page.locator('#wdQuickLocation')).toContainText('18 meter');
+});
+
 test('public feed never represents local pending reports as shared',async({page})=>{
   await installSafeRoutes(page);await seedProfile(page);await openApp(page);
   await page.evaluate(()=>{
