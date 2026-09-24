@@ -71,6 +71,7 @@
     if(mode==='area'){bar.querySelector('.draw-undo').onclick=()=>{S.draftPoints=[];redrawArea()};bar.querySelector('.draw-center').onclick=()=>{const b=map.getBounds();S.draftPoints=[[b.getSouth(),b.getWest()],[b.getSouth(),b.getEast()],[b.getNorth(),b.getEast()],[b.getNorth(),b.getWest()]];redrawArea();finishArea()};bar.querySelector('.draw-done').onclick=finishArea}
   }
   function beginPick(mode){
+    if(S.quickMode){S.quickToken++;S.quickGpsPending=false;quickLocation('📍 Kies zelf de juiste plek op de kaart.');}
     stopPick({clear:true});S.geometryMode=mode;S.pickMode=mode;S.draftPoints=[];if(mode==='point')S.point=null;else S.polygon=null;
     reportDialog()?.close();showView('map');setTimeout(()=>map.invalidateSize(),40);if(mode==='point'){const cross=document.createElement('div');cross.className='map-crosshair';cross.textContent='📍';document.getElementById('view-map')?.appendChild(cross)}makeToolbar(mode);map.on('click',handleMapClick);toast(mode==='point'?'Schuif de kaart en kies de plek':'Kies kaartgebied of tik punten langs de rand');
   }
