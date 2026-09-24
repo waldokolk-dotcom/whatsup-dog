@@ -4,7 +4,7 @@
   const list=document.getElementById('publicFeedList');
   const status=document.getElementById('publicFeedStatus');
   if(!list||!status)return;
-  const types={danger:'Gevaar',vegetation:'Vegetatie',dirty:'Vervuiling',road:'Pad / weg',fun:'Leuke plek',walk:'Samen wandelen',spotted:'Dier gespot',lost:'Vermist / gevonden'};
+  const types={danger:'Gevaar',vegetation:'Vegetatie',dirty:'Vervuiling',road:'Pad / weg',fun:'Leuke plek',walk:'Samen wandelen',spotted:'Dier gezien',lost:'Vermist / gevonden',other:'Overig'};
   const read=()=>{try{const rows=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(rows)?rows:[]}catch{return[]}};
   const element=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!=null)node.textContent=String(text);return node};
   const speciesMode=()=>{try{const mode=JSON.parse(localStorage.getItem('wd_profile_v1')||'{}').speciesContext;return ['dog','cat','both'].includes(mode)?mode:'dog'}catch{return 'dog'}};
