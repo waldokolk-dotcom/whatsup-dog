@@ -35,6 +35,17 @@ assert.match(smartSource,/const subtype=selectedReportType==='lost'/,'Enhanced r
 assert.match(smartSource,/\$\('mapPlusBtn'\)\?\.addEventListener\('click',resetOnOpen\)/,'Map quick-add must reset enhanced report state');
 assert.match(appSource,/hiddenReports:'wd_hidden_reports_v1'/,'Hidden report storage missing');
 
+
+const productionFeed=read('production-feed.js');
+assert.match(indexSource,/id="view-feed"/,'Production public feed view missing');
+assert.match(indexSource,/production-feed\\.js\\?v=1/,'Production public feed script missing');
+assert.match(indexSource,/production-feed\\.css\\?v=1/,'Production public feed stylesheet missing');
+assert.doesNotMatch(indexSource,/id="view-chat"|id="pushDemo"|Test een melding/,'Demo UI must not be shipped');
+assert.doesNotMatch(appSource,/function setupChat\\(|setupChat\\(\\)|pushDemo/,'Demo handlers must not be shipped');
+assert.match(productionFeed,/r\\._remote===true/,'Public feed may show only server-confirmed reports');
+assert.match(productionFeed,/dataset\\.community==='community-aan'/,'Public feed must fail closed when backend is unavailable');
+assert.match(read('sw.js'),/production-feed\\.js\\?v=1/,'Offline shell must include production feed');
+
 const backendSource=read('community-backend.js');
 assert.match(backendSource,/wd_hidden_reports_v1/,'Remote hidden report filter missing');
 assert.match(backendSource,/hiddenIds\.has\(row\.id\)/,'Remote refresh does not honor hidden reports');
