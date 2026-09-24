@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
+execFileSync(process.execPath,['scripts/build-site.mjs'],{stdio:'inherit'});
+const file='dist/index.html';
+let html=fs.readFileSync(file,'utf8');
+const head='<head>';
+if(!html.includes(head))throw new Error('Preview HTML head missing');
+html=html.replace(head,head+'\n  <script src="./preview-guard.js?v=1"></script>');
+html=html.replace('<title>Whatsup dog</title>','<title>Whatsup dog · Veilige proefversie</title>');
+fs.writeFileSync(file,html);
+fs.copyFileSync('preview-guard.js','dist/preview-guard.js');
+const manifest=JSON.parse(fs.readFileSync('dist/manifest.webmanifest','utf8'));
+manifest.name='Whatsup dog · proefversie';manifest.short_name='Whatsup dog proef';
+fs.writeFileSync('dist/manifest.webmanifest',JSON.stringify(manifest));
+console.log('Preview static assets built with isolated local storage and Supabase read-only gateway');
