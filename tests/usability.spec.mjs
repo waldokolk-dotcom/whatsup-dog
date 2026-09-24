@@ -50,6 +50,14 @@ async function seedSpeciesProfile(page,speciesContext){
   });
 }
 
+async function mockGps(page){
+  await page.addInitScript(()=>{
+    Object.defineProperty(navigator,'geolocation',{configurable:true,value:{
+      getCurrentPosition:success=>success({coords:{latitude:52.2182,longitude:5.4835,accuracy:18}})
+    }});
+  });
+}
+
 async function openApp(page){
   await page.goto('/');
   await expect(page.locator('#app')).toBeVisible();
@@ -122,7 +130,7 @@ for(const mode of ['dog','cat','both'])test(`${mode.toUpperCase()} mode stays co
     await expect(page.locator('#homeTitle')).toContainText('rondom jullie');
     await expect(page.locator('#homeOffleash')).toContainText('Voor hond');
   }
-  await page.locator('#homeReport').click();await expect(page.locator('#reportDialog')).toBeVisible();
+  await page.locator('#homeReport').click();await expect(page.locator('#wdQuickWheel')).toBeVisible();await page.locator('[data-quick-type="danger"]').click();await expect(page.locator('#reportDialog')).toBeVisible();
   const expected=mode==='both'?'both':mode;await expect(page.locator(`input[name="reportSpecies"][value="${expected}"]`)).toBeChecked();
   await page.locator('#reportDialog [data-close-dialog]').click();await page.reload();
   await expect(page.locator('body')).toHaveClass(new RegExp(`mode-${mode}`));await expectNoHorizontalOverflow(page);
@@ -155,8 +163,8 @@ test('phone install help is A2 and switches between Apple and other phones',asyn
 });
 
 test('core report journey with photo can be completed and survives reload',async({page})=>{
-  await installSafeRoutes(page);await seedProfile(page);await openApp(page);
-  await page.locator('.bottom-nav [data-view="map"]').click();await expect(page.locator('#view-map')).toHaveClass(/active/);await page.locator('#reportFab').click();await expect(page.locator('#reportDialog')).toBeVisible();await page.locator('[data-report-type="danger"]').click();await expect(page.locator('#reportDetails')).not.toHaveClass(/hidden/);await expect(page.locator('#reportDuration')).toBeVisible();await expect(page.locator('#reportPhotoInput')).toBeAttached();
+  await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
+  await page.locator('.bottom-nav [data-view="map"]').click();await expect(page.locator('#view-map')).toHaveClass(/active/);await page.locator('#reportFab').click();await expect(page.locator('#wdQuickWheel')).toBeVisible();await page.locator('[data-quick-type="danger"]').click();await expect(page.locator('#reportDialog')).toBeVisible();await page.locator('[data-report-type="danger"]').click();await expect(page.locator('#reportDetails')).not.toHaveClass(/hidden/);await expect(page.locator('#reportDuration')).toBeVisible();await expect(page.locator('#reportPhotoInput')).toBeAttached();
   const svg=Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30"><rect width="40" height="30" fill="orange"/></svg>');await page.locator('#reportPhotoInput').setInputFiles({name:'pad.svg',mimeType:'image/svg+xml',buffer:svg});await expect(page.locator('#reportPhotoPreview')).toHaveClass(/show/);await page.locator('#reportDuration').selectOption({label:'Net gezien'});const impact4=page.locator('.annoyance-scale label').filter({hasText:/^4$/});await impact4.click();await expect(page.locator('input[name="reportAnnoyance"][value="4"]')).toBeChecked();await page.locator('#reportText').fill('Glas op het wandelpad bij het park');await page.locator('#publishReport').click();
   await expect(page.locator('#reportDialog')).not.toBeVisible();await expect(page.locator('#toast')).toContainText(/melding.*kaart|dankjewel/i);const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_reports_v1')||'[]'));expect(stored).toHaveLength(1);expect(stored[0].text).toContain('Glas op het wandelpad');expect(stored[0].duration).toBe('Net gezien');expect(stored[0].annoyance).toBe(4);expect(stored[0].photoDataUrl).toMatch(/^data:image\/jpeg;base64,/);
   await page.reload();await page.locator('.bottom-nav [data-view="profile"]').click();await expect(page.locator('#myReportCount')).toHaveText('1');await page.locator('.bottom-nav [data-view="map"]').click();await expect(page.locator('.marker-badge')).toHaveCount(1);await page.locator('.marker-badge').first().click();await expect(page.locator('.report-detail-photo')).toBeVisible();await expectNoHorizontalOverflow(page);
@@ -293,9 +301,10 @@ test('verified login opens role-gated maintenance and logout closes it',async({p
 });
 
 test('newly submitted reports explicitly opt in, legacy local reports stay unsent',async({page})=>{
-  await installSafeRoutes(page);await seedProfile(page);await openApp(page);
+  await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
   await page.locator('.bottom-nav [data-view="map"]').click();
   await page.locator('#reportFab').click();
+  await page.locator('[data-quick-type="danger"]').click();
   await page.locator('[data-report-type="danger"]').click();
   await page.locator('#reportDuration').selectOption({label:'Net gezien'});
   await page.locator('.annoyance-scale label').filter({hasText:/^4$/}).click();
@@ -324,4 +333,26 @@ test('preview isolates browser storage and rejects writes to the hosted project'
   });
   expect(response.status).toBe(403);
   expect(response.body.code).toBe('PREVIEW_READ_ONLY');
+});
+
+test('quick wheel prefills GPS and local date with camera and gallery options',async({page})=>{
+  await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
+  await page.locator('#wdQuickReport').click();
+  await expect(page.locator('#wdQuickWheel')).toBeVisible();
+  await page.locator('[data-quick-type="danger"]').click();
+  await expect(page.locator('#reportDialog')).toBeVisible();
+  await expect(page.locator('#wdQuickDateTime')).toContainText('automatisch');
+  await expect(page.locator('#wdQuickLocation')).toContainText('18 meter');
+  await expect(page.locator('#reportCameraV2')).toHaveAttribute('capture','environment');
+  await expect(page.locator('#reportPhotoV2')).toHaveAttribute('accept','image/*');
+});
+test('quick reporting never guesses a position when GPS fails',async({page})=>{
+  await installSafeRoutes(page);await seedProfile(page);
+  await page.addInitScript(()=>Object.defineProperty(navigator,'geolocation',{configurable:true,value:{
+    getCurrentPosition:(_,failure)=>failure({code:1})
+  }}));
+  await openApp(page);await page.locator('#wdQuickReport').click();
+  await page.locator('[data-quick-type="danger"]').click();
+  await expect(page.locator('#wdQuickLocation')).toContainText('Kies zelf een plek');
+  await expect(page.locator('#pickOnMapV2')).toBeVisible();
 });
