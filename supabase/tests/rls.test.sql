@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(35);
+select plan(39);
 insert into auth.users(id) values ('11111111-1111-4111-8111-111111111111'),('22222222-2222-4222-8222-222222222222'),('33333333-3333-4333-8333-333333333333'),('44444444-4444-4444-8444-444444444444');
 insert into private.moderators values('33333333-3333-4333-8333-333333333333');
 insert into public.chat_rooms(id,name,created_by) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Private test','11111111-1111-4111-8111-111111111111');
@@ -42,9 +42,13 @@ select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333'
 select lives_ok($pg$insert into public.profiles(id,display_name,discoverable) values(auth.uid(),'Buren C',true)$pg$,'User C explicitly opts in');
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","is_anonymous":true}',true);
+select throws_ok($pg$select public.set_profile_discoverability(true,'Bowie','🐶','Nijkerk','Labrador')$pg$,'42501','A verified account is required','Anonymous profile cannot opt in through RPC');
+select throws_ok($pg$update public.profiles set discoverable=true where id=auth.uid()$pg$,'42501','Verified account required for profile discoverability','Anonymous user cannot bypass RPC through direct profile update');
 select throws_ok($pg$select public.start_private_chat('22222222-2222-4222-8222-222222222222')$pg$,'42501','Verified account required','Anonymous user cannot create a private conversation');
 select throws_ok($pg$select public.start_group_chat('Wandelen',array['22222222-2222-4222-8222-222222222222'::uuid,'33333333-3333-4333-8333-333333333333'::uuid])$pg$,'42501','Verified account required','Anonymous user cannot create a group');
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","is_anonymous":false}',true);
+select lives_ok($pg$select public.set_profile_discoverability(true,'Bowie','🐶','Nijkerk','Labrador')$pg$,'Verified user can explicitly opt in');
+select is((select discoverable from public.profiles where id=auth.uid()),true,'Verified opt-in is stored and confirmed');
 select lives_ok($pg$select public.start_group_chat('Wandelen',array['22222222-2222-4222-8222-222222222222'::uuid,'33333333-3333-4333-8333-333333333333'::uuid])$pg$,'Verified user can create an opt-in group');
 select is((select count(*) from public.chat_members where room_id=(select id from public.chat_rooms where name='Wandelen')),3::bigint,'Created group has exactly three members');
 select throws_ok($pg$select public.start_group_chat('Duplicate',array['22222222-2222-4222-8222-222222222222'::uuid,'22222222-2222-4222-8222-222222222222'::uuid])$pg$,'42501','Only distinct, discoverable members can be invited','Duplicate invitations rejected');
