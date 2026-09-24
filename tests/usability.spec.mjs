@@ -297,8 +297,11 @@ test('newly submitted reports explicitly opt in, legacy local reports stay unsen
   await page.locator('.bottom-nav [data-view="map"]').click();
   await page.locator('#reportFab').click();
   await page.locator('[data-report-type="danger"]').click();
+  await page.locator('#reportDuration').selectOption({label:'Net gezien'});
+  await page.locator('.annoyance-scale label').filter({hasText:/^4$/}).click();
   await page.locator('#reportText').fill('Nieuwe veiligheidsmelding in mijn buurt');
   await page.locator('#publishReport').click();
+  await expect(page.locator('#reportDialog')).not.toBeVisible();
   const rows=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_reports_v1')||'[]'));
   expect(rows.at(-1)._shareIntent).toBe(true);
 });
