@@ -156,17 +156,17 @@
     state.knownIds=new Set(reports().map(r=>r.id));
     // Never enqueue legacy local-only or demonstration reports on app startup.
     state.monitor=setInterval(()=>{
-      const rows=reports();let tagged=false;
+      const rows=reports();let tagged=false,shouldProcess=false;
       for(const r of rows){
         if(!r?.id||state.knownIds.has(r.id))continue;
         state.knownIds.add(r.id);
         if(!r._remote&&r._shareIntent===true){
           if(state.user?.id){r._accountOwner=state.user.id;tagged=true}
-          addQueue(r.id);
+          addQueue(r.id);shouldProcess=true;
         }
       }
       if(tagged)write(REPORTS_KEY,rows);
-      processQueue();
+      if(shouldProcess)processQueue();
     },700);
     window.addEventListener('online',()=>{setStatus('Synchroniseren','Internet teruggevonden');processQueue();scheduleRefresh(0)});
     document.getElementById('onboardingDialog')?.addEventListener('close',()=>syncProfile().catch(console.warn));
