@@ -77,7 +77,16 @@ assert.match(indexSource,/account-login\.css\?v=1/,'Login design stylesheet miss
 assert.match(read('sw.js'),/account-login\.js\?v=1/,'Login must be included in the offline app shell');
 assert.match(loginSource,/signInWithPassword/,'Password sign-in missing');
 assert.match(loginSource,/shouldCreateUser:false/,'Magic link must never silently create a new account');
-assert.match(loginSource,/shouldCreateUser:true/,'Ordinary users need an explicit verified signup option');
+const signupSource=read('account-onboarding.js');
+assert.match(indexSource,/account-onboarding\.js\?v=1/,'Registration and profile editor must be included in the app');
+assert.match(read('sw.js'),/account-onboarding\.js\?v=1/,'Member account setup must ship in the offline shell');
+assert.match(signupSource,/auth\.signUp/,'Password account creation must be backed by Supabase Auth');
+assert.match(signupSource,/shouldCreateUser:true/,'Passwordless signup must be an explicit separate option');
+assert.match(signupSource,/resetPasswordForEmail/,'Account holders need a password recovery flow');
+assert.match(signupSource,/auth\.updateUser/,'Users must be able to save a new password and pet preference');
+assert.match(signupSource,/from\('profiles'\)\.upsert/,'Profile completion must persist under the authenticated account');
+assert.match(signupSource,/preview\|\|!verified\(\)/,'Profile mutation must not be available to guests or preview');
+assert.match(loginSource,/form\.hidden=verified\|\|preview/,'Preview must hide real credential inputs');
 assert.match(loginSource,/id='wdAccountRegister'/,'Signup needs a dedicated, clearly labeled control');
 assert.match(loginSource,/auth\.signOut/,'Account logout missing');
 assert.match(read('community-backend.js'),/detectSessionInUrl:true/,'Magic-link callback sessions must be recognized');
