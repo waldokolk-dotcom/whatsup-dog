@@ -46,6 +46,18 @@ assert.match(productionFeed,/r\._remote===true/,'Public feed may show only serve
 assert.match(productionFeed,/dataset\.community==='community-aan'/,'Public feed must fail closed when backend is unavailable');
 assert.match(read('sw.js'),/production-feed\.js\?v=1/,'Offline shell must include production feed');
 
+const wheelSource=read('paw-wheel.js');
+const maintenanceSource=read('maintenance-ui.js');
+const maintenanceGate=read('supabase/migrations/20260924000100_moderator_ui_gate.sql');
+assert.match(indexSource,/paw-wheel\.js\?v=1/,'PawWheel missing from app');
+assert.match(wheelSource,/wd_pawwheel_v1/,'PawWheel preferences must persist on this device');
+assert.match(wheelSource,/pointercancel/,'PawWheel must allow cancellation');
+assert.match(indexSource,/maintenance-ui\.js\?v=1/,'Maintenance UI missing from app');
+assert.match(maintenanceSource,/rpc\('is_report_moderator'\)/,'Maintenance must verify role on the server');
+assert.match(maintenanceSource,/rpc\('moderate_report'/,'Maintenance must use trusted moderation RPC');
+assert.match(maintenanceGate,/security definer/,'Maintenance role gate must be enforced on the server');
+assert.match(maintenanceGate,/revoke all on function public\.is_report_moderator/,'Moderator capability must not be public');
+
 const backendSource=read('community-backend.js');
 assert.match(backendSource,/wd_hidden_reports_v1/,'Remote hidden report filter missing');
 assert.match(backendSource,/hiddenIds\.has\(row\.id\)/,'Remote refresh does not honor hidden reports');
