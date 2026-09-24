@@ -249,3 +249,56 @@ test('personal alerts show only real shared reports and persist filters',async({
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_alert_preferences_v1')));
   expect(saved.activities).toBe(true);expect(saved.danger).toBe(false);
 });
+
+test('verified login opens role-gated maintenance and logout closes it',async({page})=>{
+  await installSafeRoutes(page);await seedProfile(page);
+  await page.route('**/community-backend.js*',route=>route.fulfill({
+    status:200,contentType:'application/javascript',body:`
+      let activeUser={id:'anonymous-fixture',is_anonymous:true};
+      const anon={id:'anonymous-fixture',is_anonymous:true};
+      const verified={id:'verified-fixture',email:'beheer@example.test',is_anonymous:false};
+      const client={
+        auth:{
+          signInWithPassword:async({email,password})=>{
+            if(email!=='beheer@example.test'||password!=='correct-password')return {error:{message:'Invalid login'}};
+            activeUser=verified;document.dispatchEvent(new CustomEvent('wd:auth-changed'));
+            document.dispatchEvent(new CustomEvent('wd:community-status',{detail:{label:'Community aan'}}));
+            return {data:{user:verified},error:null};
+          },
+          signInWithOtp:async()=>({data:{user:null,session:null},error:null}),
+          signOut:async()=>{activeUser=anon;document.dispatchEvent(new CustomEvent('wd:auth-changed'));
+            document.dispatchEvent(new CustomEvent('wd:community-status',{detail:{label:'Community aan'}}));return {error:null}}
+        },
+        rpc:async name=>({data:name==='is_report_moderator'&&activeUser.id===verified.id,error:null}),
+        from:()=>({select:()=>({order:()=>({limit:async()=>({data:[],error:null})})})})
+      };
+      window.WhatsupDogCommunity={configured:true,client,get user(){return activeUser}};
+      document.documentElement.dataset.community='community-aan';
+      document.dispatchEvent(new CustomEvent('wd:community-status',{detail:{label:'Community aan'}}));
+    `
+  }));
+  await openApp(page);await page.locator('.bottom-nav [data-view="profile"]').click();
+  await expect(page.locator('#wdAccountLogin')).toBeVisible();
+  await expect(page.locator('#wdMaintenance')).toBeHidden();
+  await page.locator('#wdAccountEmail').fill('beheer@example.test');
+  await page.locator('#wdAccountPassword').fill('correct-password');
+  await page.locator('#wdAccountLogin button[type="submit"]').click();
+  await expect(page.locator('#wdAccountSigned')).toBeVisible();
+  await expect(page.locator('#wdMaintenance')).toBeVisible();
+  await page.locator('#wdMaintenance button').first().click();
+  await expect(page.locator('#wdMaintenanceStatus')).toContainText('0 meldingen');
+  await page.locator('#wdAccountSigned button').click();
+  await expect(page.locator('#wdAccountLogin')).toBeVisible();
+  await expect(page.locator('#wdMaintenance')).toBeHidden();
+});
+
+test('newly submitted reports explicitly opt in, legacy local reports stay unsent',async({page})=>{
+  await installSafeRoutes(page);await seedProfile(page);await openApp(page);
+  await page.locator('.bottom-nav [data-view="map"]').click();
+  await page.locator('#reportFab').click();
+  await page.locator('[data-report-type="danger"]').click();
+  await page.locator('#reportText').fill('Nieuwe veiligheidsmelding in mijn buurt');
+  await page.locator('#publishReport').click();
+  const rows=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_reports_v1')||'[]'));
+  expect(rows.at(-1)._shareIntent).toBe(true);
+});
