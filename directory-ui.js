@@ -71,7 +71,7 @@
   }
 
   function injectDirectory(){
-    const chat=$('view-chat');if(!chat||$('peopleDirectory'))return;
+    const chat=$('view-chat');if(!chat||$('wdChat')||$('peopleDirectory'))return;
     const context=directoryContext(),card=document.createElement('section');card.id='peopleDirectory';card.className='directory-card';card.innerHTML=`<h3>🐾 ${context.title}</h3><p>Alleen mensen die zelf <b>Vindbaar in Whatsup dog</b> hebben aangezet staan hier.</p><div id="directoryList" class="directory-list"><div class="directory-empty">Laden…</div></div>`;
     $('chatDirectoryNote')?.remove();
     const list=$('chatList');list?.insertAdjacentElement('beforebegin',card);
@@ -135,7 +135,7 @@
 
   async function boot(){
     injectStyles();injectProfileOptIn();injectDirectory();interceptChatSubmit();
-    if(!await waitForBackend()){setOptInAvailability(false,'Tijdelijk niet beschikbaar: geen communityverbinding.');$('directoryList').innerHTML='<div class="directory-empty">Communityverbinding is niet beschikbaar.</div>';return}
+    if(!await waitForBackend()){setOptInAvailability(false,'Tijdelijk niet beschikbaar: geen communityverbinding.');if($('directoryList'))$('directoryList').innerHTML='<div class="directory-empty">Communityverbinding is niet beschikbaar.</div>';return}
     await loadOwnOptIn();await refreshDirectory();
     document.getElementById('onboardingDialog')?.addEventListener('close',async()=>{const p=readProfile();if(client&&user){await client.from('profiles').update({breed:String(p?.breed||'').slice(0,80)||null}).eq('id',user.id);await refreshDirectory()}});
   }
