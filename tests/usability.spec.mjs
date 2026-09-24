@@ -186,7 +186,7 @@ test('calm map keeps filters behind one layers interaction',async({page})=>{
 });
 
 test('unavailable findability explains itself instead of acting like a dead switch',async({page})=>{
-  await installSafeRoutes(page);await seedProfile(page);await openApp(page);await page.locator('.bottom-nav [data-view="profile"]').click();const toggle=page.locator('#directoryOptIn');const status=page.locator('#directoryOptInStatus');await expect(toggle).toBeVisible();await expect(toggle).toBeDisabled();await expect(status).toContainText('Tijdelijk niet beschikbaar');await expect(status).toHaveAttribute('role','status');await expectNoHorizontalOverflow(page);
+  await installSafeRoutes(page);await seedProfile(page);await openApp(page);await page.locator('.bottom-nav [data-view="profile"]').click();const toggle=page.locator('#directoryOptIn');const status=page.locator('#directoryOptInStatus');await expect(toggle).toBeVisible();await expect(toggle).toBeDisabled();await expect(status).toContainText('Meld je aan om vindbaar te worden');await expect(status).toHaveAttribute('role','status');await expectNoHorizontalOverflow(page);
 });
 
 test('findability saves successfully and remains retryable after a failed save',async({page})=>{
