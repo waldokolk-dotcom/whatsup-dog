@@ -84,7 +84,11 @@
   async function shareOne(report){
     if(!state.ready||!state.user)return;
     if(report?._remote){removeQueue(report.id);return;}
+    const ownerId=state.user.id;
+    if(report._accountOwner&&report._accountOwner!==ownerId)throw new Error('report-belongs-to-another-account');
+    if(!state.user.is_anonymous&&report._accountOwner!==ownerId)throw new Error('verified-report-requires-explicit-owner');
     const photoPath=await uploadPhoto(report);
+    if(state.user?.id!==ownerId)throw new Error('account-changed-during-upload');
     const p=profile();const polygon=cleanPolygon(report.polygon);
     const row={
       id:report.id,user_id:state.user.id,author_name:String(p?.name||report.author||'Hondenbezitter').slice(0,40),author_avatar:String(p?.avatar||'🐶').slice(0,16),
@@ -105,10 +109,12 @@
   }
 
   async function processQueue(){
-    if(window.__WD_PREVIEW__||!state.ready||state.processing||!navigator.onLine||!state.user?.is_anonymous)return;state.processing=true;
+    if(window.__WD_PREVIEW__||!state.ready||state.processing||!navigator.onLine||!state.user)return;state.processing=true;
     try{
       for(const id of queue()){
         const report=reports().find(r=>r.id===id);if(!report||report._shareIntent!==true){removeQueue(id);continue}
+        if(report._accountOwner&&report._accountOwner!==state.user.id)continue;
+        if(!state.user.is_anonymous&&report._accountOwner!==state.user.id)continue;
         try{await shareOne(report)}catch(err){console.warn('Whatsup dog delen uitgesteld',err);setStatus('Wacht op sync','Melding staat lokaal veilig en wordt later opnieuw gedeeld');break}
       }
     }finally{state.processing=false}
@@ -150,12 +156,17 @@
     state.knownIds=new Set(reports().map(r=>r.id));
     // Never enqueue legacy local-only or demonstration reports on app startup.
     state.monitor=setInterval(()=>{
-      const rows=reports();
+      const rows=reports();let tagged=false;
       for(const r of rows){
         if(!r?.id||state.knownIds.has(r.id))continue;
         state.knownIds.add(r.id);
-        if(!r._remote&&r._shareIntent===true){addQueue(r.id);processQueue()}
+        if(!r._remote&&r._shareIntent===true){
+          if(state.user?.id){r._accountOwner=state.user.id;tagged=true}
+          addQueue(r.id);
+        }
       }
+      if(tagged)write(REPORTS_KEY,rows);
+      processQueue();
     },700);
     window.addEventListener('online',()=>{setStatus('Synchroniseren','Internet teruggevonden');processQueue();scheduleRefresh(0)});
     document.getElementById('onboardingDialog')?.addEventListener('close',()=>syncProfile().catch(console.warn));
@@ -177,7 +188,7 @@
         state.ready=true;
         document.dispatchEvent(new CustomEvent('wd:auth-changed',{detail:{userId:state.user.id,isAnonymous:Boolean(state.user.is_anonymous)}}));
         await refreshSharedReports();
-        if(state.user?.is_anonymous)await processQueue();
+        await processQueue();
       }).catch(err=>{console.warn('Accountwisseling mislukt',err);setStatus('Offline','Accountwisseling niet voltooid; probeer opnieuw')});
     });
   }
