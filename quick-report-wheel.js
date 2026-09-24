@@ -44,7 +44,7 @@ backdrop.querySelector('.wd-wheel-close').addEventListener('click',close);
 backdrop.addEventListener('click',event=>{if(event.target===backdrop)close()});
 document.addEventListener('keydown',event=>{if(!opened)return;if(event.key==='Escape'){event.preventDefault();close()}if(event.key==='Tab'){const controls=[...backdrop.querySelectorAll('button')];const i=controls.indexOf(document.activeElement);if(event.shiftKey&&i===0){event.preventDefault();controls.at(-1).focus()}else if(!event.shiftKey&&i===controls.length-1){event.preventDefault();controls[0].focus()}}});
 document.addEventListener('click',event=>{
- if(allowOriginal||window.__WD_PREVIEW__)return;
+ if(allowOriginal)return;
  const target=event.target.closest('#homeReport,#reportFab,#mapPlusBtn');
  if(!target)return;
  event.preventDefault();event.stopImmediatePropagation();open();
