@@ -47,6 +47,7 @@ jobs:
       - run: supabase db reset
       - run: supabase test db
       - run: node scripts/api-e2e.mjs
+      - run: node scripts/chat-api-e2e.mjs
       - if: always()
         run: |
           if command -v supabase >/dev/null 2>&1; then
