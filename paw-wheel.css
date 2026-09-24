@@ -15,3 +15,8 @@
 body:has(dialog[open]) .wd-pawwheel{display:none}
 @media(max-height:700px){.wd-pawwheel-item{min-height:42px;min-width:44px}.wd-pawwheel{bottom:calc(90px + env(safe-area-inset-bottom))}.wd-pawwheel-caption{display:none}}
 @media(prefers-reduced-motion:reduce){.wd-pawwheel *{transition:none!important}}
+
+/* Map controls remain tappable when the thumb rail is on the right. */
+body:has(#view-map.active) .wd-pawwheel:not([hidden]){bottom:calc(220px + env(safe-area-inset-bottom))}
+body:has(#view-map.active) .wd-pawwheel:not([hidden])[data-side=right]~.app-shell .map-fab{right:82px}
+body:has(#view-map.active):has(.wd-pawwheel:not([hidden])[data-side=right]) .map-fab{right:82px!important}
