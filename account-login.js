@@ -66,18 +66,15 @@
     }catch(err){const limited=Number(err?.status)===429||/rate.?limit|after [0-9]+ seconds|too many/i.test(String(err?.message||''));if(limited){linkCooldownUntil=Date.now()+60000;deferLink()}status.textContent=limited?'Je hebt net een inloglink aangevraagd. Wacht minstens één minuut en kijk eerst in je mailbox.':'De inloglink kon niet worden verstuurd. Controleer je verbinding en probeer later opnieuw.';console.warn('Whatsup Dog inloglink mislukt',err)}
     finally{setBusy(false)}
   });
-  register.addEventListener('click',async()=>{
-    if(window.__WD_PREVIEW__){status.textContent='In deze alleen-lezen proefversie maken we geen echte accounts aan.';return}
-    if(Date.now()<linkCooldownUntil){status.textContent='Wacht één minuut en kijk eerst in je mailbox.';return}
-    if(busy||!client()||!email.checkValidity()){email.reportValidity();return}
-    setBusy(true);status.textContent='Een accountlink aanvragen…';
-    try{
-      const redirect=window.location.origin+window.location.pathname;
-      const {error}=await client().auth.signInWithOtp({email:email.value.trim(),options:{shouldCreateUser:true,emailRedirectTo:redirect}});
-      if(error)throw error;linkCooldownUntil=Date.now()+60000;deferLink();
-      status.textContent='Controleer je e-mail en open de bevestigingslink op hetzelfde apparaat. Daarna kun je je profiel vindbaar maken.';
-    }catch(err){const limited=Number(err?.status)===429||/rate.?limit|too many/i.test(String(err?.message||''));if(limited){linkCooldownUntil=Date.now()+60000;deferLink()}status.textContent=limited?'Er is net een e-mail aangevraagd. Wacht minstens een minuut.':'Account aanmaken lukte niet. Probeer later opnieuw.';console.warn('Whatsup Dog signup mislukt',err)}
-    finally{setBusy(false)}
+  register.addEventListener('click',()=>{
+    if(preview)return;
+    const create=document.getElementById('wdAccountCreate');
+    if(!create)return;
+    create.hidden=false;
+    const signupEmail=document.getElementById('wdSignupEmail');
+    if(signupEmail&&email.value.trim())signupEmail.value=email.value.trim();
+    create.scrollIntoView({block:'start',behavior:'smooth'});
+    signupEmail?.focus({preventScroll:true});
   });
   signOut.addEventListener('click',async()=>{
     if(busy||!client())return;
