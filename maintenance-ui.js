@@ -12,10 +12,10 @@
   panel.append(status,rows);section.append(title,explanation,toggle,panel);
   document.querySelector('#view-profile')?.append(section);
   const el=(tag,cls,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value!=null)n.textContent=String(value);return n};
-  async function authorize(){
+  async function authorize(force=false){
     const community=window.WhatsupDogCommunity;
     if(!community?.client||!community?.user){section.hidden=true;checkedUser=null;return}
-    if(checkedUser===community.user.id)return;
+    if(checkedUser===community.user.id&&!force)return;
     section.hidden=true;panel.hidden=true;checkedUser=null;
     try{
       const {data,error}=await community.client.rpc('is_report_moderator');
@@ -64,8 +64,8 @@
     finally{refreshing=false}
   }
   async function loadAfterAction(){refreshing=false;await load();await window.WhatsupDogCommunity?.refresh?.()}
-  toggle.addEventListener('click',async()=>{panel.hidden=!panel.hidden;toggle.textContent=panel.hidden?'Open onderhoudslijst':'Sluit onderhoudslijst';if(!panel.hidden)await load()});
+  toggle.addEventListener('click',async()=>{if(panel.hidden){await authorize(true);if(section.hidden)return}panel.hidden=!panel.hidden;toggle.textContent=panel.hidden?'Open onderhoudslijst':'Sluit onderhoudslijst';if(!panel.hidden)await load()});
   document.addEventListener('wd:community-status',()=>authorize());
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')authorize()});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')authorize(true)});
   authorize();
 })();
