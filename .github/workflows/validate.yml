@@ -17,6 +17,8 @@ jobs:
       - run: node scripts/mobile-ux-agent.mjs
       - run: node scripts/release-agent.mjs
       - run: node scripts/hosted-e2e-safety-check.mjs
+      - name: Build isolated read-only preview
+        run: node scripts/build-preview.mjs
       - name: Install browser usability test tooling
         run: |
           npm install --no-audit --no-fund
