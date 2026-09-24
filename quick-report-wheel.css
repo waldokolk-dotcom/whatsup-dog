@@ -32,3 +32,6 @@ body:has(#view-profile.active) .wd-quick-report,body:has(#view-chat.active) .wd-
 @media(max-width:365px){.wd-quick-report{width:222px;height:222px;right:-108px}.wd-wheel-panel{padding:13px 8px}.wd-wheel-disc{width:min(91vw,315px);height:min(91vw,315px)}}
 @media(min-width:720px){.wd-quick-report{right:calc((100vw - min(100vw,900px)) / 2 - 119px);top:calc(50% - 124px)}}
 @media(prefers-reduced-motion:reduce){.wd-quick-wheel *{transition:none!important}}
+
+/* Keep legacy launchers in the DOM for existing application events but not as competing controls. */
+#mapPlusBtn,#reportFab{display:none!important}
