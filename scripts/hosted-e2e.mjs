@@ -96,12 +96,14 @@ try{
   assert.deepEqual(hiddenProfile.map(x=>x.id),[b.id],'RLS leaked another private profile');assertions++;
 
   await uploadJpeg(a);
-  await must('/rest/v1/reports',{token:a.token,key:publishableKey,method:'POST',body:{id:reportId,user_id:a.id,author_name:'Hosted E2E A',author_avatar:'🐶',type:'danger',text:'Synthetic hosted E2E fixture',lat:52.2,lng:5.4,geometry_type:'point',photo_path:photoPath}});
+  await must('/rest/v1/reports',{token:a.token,key:publishableKey,method:'POST',body:{id:reportId,user_id:a.id,author_name:'Hosted E2E A',author_avatar:'🐶',species:'cat',type:'danger',text:'Synthetic hosted E2E fixture',lat:52.2,lng:5.4,geometry_type:'point',photo_path:photoPath}});
   reportCreated=true;
 
-  const visible=await must(`/rest/v1/reports?id=eq.${encodeURIComponent(reportId)}&select=id,user_id,photo_path,status`,{token:b.token,key:publishableKey});
+  const visible=await must(`/rest/v1/reports?id=eq.${encodeURIComponent(reportId)}&select=id,user_id,photo_path,status,species`,{token:b.token,key:publishableKey});
   assert.equal(visible.length,1,'Second user could not see active shared report');
-  assert.equal(visible[0].user_id,a.id);assert.equal(visible[0].photo_path,photoPath);assertions+=3;
+  assert.equal(visible[0].user_id,a.id);assert.equal(visible[0].photo_path,photoPath);assert.equal(visible[0].species,'cat','Hosted report species must survive sharing');assertions+=4;
+  const moderator=await must('/rest/v1/rpc/is_report_moderator',{token:b.token,key:publishableKey,method:'POST',body:{}});
+  assert.equal(moderator,false,'Ordinary hosted user unexpectedly has moderator privileges');assertions++;
 
   const signed=await must(`/storage/v1/object/sign/report-photos/${photoPath}`,{token:b.token,key:publishableKey,method:'POST',body:{expiresIn:60}});
   assert.ok(signed?.signedURL,'Second user did not receive a signed photo URL');assertions++;
