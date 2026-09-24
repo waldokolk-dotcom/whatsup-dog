@@ -12,7 +12,7 @@
   const nodes=choices.map(([view,label,symbol])=>{
     const b=document.createElement('button');b.type='button';b.className='wd-pawwheel-item';b.dataset.pawView=view;b.setAttribute('aria-label',label);b.title=label;
     const glyph=document.createElement('span');glyph.setAttribute('aria-hidden','true');glyph.textContent=symbol;
-    b.append(glyph);b.addEventListener('click',()=>open(view));rail.append(b);return b;
+    b.append(glyph);b.addEventListener('click',event=>{if(event.detail===0)open(view)});rail.append(b);return b;
   });
   const caption=document.createElement('span');caption.id='pawWheelCaption';caption.className='wd-pawwheel-caption';caption.setAttribute('aria-live','polite');caption.textContent='Kaart';
   shell.append(rail,caption);
@@ -22,7 +22,7 @@
   function open(view){const nav=document.querySelector(`.bottom-nav [data-view="${view}"]`);if(nav)nav.click();selection=-1;nodes.forEach(node=>node.classList.remove('selected'))}
   rail.addEventListener('pointerdown',event=>{if(event.pointerType==='mouse'&&event.button!==0)return;startY=event.clientY;dragging=true;select(closest(event.clientY));rail.setPointerCapture?.(event.pointerId)});
   rail.addEventListener('pointermove',event=>{if(dragging)select(closest(event.clientY))});
-  rail.addEventListener('pointerup',event=>{if(!dragging)return;dragging=false;const i=closest(event.clientY),moved=Math.abs(event.clientY-startY)>8;if(moved){event.preventDefault();open(choices[i][0])}else select(i)});
+  rail.addEventListener('pointerup',event=>{if(!dragging)return;dragging=false;const i=closest(event.clientY);event.preventDefault();open(choices[i][0])});
   rail.addEventListener('pointercancel',()=>{dragging=false;nodes.forEach(node=>node.classList.remove('selected'))});
   const setting=document.createElement('div');setting.className='wd-pawwheel-settings settings-card compact';
   const title=document.createElement('strong');title.textContent='PawWheel · bediening met één hand';
