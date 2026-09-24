@@ -6,7 +6,7 @@
   const panel=document.createElement('section');
   panel.className='wd-account settings-card compact';panel.id='wdAccount';
   const heading=document.createElement('h2');heading.textContent='Mijn account';
-  const description=document.createElement('p');description.textContent='Bekijk buurtmeldingen zonder account. Maak gratis een account als je zelf wilt melden, gevonden wilt worden of wilt chatten.';
+  const description=document.createElement('p');description.textContent=preview?'Je bekijkt de proefversie. Accountregistratie en inloggen komen beschikbaar in de definitieve app.':'Bekijk buurtmeldingen zonder account. Maak gratis een account als je zelf wilt melden, gevonden wilt worden of wilt chatten.';
   const form=document.createElement('form');form.id='wdAccountLogin';form.autocomplete='on';
   const emailLabel=document.createElement('label');emailLabel.htmlFor='wdAccountEmail';emailLabel.textContent='E-mailadres';
   const email=document.createElement('input');email.id='wdAccountEmail';email.type='email';email.autocomplete='username';email.inputMode='email';email.required=true;email.maxLength=254;email.placeholder='naam@voorbeeld.nl';
