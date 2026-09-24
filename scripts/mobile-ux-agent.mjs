@@ -29,7 +29,7 @@ assert.ok(community.includes('reportDuration'),'Report duration field missing');
 assert.ok(community.includes('reportAnnoyance'),'Report annoyance 1-5 field missing');
 assert.ok(community.includes('shareMunicipalList'),'Municipal share/export missing');
 assert.ok(community.includes('Bekijk meldingenlijst'),'In-app report list preview missing');
-assert.ok(directory.includes('Alleen als jij dit aanzet'),'Chat directory opt-in explanation missing');
+assert.ok(directory.includes('Anderen mogen mij vinden'),'Chat directory opt-in explanation missing');
 assert.ok(community.includes('HIDDEN_CHATS_KEY'),'Persistent chat deletion missing');
 assert.ok(hotfix.includes('removeFakeUnreadBadges'),'Fake default unread badges must be removed');
 assert.ok(hotfix.includes('Foto verwijderen'),'Photo removal action must be explicit');
