@@ -96,6 +96,9 @@
     const node=$('wdQuickLocation');if(!node)return;node.hidden=false;node.textContent=message;
   }
   function startQuickReport(){
+    document.body.classList.add('wd-quick-flow');
+    const duration=$('reportDuration');if(duration){duration.required=false;duration.value='';}
+    document.querySelectorAll('input[name="reportAnnoyance"]').forEach(input=>{input.required=false;input.checked=false});
     const token=++S.quickToken;S.quickMode=true;S.quickGpsPending=false;
     quickDate();quickLocation('📍 Huidige locatie opvragen…');
     if(!navigator.geolocation){
@@ -143,6 +146,7 @@
     $('reportForm')?.addEventListener('submit',saveReport,true);
     $('reportTypes')?.addEventListener('click',e=>{if(!e.target.closest('[data-report-type]'))return;setTimeout(()=>{updateSummary();$('reportDetails')?.scrollIntoView({behavior:'smooth',block:'start'})},50)});
     const resetOnOpen=()=>setTimeout(()=>{resetSmart();updateSummary()},0);$('reportFab')?.addEventListener('click',resetOnOpen);$('mapPlusBtn')?.addEventListener('click',resetOnOpen);$('filterRow')?.addEventListener('click',()=>setTimeout(renderPolygons,30));
+    reportDialog()?.addEventListener('close',()=>document.body.classList.remove('wd-quick-flow'));
     document.addEventListener('wd:quick-report-start',startQuickReport);
     setTimeout(renderPolygons,250);window.WHATSUP_DOG_SMART_REPORT_V3={state:S,reset:resetSmart,render:renderPolygons};
   }
