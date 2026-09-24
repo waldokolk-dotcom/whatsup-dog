@@ -303,6 +303,7 @@ test('newly submitted reports explicitly opt in, legacy local reports stay unsen
   await page.locator('#reportFab').click();
   await page.locator('[data-quick-type="danger"]').click();
   await page.locator('[data-danger-type="glass"]').click();
+  await expect(page.locator('#wdQuickLocation')).toContainText('18 meter');
   await page.locator('#reportText').fill('Nieuwe veiligheidsmelding in mijn buurt');
   await page.locator('#publishReport').click();
   await expect(page.locator('#reportDialog')).not.toBeVisible();
