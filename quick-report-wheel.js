@@ -37,7 +37,7 @@ function choose(id){
  try{launcher.click()}finally{allowOriginal=false}
  const category=document.querySelector('#reportTypes [data-report-type="'+id+'"]');
  category?.click();
- document.dispatchEvent(new CustomEvent('wd:quick-report-start',{detail:{type:id}}));
+ setTimeout(()=>document.dispatchEvent(new CustomEvent('wd:quick-report-start',{detail:{type:id}})),90);
 }
 openButton.addEventListener('click',open);
 backdrop.querySelector('.wd-wheel-close').addEventListener('click',close);
