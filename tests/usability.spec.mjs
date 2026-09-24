@@ -201,10 +201,16 @@ test('only one visible half-wheel remains and normal bottom navigation works',as
   await installSafeRoutes(page);await seedProfile(page);await openApp(page);
   await expect(page.locator('#pawWheel')).toHaveCount(0);
   await expect(page.locator('#wdQuickReport')).toBeVisible();
+  const dock=await page.locator('#wdQuickReport').boundingBox();const viewport=page.viewportSize();
+  expect(dock.x+dock.width).toBeGreaterThan(viewport.width);
+  expect(dock.x).toBeLessThan(viewport.width);
+  expect(dock.width).toBeGreaterThanOrEqual(200);
   await page.locator('#wdQuickReport').click();
   await expect(page.locator('#wdQuickWheel')).toBeVisible();
   await expect(page.locator('#wdQuickWheel [data-quick-type]')).toHaveCount(6);
-  await page.locator('[data-quick-type="dirty"]').click();
+  await page.locator('[data-quick-type="other"]').click();
+  await expect(page.locator('#wdWheelSub')).toBeVisible();
+  await page.locator('[data-danger-type="dirty"]').click();
   await expect(page.locator('#reportDialog')).toBeVisible();
   await expect(page.locator('#wdWheelSub')).toBeHidden();
   await page.locator('#reportDialog [data-close-dialog]').click();
