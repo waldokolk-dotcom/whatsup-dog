@@ -52,12 +52,12 @@ function pointerAngle(event,element){
 function startSpin(event,element){
   if(event.button!==0||gesture)return;
   gesture={id:event.pointerId,element,last:pointerAngle(event,element),startX:event.clientX,startY:event.clientY,moved:false};
-  element.setPointerCapture?.(event.pointerId);
+  // Capture only after an actual drag, so ordinary taps still reach their segment buttons.
 }
 function moveSpin(event){
   if(!gesture||event.pointerId!==gesture.id)return;
   const angle=pointerAngle(event,gesture.element);
-  if(!gesture.moved&&Math.hypot(event.clientX-gesture.startX,event.clientY-gesture.startY)>=11)gesture.moved=true;
+  if(!gesture.moved&&Math.hypot(event.clientX-gesture.startX,event.clientY-gesture.startY)>=11){gesture.moved=true;gesture.element.setPointerCapture?.(event.pointerId)}
   if(gesture.moved){
     let change=angle-gesture.last;
     if(change>180)change-=360;if(change< -180)change+=360;
