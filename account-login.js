@@ -21,7 +21,7 @@
   const status=document.createElement('p');status.id='wdAccountStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   panel.append(heading,description,form,signed,status);
   profile.append(panel);
-  let busy=false;
+  let busy=false,linkCooldownUntil=0;
   const client=()=>window.WhatsupDogCommunity?.client;
   function render(){
     const account=window.WhatsupDogCommunity;
@@ -30,7 +30,7 @@
     form.hidden=verified;signed.hidden=!verified;
     if(verified){signedText.textContent='Ingelogd als '+(user.email||'geverifieerd account');}
     if(!client()&&!busy)status.textContent='De beveiligde verbinding wordt opgezet. Inloggen is nog niet beschikbaar.';
-    submit.disabled=busy||!client();link.disabled=busy||!client();signOut.disabled=busy;
+    submit.disabled=busy||!client();link.disabled=busy||!client()||Date.now()<linkCooldownUntil;signOut.disabled=busy;
   }
   const setBusy=value=>{busy=value;render()};
   form.addEventListener('submit',async event=>{
@@ -48,14 +48,16 @@
     finally{setBusy(false)}
   });
   link.addEventListener('click',async()=>{
+    if(Date.now()<linkCooldownUntil){status.textContent='Wacht nog even voordat je een nieuwe inloglink aanvraagt. Kijk eerst in je mailbox.';return}
     if(busy||!client()||!email.checkValidity()){email.reportValidity();return}
     setBusy(true);status.textContent='Inloglink aanvragen…';
     try{
       const redirect=window.location.origin+window.location.pathname;
       const {error}=await client().auth.signInWithOtp({email:email.value.trim(),options:{shouldCreateUser:false,emailRedirectTo:redirect}});
       if(error)throw error;
+      linkCooldownUntil=Date.now()+60000;
       status.textContent='Als dit account bestaat, ontvang je een inloglink. Open die op hetzelfde apparaat. Controleer eventueel je spammap.';
-    }catch(err){status.textContent='De inloglink kon niet worden verstuurd. Probeer later opnieuw.';console.warn('Whatsup Dog inloglink mislukt',err)}
+    }catch(err){const limited=Number(err?.status)===429||/rate.?limit|after [0-9]+ seconds|too many/i.test(String(err?.message||''));if(limited)linkCooldownUntil=Date.now()+60000;status.textContent=limited?'Je hebt net een inloglink aangevraagd. Wacht minstens één minuut en kijk eerst in je mailbox.':'De inloglink kon niet worden verstuurd. Controleer je verbinding en probeer later opnieuw.';console.warn('Whatsup Dog inloglink mislukt',err)}
     finally{setBusy(false)}
   });
   signOut.addEventListener('click',async()=>{
