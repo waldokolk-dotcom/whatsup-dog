@@ -1,0 +1,11 @@
+/* Account access uses the established profile settings design. */
+.wd-account{margin:20px 0;padding:18px}
+.wd-account h2{margin:0 0 8px;font-size:1.15rem}
+.wd-account p{line-height:1.5}
+.wd-account label{display:block;margin-top:12px;font-size:.9rem;font-weight:700}
+.wd-account input{display:block;width:100%;min-height:48px;margin-top:6px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-control);background:var(--surface-raised);color:var(--text-primary);font-size:16px}
+.wd-account-actions{display:grid;gap:8px;margin-top:18px}
+.wd-account-actions button,.wd-account #wdAccountSigned button{min-height:48px}
+.wd-account [hidden]{display:none!important}
+#wdAccountStatus{min-height:1.5em;color:var(--text-muted);font-size:.9rem}
+@media(min-width:550px){.wd-account-actions{grid-template-columns:1fr 1fr}}
