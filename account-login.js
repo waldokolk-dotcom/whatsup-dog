@@ -4,8 +4,8 @@
   if(!profile)return;
   const panel=document.createElement('section');
   panel.className='wd-account settings-card compact';panel.id='wdAccount';
-  const heading=document.createElement('h2');heading.textContent='Account en onderhoud';
-  const description=document.createElement('p');description.textContent='Je kunt de buurt bekijken zonder in te loggen. Beheer is alleen beschikbaar voor een geverifieerd onderhoudsaccount.';
+  const heading=document.createElement('h2');heading.textContent='Mijn account';
+  const description=document.createElement('p');description.textContent='Bekijk buurtmeldingen zonder account. Maak gratis een account als je zelf wilt melden, gevonden wilt worden of wilt chatten.';
   const form=document.createElement('form');form.id='wdAccountLogin';form.autocomplete='on';
   const emailLabel=document.createElement('label');emailLabel.htmlFor='wdAccountEmail';emailLabel.textContent='E-mailadres';
   const email=document.createElement('input');email.id='wdAccountEmail';email.type='email';email.autocomplete='username';email.inputMode='email';email.required=true;email.maxLength=254;email.placeholder='naam@voorbeeld.nl';
@@ -14,7 +14,8 @@
   const actions=document.createElement('div');actions.className='wd-account-actions';
   const submit=document.createElement('button');submit.type='submit';submit.className='primary';submit.textContent='Inloggen met wachtwoord';
   const link=document.createElement('button');link.type='button';link.className='outline-btn';link.textContent='Mail mij een inloglink';
-  actions.append(submit,link);form.append(emailLabel,email,passwordLabel,password,actions);
+  const register=document.createElement('button');register.type='button';register.className='outline-btn';register.id='wdAccountRegister';register.textContent='Maak een gratis buurtaccount';
+  actions.append(submit,link);form.append(emailLabel,email,passwordLabel,password,actions,register);
   const signed=document.createElement('div');signed.id='wdAccountSigned';signed.hidden=true;
   const signedText=document.createElement('p');const signOut=document.createElement('button');signOut.type='button';signOut.className='outline-btn';signOut.textContent='Uitloggen';
   signed.append(signedText,signOut);
@@ -31,7 +32,7 @@
     form.hidden=verified;signed.hidden=!verified;
     if(verified){signedText.textContent='Ingelogd als '+(user.email||'geverifieerd account');}
     if(!client()&&!busy)status.textContent='De beveiligde verbinding wordt opgezet. Inloggen is nog niet beschikbaar.';
-    submit.disabled=busy||!client();link.disabled=busy||!client()||Date.now()<linkCooldownUntil;signOut.disabled=busy;
+    submit.disabled=busy||!client();link.disabled=busy||!client()||Date.now()<linkCooldownUntil;register.disabled=busy||!client()||Date.now()<linkCooldownUntil||Boolean(window.__WD_PREVIEW__);signOut.disabled=busy;
   }
   const setBusy=value=>{busy=value;render()};
   form.addEventListener('submit',async event=>{
@@ -59,6 +60,19 @@
       linkCooldownUntil=Date.now()+60000;deferLink();
       status.textContent='Als dit account bestaat, ontvang je een inloglink. Open die op hetzelfde apparaat. Controleer eventueel je spammap.';
     }catch(err){const limited=Number(err?.status)===429||/rate.?limit|after [0-9]+ seconds|too many/i.test(String(err?.message||''));if(limited){linkCooldownUntil=Date.now()+60000;deferLink()}status.textContent=limited?'Je hebt net een inloglink aangevraagd. Wacht minstens één minuut en kijk eerst in je mailbox.':'De inloglink kon niet worden verstuurd. Controleer je verbinding en probeer later opnieuw.';console.warn('Whatsup Dog inloglink mislukt',err)}
+    finally{setBusy(false)}
+  });
+  register.addEventListener('click',async()=>{
+    if(window.__WD_PREVIEW__){status.textContent='In deze alleen-lezen proefversie maken we geen echte accounts aan.';return}
+    if(Date.now()<linkCooldownUntil){status.textContent='Wacht één minuut en kijk eerst in je mailbox.';return}
+    if(busy||!client()||!email.checkValidity()){email.reportValidity();return}
+    setBusy(true);status.textContent='Een accountlink aanvragen…';
+    try{
+      const redirect=window.location.origin+window.location.pathname;
+      const {error}=await client().auth.signInWithOtp({email:email.value.trim(),options:{shouldCreateUser:true,emailRedirectTo:redirect}});
+      if(error)throw error;linkCooldownUntil=Date.now()+60000;deferLink();
+      status.textContent='Controleer je e-mail en open de bevestigingslink op hetzelfde apparaat. Daarna kun je je profiel vindbaar maken.';
+    }catch(err){const limited=Number(err?.status)===429||/rate.?limit|too many/i.test(String(err?.message||''));if(limited){linkCooldownUntil=Date.now()+60000;deferLink()}status.textContent=limited?'Er is net een e-mail aangevraagd. Wacht minstens een minuut.':'Account aanmaken lukte niet. Probeer later opnieuw.';console.warn('Whatsup Dog signup mislukt',err)}
     finally{setBusy(false)}
   });
   signOut.addEventListener('click',async()=>{
