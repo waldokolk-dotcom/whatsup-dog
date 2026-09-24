@@ -58,6 +58,11 @@ assert.match(maintenanceSource,/rpc\('moderate_report'/,'Maintenance must use tr
 assert.match(maintenanceGate,/security definer/,'Maintenance role gate must be enforced on the server');
 assert.match(maintenanceGate,/revoke all on function public\.is_report_moderator/,'Moderator capability must not be public');
 
+const speciesMigration=read('supabase/migrations/20260924000200_report_species.sql');
+assert.match(speciesMigration,/add column if not exists species/,'Shared reports must preserve species in the database');
+assert.match(productionFeed,/speciesMode\(\)/,'Public feed must use existing species preference');
+assert.match(read('community-backend.js'),/species:row\.species/,'Shared reports must preserve remote species');
+
 const backendSource=read('community-backend.js');
 assert.match(backendSource,/wd_hidden_reports_v1/,'Remote hidden report filter missing');
 assert.match(backendSource,/hiddenIds\.has\(row\.id\)/,'Remote refresh does not honor hidden reports');
