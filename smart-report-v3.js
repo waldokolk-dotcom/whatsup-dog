@@ -1,5 +1,5 @@
 (()=>{
-  const S={photo:null,photoName:null,ai:null,geometryMode:'point',point:null,polygon:null,draftPoints:[],draftLayer:null,savedLayer:null,toolbar:null,pickMode:null,model:null,modelLoading:null};
+  const S={photo:null,photoName:null,ai:null,geometryMode:'point',point:null,polygon:null,draftPoints:[],draftLayer:null,savedLayer:null,toolbar:null,pickMode:null,model:null,modelLoading:null,quickMode:false,quickGpsPending:false,quickToken:0};
   const $=id=>document.getElementById(id);
   const reportDialog=()=>$('reportDialog');
 
@@ -34,6 +34,7 @@
         <div class="geometry-actions"><button id="geometryPointV2" type="button" class="geometry-btn active">📍 Eén plek</button><button id="geometryAreaV2" type="button" class="geometry-btn">✏️ Een gebied</button></div>
         <button id="pickOnMapV2" type="button" class="pick-map-btn">📍 Kies de exacte plek op de kaart</button>
         <div id="drawStatusV2" class="draw-status">Nog geen specifieke plek gekozen. Zonder keuze gebruiken we het midden van de kaart.</div>
+        <p id="wdQuickDateTime" class="wd-quick-detail" hidden></p><p id="wdQuickLocation" class="wd-quick-detail" role="status" aria-live="polite" hidden></p>
       </section>`;
     details.insertBefore(head,details.firstChild);details.insertBefore(summary,head.nextSibling);details.insertBefore(wrap,summary.nextSibling);
     ['reportCameraV2','reportPhotoV2'].forEach(id=>$(id)?.addEventListener('change',onPhotoPicked));
@@ -85,10 +86,42 @@
   function setGeometryMode(mode){S.geometryMode=mode;$('geometryPointV2')?.classList.toggle('active',mode==='point');$('geometryAreaV2')?.classList.toggle('active',mode==='area');if($('pickOnMapV2'))$('pickOnMapV2').textContent=mode==='area'?'✏️ Teken het gebied op de kaart':'📍 Kies de exacte plek op de kaart';updateLocationStatus()}
   function polygonCenter(points){const b=L.latLngBounds(points),c=b.getCenter();return{lat:c.lat,lng:c.lng}}
 
-  function resetSmart(){clearPhoto();stopPick({clear:true});S.geometryMode='point';S.point=null;S.polygon=null;S.ai=null;$('geometryPointV2')?.classList.add('active');$('geometryAreaV2')?.classList.remove('active');if($('pickOnMapV2'))$('pickOnMapV2').textContent='📍 Kies de exacte plek op de kaart';updateLocationStatus()}
+  function quickDate(){
+    const node=$('wdQuickDateTime');if(!node)return;
+    const now=new Date();node.hidden=false;
+    node.textContent='🕒 Datum en tijd: '+now.toLocaleString('nl-NL',{dateStyle:'medium',timeStyle:'short'})+' · automatisch';
+  }
+  function quickLocation(message){
+    const node=$('wdQuickLocation');if(!node)return;node.hidden=false;node.textContent=message;
+  }
+  function startQuickReport(){
+    const token=++S.quickToken;S.quickMode=true;S.quickGpsPending=false;
+    quickDate();quickLocation('📍 Huidige locatie opvragen…');
+    if(!navigator.geolocation){
+      quickLocation('📍 GPS niet beschikbaar. Kies zelf een plek op de kaart.');return;
+    }
+    S.quickGpsPending=true;
+    navigator.geolocation.getCurrentPosition(pos=>{
+      if(token!==S.quickToken||!S.quickMode)return;
+      S.quickGpsPending=false;
+      const {latitude,longitude,accuracy}=pos.coords;
+      if(!Number.isFinite(latitude)||!Number.isFinite(longitude)){
+        quickLocation('📍 GPS niet beschikbaar. Kies zelf een plek op de kaart.');return;
+      }
+      S.point={lat:Number(latitude.toFixed(6)),lng:Number(longitude.toFixed(6))};
+      quickLocation('📍 Huidige locatie ingesteld · nauwkeurigheid ongeveer '+Math.round(accuracy||0)+' meter. Je kunt de plek aanpassen.');
+      updateLocationStatus();
+    },err=>{
+      if(token!==S.quickToken||!S.quickMode)return;
+      S.quickGpsPending=false;
+      quickLocation(err.code===1?'📍 Locatietoegang geweigerd. Kies zelf een plek op de kaart.':'📍 Locatie niet gevonden. Kies zelf een plek op de kaart.');
+    },{enableHighAccuracy:true,timeout:12000,maximumAge:30000});
+  }
+
+  function resetSmart(){S.quickMode=false;S.quickGpsPending=false;S.quickToken++;if($('wdQuickDateTime'))$('wdQuickDateTime').hidden=true;if($('wdQuickLocation'))$('wdQuickLocation').hidden=true;clearPhoto();stopPick({clear:true});S.geometryMode='point';S.point=null;S.polygon=null;S.ai=null;$('geometryPointV2')?.classList.add('active');$('geometryAreaV2')?.classList.remove('active');if($('pickOnMapV2'))$('pickOnMapV2').textContent='📍 Kies de exacte plek op de kaart';updateLocationStatus()}
 
   function saveReport(e){
-    e.preventDefault();e.stopImmediatePropagation();if(!selectedReportType){toast('Kies eerst wat je hebt gespot');return}if(selectedReportType==='vegetation'&&!selectedVegetation){toast('Kies welk soort vegetatie je ziet, of kies “Anders”.');return}if(selectedReportType==='lost'&&!selectedLostKind){toast('Kies vermist of gevonden');return}if(S.geometryMode==='area'&&!S.polygon){toast('Teken eerst het gebied op de kaart');return}
+    e.preventDefault();e.stopImmediatePropagation();if(S.quickMode&&S.quickGpsPending){toast('Je locatie wordt nog opgehaald. Een ogenblik.');return}if(S.quickMode&&!S.point&&S.geometryMode==='point'){toast('Kies eerst een plek op de kaart. We gokken je locatie niet.');$('pickOnMapV2')?.focus();return}if(!selectedReportType){toast('Kies eerst wat je hebt gespot');return}if(selectedReportType==='vegetation'&&!selectedVegetation){toast('Kies welk soort vegetatie je ziet, of kies “Anders”.');return}if(selectedReportType==='lost'&&!selectedLostKind){toast('Kies vermist of gevonden');return}if(S.geometryMode==='area'&&!S.polygon){toast('Teken eerst het gebied op de kaart');return}
     const species=document.querySelector('input[name="reportSpecies"]:checked')?.value||profile()?.speciesContext||'both',animal=species==='cat'?'kat':species==='dog'?'hond':'huisdier';
     const subtype=selectedReportType==='lost'?(selectedLostKind==='missing'?`Vermiste ${animal}`:`Gevonden ${animal}`):selectedVegetation;
     const p=profile(),reports=allReports();let loc;if(S.geometryMode==='area')loc=polygonCenter(S.polygon);else if(S.point)loc=S.point;else{const c=map.getCenter();loc={lat:c.lat,lng:c.lng}};
@@ -109,6 +142,7 @@
     $('reportForm')?.addEventListener('submit',saveReport,true);
     $('reportTypes')?.addEventListener('click',e=>{if(!e.target.closest('[data-report-type]'))return;setTimeout(()=>{updateSummary();$('reportDetails')?.scrollIntoView({behavior:'smooth',block:'start'})},50)});
     const resetOnOpen=()=>setTimeout(()=>{resetSmart();updateSummary()},0);$('reportFab')?.addEventListener('click',resetOnOpen);$('mapPlusBtn')?.addEventListener('click',resetOnOpen);$('filterRow')?.addEventListener('click',()=>setTimeout(renderPolygons,30));
+    document.addEventListener('wd:quick-report-start',startQuickReport);
     setTimeout(renderPolygons,250);window.WHATSUP_DOG_SMART_REPORT_V3={state:S,reset:resetSmart,render:renderPolygons};
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
