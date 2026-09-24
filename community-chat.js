@@ -137,5 +137,6 @@ $('wdChatRefresh').addEventListener('click',refresh);
 $('wdChatLogin').addEventListener('click',()=>{document.querySelector('.bottom-nav [data-view="profile"]')?.click();$('wdAccount')?.scrollIntoView({block:'start',behavior:'smooth'})});
 document.addEventListener('wd:community-status',refresh);
 document.addEventListener('wd:auth-changed',()=>{exitRoom();refresh()});
+document.addEventListener('wd:directory-updated',()=>refresh());
 renderGate();setTimeout(refresh,450);
 })();
