@@ -105,7 +105,7 @@
   }
 
   async function processQueue(){
-    if(!state.ready||state.processing||!navigator.onLine)return;state.processing=true;
+    if(!state.ready||state.processing||!navigator.onLine||!state.user?.is_anonymous)return;state.processing=true;
     try{
       for(const id of queue()){
         const report=reports().find(r=>r.id===id);if(!report){removeQueue(id);continue}
@@ -161,6 +161,27 @@
     document.getElementById('onboardingDialog')?.addEventListener('close',()=>syncProfile().catch(console.warn));
   }
 
+  let authTransition=Promise.resolve();
+  function observeAuthentication(){
+    state.client.auth.onAuthStateChange((event,session)=>{
+      if(event!=='SIGNED_IN'&&event!=='SIGNED_OUT')return;
+      // Supabase recommends deferring additional Supabase API calls beyond the synchronous auth callback.
+      authTransition=authTransition.then(async()=>{
+        const nextUser=session?.user||null;
+        if(nextUser?.id===state.user?.id)return;
+        state.user=nextUser;state.ready=false;
+        setStatus('Verbinden','Accountwisseling controleren…');
+        if(!state.user)await ensureUser();
+        // Do not copy a pet profile or pending anonymous reports into an authenticated maintenance account.
+        if(state.user?.is_anonymous)await syncProfile();
+        state.ready=true;
+        document.dispatchEvent(new CustomEvent('wd:auth-changed',{detail:{userId:state.user.id,isAnonymous:Boolean(state.user.is_anonymous)}}));
+        await refreshSharedReports();
+        if(state.user?.is_anonymous)await processQueue();
+      }).catch(err=>{console.warn('Accountwisseling mislukt',err);setStatus('Offline','Accountwisseling niet voltooid; probeer opnieuw')});
+    });
+  }
+
   async function boot(){
     if(!configured()){
       window.WhatsupDogCommunity={configured:false,status:'local-only'};setStatus('Lokaal','De gedeelde backend is nog niet gekoppeld');return;
@@ -168,10 +189,10 @@
     try{
       setStatus('Verbinden','Veilige communityverbinding opzetten…');
       await loadScript(SUPABASE_JS,()=>Boolean(window.supabase?.createClient));
-      state.client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
-      await ensureUser();await syncProfile();state.ready=true;
+      state.client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+      await ensureUser();if(state.user?.is_anonymous)await syncProfile();state.ready=true;
       window.WhatsupDogCommunity={configured:true,get client(){return state.client},get user(){return state.user},refresh:refreshSharedReports,processQueue};
-      watchLocalReports();await refreshSharedReports();subscribe();await processQueue();
+      observeAuthentication();watchLocalReports();await refreshSharedReports();subscribe();await processQueue();
       setInterval(()=>scheduleRefresh(0),15*60*1000);
     }catch(err){console.warn('Whatsup dog community backend niet actief',err);state.ready=false;window.WhatsupDogCommunity={configured:true,status:'error',error:String(err?.message||err)};setStatus('Lokaal','Communityverbinding niet beschikbaar; meldingen blijven op dit toestel werken')}
   }
