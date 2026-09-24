@@ -56,7 +56,7 @@
   }
 
   async function syncProfile(){
-    if(!state.user)return;
+    if(window.__WD_PREVIEW__||!state.user)return;
     const p=profile();if(!p?.name)return;
     const row={id:state.user.id,display_name:String(p.name).slice(0,40),avatar:String(p.avatar||'🐶').slice(0,16),home_place:String(p.homePlace||'').slice(0,80)||null,home_lat:Number.isFinite(Number(p.homeLat))?Number(p.homeLat):null,home_lng:Number.isFinite(Number(p.homeLng))?Number(p.homeLng):null,updated_at:new Date().toISOString()};
     const {error}=await state.client.from('profiles').upsert(row,{onConflict:'id'});if(error)throw error;
@@ -105,7 +105,7 @@
   }
 
   async function processQueue(){
-    if(!state.ready||state.processing||!navigator.onLine||!state.user?.is_anonymous)return;state.processing=true;
+    if(window.__WD_PREVIEW__||!state.ready||state.processing||!navigator.onLine||!state.user?.is_anonymous)return;state.processing=true;
     try{
       for(const id of queue()){
         const report=reports().find(r=>r.id===id);if(!report||report._shareIntent!==true){removeQueue(id);continue}
@@ -189,7 +189,7 @@
     try{
       setStatus('Verbinden','Veilige communityverbinding opzetten…');
       await loadScript(SUPABASE_JS,()=>Boolean(window.supabase?.createClient));
-      state.client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+      state.client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:window.__WD_PREVIEW__?'wd-preview-supabase-auth-v1':undefined}});
       await ensureUser();if(state.user?.is_anonymous)await syncProfile();state.ready=true;
       window.WhatsupDogCommunity={configured:true,get client(){return state.client},get user(){return state.user},refresh:refreshSharedReports,processQueue};
       observeAuthentication();watchLocalReports();await refreshSharedReports();subscribe();await processQueue();
