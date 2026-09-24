@@ -60,6 +60,21 @@ jobs:
             supabase stop --no-backup
           fi
       - run: node scripts/build-site.mjs
+      - name: Checkout isolated preview snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: c88af838ae75110c72d61eaaf08a85eabfead5a5
+          path: .preview-source
+          persist-credentials: false
+      - name: Build read-only preview alongside unchanged production assets
+        run: |
+          cd .preview-source
+          node scripts/build-preview.mjs
+          cd ..
+          mkdir -p dist/preview
+          cp -a .preview-source/dist/. dist/preview/
+          test -f dist/preview/preview-guard.js
+          grep -q 'preview-guard.js?v=1' dist/preview/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
