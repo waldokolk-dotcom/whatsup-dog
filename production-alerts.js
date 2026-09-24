@@ -19,8 +19,9 @@
       status.textContent='De gedeelde meldingen zijn nu niet beschikbaar. We tonen geen lokale meldingen alsof ze openbaar zijn.';
       return;
     }
-    const species=speciesMode(),hidden=new Set(safeRead('wd_hidden_reports_v1',[]));
-    const rows=safeRead('wd_reports_v1',[]).filter(r=>r&&r.id&&r._remote===true&&!hidden.has(r.id)&&preferences[category(r.type)]&&(species==='both'||r.species==='both'||(r.species||'dog')===species)).sort((a,b)=>Date.parse(b.createdAt||0)-Date.parse(a.createdAt||0));
+    const species=speciesMode(),hiddenStored=safeRead('wd_hidden_reports_v1',[]),hidden=new Set(Array.isArray(hiddenStored)?hiddenStored:[]);
+    const storedRows=safeRead('wd_reports_v1',[]);
+    const rows=(Array.isArray(storedRows)?storedRows:[]).filter(r=>r&&r.id&&r._remote===true&&!hidden.has(r.id)&&preferences[category(r.type)]&&(species==='both'||r.species==='both'||(r.species||'dog')===species)).sort((a,b)=>Date.parse(b.createdAt||0)-Date.parse(a.createdAt||0));
     status.textContent=rows.length?rows.length+' meldingen volgens jouw voorkeuren':'Geen meldingen binnen jouw gekozen categorieën.';
     for(const report of rows){
       const card=node('article','wd-feed-card'),head=node('div','wd-feed-card-heading');
