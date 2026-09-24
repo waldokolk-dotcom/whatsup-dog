@@ -1,0 +1,13 @@
+/* Private maintenance UI: rendered only after a server-verified moderator check. */
+.wd-maintenance{margin:20px 0;padding:18px}
+.wd-maintenance[hidden],#wdMaintenancePanel[hidden]{display:none!important}
+.wd-maintenance h2{font-size:1.15rem;margin:0 0 8px}
+.wd-maintenance p{line-height:1.5}
+.wd-maintenance-list{display:grid;gap:12px}
+.wd-maintenance-report{background:var(--surface-raised);border:1px solid var(--line-soft);border-radius:var(--radius-card);padding:14px;overflow-wrap:anywhere}
+.wd-maintenance-report strong,.wd-maintenance-report small{display:block}
+.wd-maintenance-report small{color:var(--text-muted);margin-top:4px}
+.wd-maintenance-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.wd-maintenance-action{min-height:44px;border:1px solid var(--line-strong);border-radius:var(--radius-control);background:var(--surface-canvas);color:var(--text-primary);font-weight:700;padding:8px 12px}
+.wd-maintenance-action:disabled{opacity:.55}
+.wd-maintenance-result{display:block;font-size:.86rem;min-height:1.2em;margin-top:8px}
