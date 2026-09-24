@@ -1,0 +1,23 @@
+#view-chat{padding:18px 14px 115px;background:#f9f8f3;color:#153d34}
+#view-chat [hidden]{display:none!important}
+.wd-chat-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 14px}
+.wd-chat-header h1{font-size:32px;letter-spacing:-.04em;margin:0}.wd-chat-header p{margin:3px 0 0;color:#66766a;font-size:13px}
+#wdChatRefresh{width:46px;height:46px;border-radius:50%;border:1px solid #e6eee6;background:#fff;font-size:22px}
+.wd-chat-status{font-size:13px;line-height:1.45;color:#496357;margin:5px 0 15px}
+.wd-chat-gate,.wd-chat-panel{background:#fff;border:1px solid #e3ebe4;border-radius:22px;padding:16px;margin:10px 0}
+.wd-chat-gate h2{margin:0 0 8px}.wd-chat-gate p{line-height:1.5;color:#566f61}
+.wd-chat-btn,.wd-chat-primary{border:0;border-radius:17px;min-height:48px;padding:10px 14px;font-weight:750}
+.wd-chat-primary{background:#155c47;color:#fff}.wd-chat-btn{background:#eaf5ec;color:#174c3c}
+.wd-chat-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.wd-chat-room,.wd-chat-contact{display:flex;align-items:center;gap:11px;width:100%;min-height:65px;border:1px solid #e8eee8;background:#fff;border-radius:17px;padding:10px 12px;text-align:left;margin:8px 0;color:#174235}
+.wd-chat-room-icon,.wd-chat-avatar{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:#e2f4e9;font-size:24px}
+.wd-chat-room-info,.wd-chat-contact-name{display:grid;gap:3px;flex:1}.wd-chat-room-info small,.wd-chat-contact-name small{color:#66776c}.wd-chat-chevron{font-size:25px}
+.wd-chat-contact input{width:23px;height:23px;accent-color:#155c47}.wd-chat-empty{font-size:14px;color:#627568;line-height:1.5;padding:13px}
+.wd-chat-group-name{display:grid;gap:6px;margin-bottom:10px}.wd-chat-group-name input,.wd-chat-composer input{width:100%;min-height:49px;border:1px solid #d7e4dc;border-radius:15px;background:#fff;padding:12px;font-size:16px}
+.wd-chat-picker-head,.wd-chat-conversation-head{display:flex;align-items:center;gap:12px}.wd-chat-picker-head h2,.wd-chat-conversation-head h2{margin:0;flex:1;font-size:22px}
+#wdChatBack,#wdChatCancel{min-height:44px;border:0;border-radius:14px;background:#eef4ec;color:#174735;padding:8px 12px}
+.wd-chat-messages{display:flex;flex-direction:column;gap:10px;max-height:55vh;min-height:175px;overflow:auto;padding:14px 5px}
+.wd-chat-bubble{align-self:flex-start;max-width:88%;background:#fff;border:1px solid #e3eae3;border-radius:17px;padding:10px 13px}
+.wd-chat-bubble.is-own{align-self:flex-end;background:#def1e6}.wd-chat-bubble p{margin:0 0 6px;white-space:pre-wrap;overflow-wrap:anywhere}.wd-chat-bubble time{display:block;text-align:right;font-size:11px;color:#607267}
+.wd-chat-composer{display:grid;grid-template-columns:1fr auto;gap:8px}.wd-chat-composer button{min-width:70px}
+@media(max-width:370px){.wd-chat-actions{grid-template-columns:1fr}}
