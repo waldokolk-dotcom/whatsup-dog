@@ -172,7 +172,7 @@ test('core report journey with photo can be completed and survives reload',async
 
 test('main navigation stays understandable and primary mobile actions remain tappable',async({page})=>{
   await installSafeRoutes(page);await seedProfile(page);await openApp(page);await expect(page.locator('#homeWalk')).toBeVisible();await expect(page.locator('#homeReport')).toBeVisible();await expect(page.locator('#homeOffleash')).toBeVisible();await expectPrimaryTouchTargets(page);
-  for(const view of ['map','feed','alerts','profile','home']){await page.locator(`.bottom-nav [data-view="${view}"]`).click();await expect(page.locator(`#view-${view}`)).toHaveClass(/active/);await expectNoHorizontalOverflow(page)}
+  for(const view of ['map','feed','chat','profile','home']){await page.locator(`.bottom-nav [data-view="${view}"]`).click();await expect(page.locator(`#view-${view}`)).toHaveClass(/active/);await expectNoHorizontalOverflow(page)}
 });
 
 test('calm map keeps filters behind one layers interaction',async({page})=>{
