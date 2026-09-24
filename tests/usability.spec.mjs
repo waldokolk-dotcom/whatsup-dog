@@ -200,3 +200,29 @@ test('PawWheel is optional, reversible and preserves normal navigation',async({p
   await page.locator('.bottom-nav [data-view="map"]').click();
   await expect(page.locator('#view-map')).toHaveClass(/active/);
 });
+
+test('public feed never represents local pending reports as shared',async({page})=>{
+  await installSafeRoutes(page);await seedProfile(page);await openApp(page);
+  await page.evaluate(()=>{
+    localStorage.setItem('wd_reports_v1',JSON.stringify([
+      {id:'pending',type:'danger',text:'Dit staat alleen op mijn toestel',_remote:false,createdAt:'2026-09-24T10:00:00Z'},
+      {id:'shared',type:'fun',text:'Deze melding is centraal bevestigd',_remote:true,species:'dog',createdAt:'2026-09-24T11:00:00Z',author:'Bowie'}
+    ]));
+    document.documentElement.dataset.community='community-aan';
+    document.dispatchEvent(new CustomEvent('wd:shared-reports-updated'));
+  });
+  await page.locator('.bottom-nav [data-view="feed"]').click();
+  await expect(page.locator('.wd-feed-card')).toHaveCount(1);
+  await expect(page.locator('#publicFeedList')).toContainText('Deze melding is centraal bevestigd');
+  await expect(page.locator('#publicFeedList')).not.toContainText('Dit staat alleen op mijn toestel');
+});
+
+test('maintenance stays hidden without a server-verified moderator role',async({page})=>{
+  await installSafeRoutes(page);await seedProfile(page);await openApp(page);
+  await page.evaluate(()=>{
+    localStorage.setItem('wd_role','moderator');
+    document.dispatchEvent(new CustomEvent('wd:community-status',{detail:{label:'Community aan'}}));
+  });
+  await page.locator('.bottom-nav [data-view="profile"]').click();
+  await expect(page.locator('#wdMaintenance')).toBeHidden();
+});
