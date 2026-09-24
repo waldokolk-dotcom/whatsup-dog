@@ -27,14 +27,20 @@ async function installDirectoryBackend(page){
   await installSafeRoutes(page);
   await page.route('**/community-backend.js*',route=>route.fulfill({status:200,contentType:'application/javascript',body:`
     window.__failDirectoryUpdate=false;
+    window.__testDiscoverable=false;
     const directoryClient={
       from:()=>({
-        select:()=>({eq:()=>({maybeSingle:async()=>({data:{discoverable:false,breed:null},error:null})})}),
-        update:()=>({eq:async()=>window.__failDirectoryUpdate?{error:{message:'network'}}:{error:null}})
+        select:()=>({eq:()=>({maybeSingle:async()=>({data:{discoverable:window.__testDiscoverable},error:null})})})
       }),
-      rpc:async()=>({data:[],error:null})
+      rpc:async(name,args)=>{
+        if(name==='set_profile_discoverability'){
+          if(window.__failDirectoryUpdate)return {data:null,error:{message:'network'}};
+          window.__testDiscoverable=args.enabled;return {data:args.enabled,error:null};
+        }
+        return {data:[],error:null};
+      }
     };
-    window.WhatsupDogCommunity={configured:true,client:directoryClient,user:{id:'00000000-0000-0000-0000-000000000001'}};
+    window.WhatsupDogCommunity={configured:true,client:directoryClient,user:{id:'00000000-0000-0000-0000-000000000001',is_anonymous:false}};
   `}));
 }
 
