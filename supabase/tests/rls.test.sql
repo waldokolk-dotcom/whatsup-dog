@@ -37,8 +37,10 @@ select is((select count(*) from public.reports where id='test-point'),0::bigint,
 select is((select count(*) from public.moderation_actions),0::bigint,'Moderation audit private');
 -- Private and group chat: guests cannot start conversations, members only can read and write.
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+select set_config('request.jwt.claims','{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated","is_anonymous":false}',true);
 select lives_ok($pg$insert into public.profiles(id,display_name,discoverable) values(auth.uid(),'Buren B',true)$pg$,'User B explicitly opts in');
 select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+select set_config('request.jwt.claims','{"sub":"33333333-3333-4333-8333-333333333333","role":"authenticated","is_anonymous":false}',true);
 select lives_ok($pg$insert into public.profiles(id,display_name,discoverable) values(auth.uid(),'Buren C',true)$pg$,'User C explicitly opts in');
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","is_anonymous":true}',true);
