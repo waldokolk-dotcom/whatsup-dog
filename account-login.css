@@ -9,3 +9,14 @@
 .wd-account [hidden]{display:none!important}
 #wdAccountStatus{min-height:1.5em;color:var(--text-muted);font-size:.9rem}
 @media(min-width:550px){.wd-account-actions{grid-template-columns:1fr 1fr}}
+
+/* Member registration and profile completion remain thumb-first and uncluttered. */
+.wd-account-create,.wd-account-profile{margin-top:17px;padding:17px 14px;border:1px solid var(--line-strong,#d5e2d8);border-radius:18px;background:var(--surface-raised,#fff)}
+.wd-account-create h3,.wd-account-profile h3{margin:0 0 8px;font-size:1.2rem;color:var(--text-primary,#173d35)}
+.wd-account-create p,.wd-account-profile p{margin:7px 0 13px;font-size:.9rem;line-height:1.5}
+.wd-account-create select,.wd-account-profile select{display:block;width:100%;min-height:48px;margin-top:6px;padding:10px 12px;border:1px solid var(--line-strong,#d2e1d5);border-radius:var(--radius-control,14px);font-size:16px;background:var(--surface-raised,#fff);color:var(--text-primary,#173d35)}
+.wd-account-create .primary,.wd-account-profile .primary{width:100%;margin-top:15px;min-height:50px;border-radius:15px}
+.wd-account-quiet{border:0;background:transparent;color:#195d47;text-decoration:underline;text-underline-offset:3px;min-height:44px;padding:7px;margin-top:8px;font-size:.93rem;font-weight:650;cursor:pointer}
+.wd-account-create [role=status],.wd-account-profile [role=status]{min-height:1.5em;color:#375e4c;font-size:.88rem;overflow-wrap:anywhere}
+#wdAccountPreviewNotice{border:1px solid #d6e6d6;border-radius:15px;background:#f0f7f0;color:#24523d;padding:12px;font-weight:600}
+.wd-account-create[hidden],.wd-account-profile[hidden],#wdPasswordRecovery[hidden]{display:none!important}
