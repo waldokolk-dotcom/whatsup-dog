@@ -40,18 +40,17 @@ const productionFeed=read('production-feed.js');
 assert.match(indexSource,/id="view-feed"/,'Production public feed view missing');
 assert.match(indexSource,/production-feed\.js\?v=1/,'Production public feed script missing');
 assert.match(indexSource,/production-feed\.css\?v=1/,'Production public feed stylesheet missing');
-assert.doesNotMatch(indexSource,/id="view-chat"|id="pushDemo"|Test een melding/,'Demo UI must not be shipped');
+assert.doesNotMatch(indexSource,/id="pushDemo"|Test een melding/,'Demo UI must not be shipped');
+assert.match(indexSource,/id="view-chat"/,'Real private and group chat screen must ship');
 assert.doesNotMatch(appSource,/function setupChat\(|setupChat\(\)|pushDemo/,'Demo handlers must not be shipped');
 assert.match(productionFeed,/r\._remote===true/,'Public feed may show only server-confirmed reports');
 assert.match(productionFeed,/dataset\.community==='community-aan'/,'Public feed must fail closed when backend is unavailable');
 assert.match(read('sw.js'),/production-feed\.js\?v=1/,'Offline shell must include production feed');
 
-const wheelSource=read('paw-wheel.js');
 const maintenanceSource=read('maintenance-ui.js');
 const maintenanceGate=read('supabase/migrations/20260924000100_moderator_ui_gate.sql');
-assert.match(indexSource,/paw-wheel\.js\?v=1/,'PawWheel missing from app');
-assert.match(wheelSource,/wd_pawwheel_v1/,'PawWheel preferences must persist on this device');
-assert.match(wheelSource,/pointercancel/,'PawWheel must allow cancellation');
+assert.doesNotMatch(indexSource,/paw-wheel\.js\?v=1/,'Obstructive side wheel must be removed');
+assert.doesNotMatch(indexSource,/paw-wheel\.css\?v=1/,'Side wheel stylesheet must not ship');
 assert.match(indexSource,/maintenance-ui\.js\?v=1/,'Maintenance UI missing from app');
 assert.match(maintenanceSource,/rpc\('is_report_moderator'\)/,'Maintenance must verify role on the server');
 assert.match(maintenanceSource,/rpc\('moderate_report'/,'Maintenance must use trusted moderation RPC');
@@ -98,6 +97,21 @@ assert.match(read('smart-report-v3.js'),/We gokken je locatie niet/,'GPS failure
 assert.match(read('smart-report-v3.js'),/reportCameraV2/,'Camera capture must remain available');
 assert.match(read('smart-report-v3.js'),/reportPhotoV2/,'Gallery upload must remain available');
 assert.match(read('sw.js'),/quick-report-wheel\.js\?v=1/,'Offline cache must contain thumb reporting UI');
+
+const chatSource=read('community-chat.js');
+const groupMigration=read('supabase/migrations/20260924000300_verified_group_chat.sql');
+assert.match(indexSource,/community-chat\.js\?v=1/,'Real chat UI must ship');
+assert.match(indexSource,/data-view="chat"/,'Chat must be in the primary navigation');
+assert.match(chatSource,/chat_messages/,'Chat must load actual member-only messages');
+assert.match(chatSource,/start_private_chat/,'Private conversations must be backed by the server');
+assert.match(chatSource,/start_group_chat/,'Groups must be backed by the server');
+assert.match(chatSource,/isPreview\(\)/,'Preview cannot send chat messages');
+assert.match(groupMigration,/Verified account required/,'Guest users must not create conversations');
+assert.match(groupMigration,/Only distinct, discoverable members/,'Group invites require opt-in profiles');
+assert.match(groupMigration,/reports_type_check/,'Other category must be accepted by the backend');
+assert.match(quickWheel,/wdWheelDangerOptions/,'Danger must open a short dedicated submenu');
+assert.match(quickWheel,/data-quick-type|dataset\.quickType/,'The six report options must be concrete controls');
+assert.doesNotMatch(indexSource,/id="pawWheel"/,'No second side navigation wheel');
 
 const previewGuard=read('preview-guard.js');
 const previewBuilder=read('scripts/build-preview.mjs');
