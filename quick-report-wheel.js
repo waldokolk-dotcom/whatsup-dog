@@ -34,9 +34,9 @@ function choose(id){
  document.querySelector('#reportTypes [data-report-type="'+target+'"]')?.click();
  const species=id==='spotted-cat'?'cat':id==='spotted-dog'?'dog':null;
  if(species){const radio=document.querySelector('#reportAudience input[value="'+species+'"]');if(radio)radio.checked=true}
- if(id==='vegetation')document.querySelector('#vegetationKinds [data-subtype="Anders"]')?.click();
+ if(id==='vegetation')selectedVegetation='Anders';
  const detail={'glass':'Glas','poison':'Mogelijk gif','traffic':'Verkeer','other-danger':'Ander gevaar'}[id]||null;
- if(detail)window.selectedVegetation=detail;
+ if(detail)selectedVegetation=detail;
  if(detail&&document.getElementById('reportText')&&!document.getElementById('reportText').value)document.getElementById('reportText').value=detail;
  setTimeout(()=>document.dispatchEvent(new CustomEvent('wd:quick-report-start',{detail:{type:target,species,detail}})),90);
 }
