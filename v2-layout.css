@@ -97,3 +97,6 @@ html,body,.app-shell,.page-view{background:var(--surface-canvas)!important;color
 .wd-quick-flow .smart-step-head{font-size:0!important}
 .wd-quick-flow .smart-step-head b{font-size:16px!important}
 .wd-quick-flow #vegetationKinds:not(.hidden),.wd-quick-flow #lostKinds:not(.hidden){order:1}
+
+/* Enhanced report UI is the sole photo picker, including the non-quick route. */
+#reportDialog:has(#smartReportToolsV2) #reportPhotoBox{display:none!important}
