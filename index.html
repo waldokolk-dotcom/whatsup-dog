@@ -55,14 +55,26 @@
         <div id="publicFeedList" class="wd-feed-list" aria-live="polite"></div>
       </section>
 
-      <section id="view-alerts" class="view page-view" aria-label="Meldingen"><header class="page-brand"><div class="chat-logo">🔔</div><div><h1>Meldingen</h1><p>Alleen wat voor jou en je hond telt.</p></div><button class="text-action" id="clearReports" type="button">Wis</button></header><div class="settings-card"><label class="switch-row"><span><b>⚠️ Gevaren</b><small>Glas, gif, verkeer en andere risico's</small></span><input type="checkbox" checked></label><label class="switch-row"><span><b>🌿 Vegetatie</b><small>Grasaren, berenklauw, processierups</small></span><input type="checkbox" checked></label><label class="switch-row"><span><b>🚨 Vermiste hond</b><small>Urgente signalen in een groter gebied</small></span><input type="checkbox" checked></label><label class="switch-row"><span><b>🐾 Activiteiten</b><small>Wandelmaatjes en hondendingen</small></span><input type="checkbox"></label></div><p class="fineprint">Je meldingvoorkeuren blijven op dit toestel. Pushberichten worden pas aangeboden wanneer echte bezorging is ingericht.</p></section>
+      <section id="view-alerts" class="view page-view" aria-label="Meldingen voor jou">
+        <header class="page-brand"><div class="chat-logo" aria-hidden="true">🔔</div><div><h1>Meldingen</h1><p>Echte buurtmeldingen volgens jouw voorkeuren.</p></div></header>
+        <div class="settings-card wd-alert-settings">
+          <label class="switch-row"><span><b>⚠️ Gevaren</b><small>Glas, gif, verkeer en andere risico's</small></span><input id="wdAlertDanger" type="checkbox" checked></label>
+          <label class="switch-row"><span><b>🌿 Vegetatie</b><small>Grasaren, berenklauw en processierupsen</small></span><input id="wdAlertVegetation" type="checkbox" checked></label>
+          <label class="switch-row"><span><b>🚨 Vermist of gevonden</b><small>Berichten over vermiste en gevonden dieren</small></span><input id="wdAlertLost" type="checkbox" checked></label>
+          <label class="switch-row"><span><b>🐾 Activiteiten en leuke plekken</b><small>Wandelen, ontmoetingen en tips</small></span><input id="wdAlertActivities" type="checkbox"></label>
+        </div>
+        <p class="fineprint">Deze filters gelden voor dit scherm. Alle openbare meldingen blijven beschikbaar in Buurt. Er worden geen pushberichten beloofd zolang echte bezorging ontbreekt.</p>
+        <p id="wdAlertStatus" class="wd-feed-status" role="status" aria-live="polite"></p>
+        <div id="wdAlertList" class="wd-feed-list"></div>
+        <button id="wdAlertAll" class="wd-feed-more" type="button">Bekijk alle openbare buurtmeldingen</button>
+      </section>
 
       <section id="view-profile" class="view page-view" aria-label="Profiel">
         <header class="profile-hero"><div id="profileAvatarBig" class="profile-avatar-big">🐶</div><h1 id="profileName">Jouw hond</h1><p id="profileBreed">Ras nog niet gekozen</p><p id="profileSubtitle">Maak je hondenprofiel af</p></header>
         <button id="editProfile" class="primary wide">🐾 Profiel aanpassen</button>
         <button id="installHelpButton" class="install-help-button" type="button"><span aria-hidden="true">＋</span><span><b>Zet Whatsup dog op je telefoon</b><small>Bekijk de stappen voor Apple of andere telefoons</small></span><span aria-hidden="true">›</span></button>
         <div class="privacy-card"><div class="privacy-icon">🔒</div><div><b>Privacy als uitgangspunt</b><p>Andere gebruikers zien je openbare hondenprofiel, nooit automatisch je e-mailadres of live GPS-locatie.</p></div></div>
-        <div class="settings-card compact"><div class="data-row"><span>Mijn meldingen</span><b id="myReportCount">0</b></div><div class="data-row"><span>Bedankjes</span><b>0</b></div><div class="data-row"><span>Profielstatus</span><b id="profileStatus">Lokaal</b></div></div>
+        <div class="settings-card compact"><div class="data-row"><span>Mijn meldingen</span><b id="myReportCount">0</b></div><div class="data-row"><span>Profielstatus</span><b id="profileStatus">Lokaal</b></div></div>
       </section>
     </main>
     <nav class="bottom-nav five-nav" aria-label="Hoofdnavigatie"><button class="nav-item active" data-view="home"><svg><use href="#i-home"/></svg><small>Home</small></button><button class="nav-item" data-view="map"><svg><use href="#i-map"/></svg><small>Kaart</small></button><button class="nav-item" data-view="feed"><svg><use href="#i-community"/></svg><small>Buurt</small></button><button class="nav-item" data-view="alerts"><span class="nav-badge">●</span><svg><use href="#i-bell"/></svg><small>Meldingen</small></button><button class="nav-item" data-view="profile"><svg><use href="#i-profile"/></svg><span id="navProfileAvatar" class="nav-avatar-data" aria-hidden="true"></span><small>Profiel</small></button></nav>
@@ -89,6 +101,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="./vendor/leaflet/leaflet.js" crossorigin=""></script>
   <script src="app.js?v=7"></script><script src="breed-catalog.js?v=2"></script><script src="install-guide.js?v=1.9.1"></script>
-  <script src="production-feed.js?v=1"></script><script src="paw-wheel.js?v=1"></script><script src="maintenance-ui.js?v=1"></script><script src="official-areas.js?v=9"></script><script src="home.js?v=5"></script><script src="smart-report-v3.js?v=3"></script><script src="backend-config.js?v=4"></script><script src="community-backend.js?v=2"></script><script src="species-context.js?v=1.9.1"></script>
+  <script src="production-feed.js?v=1"></script><script src="production-alerts.js?v=1"></script><script src="paw-wheel.js?v=1"></script><script src="maintenance-ui.js?v=1"></script><script src="official-areas.js?v=9"></script><script src="home.js?v=5"></script><script src="smart-report-v3.js?v=3"></script><script src="backend-config.js?v=4"></script><script src="community-backend.js?v=2"></script><script src="species-context.js?v=1.9.1"></script>
 </body>
 </html>
