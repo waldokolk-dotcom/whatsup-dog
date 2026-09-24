@@ -67,6 +67,8 @@ assert.doesNotMatch(appSource,/id="confirmReport"|id="thankReport"/,'Unverified 
 assert.doesNotMatch(smartSource,/id="confirmReport"|id="thankReport"/,'Unverified polygon confirmation actions must not ship');
 assert.match(appSource,/const canManage=!r\._remote/,'Only owner can manage point report');
 assert.match(smartSource,/const canManage=!r\._remote/,'Only owner can manage area report');
+assert.match(productionFeed,/async function loadOlder\(\)/,'Public feed needs pagination beyond initial reports');
+assert.match(productionFeed,/limit\(100\)/,'Pagination must be bounded');
 const backendSource=read('community-backend.js');
 assert.match(backendSource,/wd_hidden_reports_v1/,'Remote hidden report filter missing');
 assert.match(backendSource,/hiddenIds\.has\(row\.id\)/,'Remote refresh does not honor hidden reports');
