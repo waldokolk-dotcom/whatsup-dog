@@ -1,55 +1,55 @@
 (()=>{
 'use strict';
-const choices=[
- ['danger','Gevaar','❗'],['dirty','Poep op straat','💩'],
- ['spotted-dog','Hond gezien','🐕'],['spotted-cat','Kat gezien','🐈'],
- ['lost','Vermist dier','❤️'],['other','Overig','★']
+const options=[
+ ['danger','Gevaar','⚠️'],['dirty','Poep','💩'],['spotted-dog','Hond','🐕'],
+ ['spotted-cat','Kat','🐈'],['lost','Vermist','🔎'],['other','Overig','★']
 ];
-let opened=false,previousFocus=null,allowOriginal=false;
-const backdrop=document.createElement('div');backdrop.id='wdQuickWheel';backdrop.className='wd-quick-wheel';backdrop.hidden=true;
-backdrop.innerHTML='<div class="wd-wheel-panel" role="dialog" aria-modal="true" aria-labelledby="wdWheelTitle"><div class="wd-wheel-heading"><h2 id="wdWheelTitle">Wat wil je melden?</h2><p>Kies met je duim. Je locatie en tijd vullen we alvast in.</p></div><div class="wd-wheel-disc" role="group" aria-label="Snelle meldcategorieën"></div><button type="button" class="wd-wheel-close" aria-label="Sluit meldwiel">×</button></div>';
-const disc=backdrop.querySelector('.wd-wheel-disc');
-for(const [id,label,icon] of choices){
- const btn=document.createElement('button');btn.type='button';btn.className='wd-wheel-sector';btn.dataset.quickType=id;
- btn.innerHTML='<span aria-hidden="true">'+icon+'</span><b>'+label+'</b>';
- btn.setAttribute('aria-label',label);
- btn.addEventListener('click',()=>choose(id));
- disc.append(btn);
-}
-const hub=document.createElement('span');hub.className='wd-wheel-hub';hub.setAttribute('aria-hidden','true');hub.textContent='🐾';disc.append(hub);
-const openButton=document.createElement('button');openButton.type='button';openButton.id='wdQuickReport';openButton.className='wd-quick-report';openButton.setAttribute('aria-label','Open meldwiel');openButton.textContent='🐾';
-document.body.append(backdrop,openButton);
-function open(){
- if(opened)return;
- previousFocus=document.activeElement;opened=true;backdrop.hidden=false;document.body.classList.add('wd-wheel-open');
- backdrop.querySelector('[data-quick-type="danger"]')?.focus({preventScroll:true});
-}
-function close(){
- if(!opened)return;
- opened=false;backdrop.hidden=true;document.body.classList.remove('wd-wheel-open');
- if(previousFocus?.isConnected)previousFocus.focus({preventScroll:true});
-}
+const dangerOptions=[['vegetation','Vegetatie','🌿'],['glass','Glas','🔷'],['poison','Gif','⚠️'],['traffic','Verkeer','🚗'],['other-danger','Anders','⋯']];
+let open=false,focusBefore=null,dispatching=false;
+const overlay=document.createElement('div');overlay.id='wdQuickWheel';overlay.className='wd-quick-wheel';overlay.hidden=true;
+overlay.innerHTML='<section class="wd-wheel-panel" role="dialog" aria-modal="true" aria-labelledby="wdWheelTitle"><div class="wd-wheel-top"><h2 id="wdWheelTitle">Wat wil je melden?</h2><button class="wd-wheel-close" type="button" aria-label="Sluiten">×</button></div><div class="wd-wheel-disc" role="group" aria-label="Kies een meldcategorie"></div><div id="wdWheelSub" class="wd-wheel-sub" hidden><button type="button" id="wdWheelBack">← Terug</button><h3>Welk gevaar?</h3><div id="wdWheelDangerOptions"></div></div></section>';
+const disc=overlay.querySelector('.wd-wheel-disc'),sub=overlay.querySelector('#wdWheelSub');
+options.forEach(([id,label,emoji])=>{
+ const b=document.createElement('button');b.type='button';b.dataset.quickType=id;b.className='wd-wheel-sector';
+ const icon=document.createElement('span');icon.textContent=emoji;icon.setAttribute('aria-hidden','true');
+ const name=document.createElement('b');name.textContent=label;b.append(icon,name);b.setAttribute('aria-label',label);
+ b.addEventListener('click',()=>id==='danger'?showDanger():choose(id));
+ disc.append(b);
+});
+dangerOptions.forEach(([id,label,emoji])=>{
+ const b=document.createElement('button');b.type='button';b.dataset.dangerType=id;b.className='wd-wheel-danger';
+ b.textContent=emoji+' '+label;b.addEventListener('click',()=>choose(id));sub.querySelector('#wdWheelDangerOptions').append(b);
+});
+const fab=document.createElement('button');fab.type='button';fab.id='wdQuickReport';fab.className='wd-quick-report';fab.textContent='🐾';fab.setAttribute('aria-label','Open meldwiel');
+document.body.append(overlay,fab);
+function show(){if(open)return;focusBefore=document.activeElement;open=true;overlay.hidden=false;sub.hidden=true;disc.hidden=false;document.body.classList.add('wd-wheel-open');disc.querySelector('button')?.focus({preventScroll:true})}
+function close(){if(!open)return;open=false;overlay.hidden=true;document.body.classList.remove('wd-wheel-open');if(focusBefore?.isConnected)focusBefore.focus({preventScroll:true})}
+function showDanger(){disc.hidden=true;sub.hidden=false;sub.querySelector('button[data-danger-type]')?.focus({preventScroll:true})}
 function choose(id){
  close();
+ const target=id==='vegetation'?'vegetation':id==='other-danger'||id==='glass'||id==='poison'||id==='traffic'?'danger':id.startsWith('spotted-')?'spotted':id;
  const launcher=document.getElementById('mapPlusBtn')||document.getElementById('reportFab');
  if(!launcher)return;
- allowOriginal=true;
- try{launcher.click()}finally{allowOriginal=false}
- const categoryId=id.startsWith('spotted-')?'spotted':id;
- const category=document.querySelector('#reportTypes [data-report-type="'+categoryId+'"]');
- category?.click();
+ dispatching=true;try{launcher.click()}finally{dispatching=false}
+ document.querySelector('#reportTypes [data-report-type="'+target+'"]')?.click();
  const species=id==='spotted-cat'?'cat':id==='spotted-dog'?'dog':null;
- if(species){const choice=document.querySelector('#reportAudience input[name="reportSpecies"][value="'+species+'"]');if(choice)choice.checked=true}
- setTimeout(()=>document.dispatchEvent(new CustomEvent('wd:quick-report-start',{detail:{type:categoryId,species}})),90);
+ if(species){const radio=document.querySelector('#reportAudience input[value="'+species+'"]');if(radio)radio.checked=true}
+ if(id==='vegetation')document.querySelector('#vegetationKinds [data-subtype="Anders"]')?.click();
+ const detail={'glass':'Glas','poison':'Mogelijk gif','traffic':'Verkeer','other-danger':'Ander gevaar'}[id]||null;
+ if(detail)window.selectedVegetation=detail;
+ if(detail&&document.getElementById('reportText')&&!document.getElementById('reportText').value)document.getElementById('reportText').value=detail;
+ setTimeout(()=>document.dispatchEvent(new CustomEvent('wd:quick-report-start',{detail:{type:target,species,detail}})),90);
 }
-openButton.addEventListener('click',open);
-backdrop.querySelector('.wd-wheel-close').addEventListener('click',close);
-backdrop.addEventListener('click',event=>{if(event.target===backdrop)close()});
-document.addEventListener('keydown',event=>{if(!opened)return;if(event.key==='Escape'){event.preventDefault();close()}if(event.key==='Tab'){const controls=[...backdrop.querySelectorAll('button')];const i=controls.indexOf(document.activeElement);if(event.shiftKey&&i===0){event.preventDefault();controls.at(-1).focus()}else if(!event.shiftKey&&i===controls.length-1){event.preventDefault();controls[0].focus()}}});
+fab.addEventListener('click',show);overlay.querySelector('.wd-wheel-close').addEventListener('click',close);
+overlay.querySelector('#wdWheelBack').addEventListener('click',()=>{disc.hidden=false;sub.hidden=true;disc.querySelector('button')?.focus()});
+overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
 document.addEventListener('click',event=>{
- if(allowOriginal)return;
- const target=event.target.closest('#homeReport,#reportFab,#mapPlusBtn');
- if(!target)return;
- event.preventDefault();event.stopImmediatePropagation();open();
+ if(dispatching)return;const trigger=event.target.closest('#homeReport,#reportFab,#mapPlusBtn');if(!trigger)return;
+ event.preventDefault();event.stopImmediatePropagation();show();
 },true);
+document.addEventListener('keydown',event=>{
+ if(!open)return;if(event.key==='Escape'){event.preventDefault();if(!sub.hidden){disc.hidden=false;sub.hidden=true}else close();return}
+ if(event.key!=='Tab')return;const buttons=[...overlay.querySelectorAll('button')].filter(b=>b.getClientRects().length);const i=buttons.indexOf(document.activeElement);
+ if(event.shiftKey&&i===0){event.preventDefault();buttons.at(-1)?.focus()}else if(!event.shiftKey&&i===buttons.length-1){event.preventDefault();buttons[0]?.focus()}
+});
 })();
