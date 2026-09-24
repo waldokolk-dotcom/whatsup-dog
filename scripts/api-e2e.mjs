@@ -14,14 +14,15 @@ await ok('/rest/v1/profiles',ta,'POST',{id:a.user.id,display_name:'E2E A',home_l
 assert.deepEqual(await ok('/rest/v1/profiles?select=*',tb),[]);
 const photo=a.user.id+'/e2e-report.jpg';
 const uploaded=await fetch(url+'/storage/v1/object/report-photos/'+photo,{method:'POST',headers:{apikey:key,Authorization:'Bearer '+ta,'Content-Type':'image/jpeg'},body:Buffer.from([255,216,255,217])});assert.ok(uploaded.ok,await uploaded.text());count++;
-const row={id:'e2e-report',user_id:a.user.id,author_name:'E2E A',type:'danger',text:'Temporary test',lat:52.2,lng:5.4,geometry_type:'polygon',polygon:[[52.2,5.4],[52.3,5.4],[52.3,5.5]],photo_path:photo};
+const row={id:'e2e-report',user_id:a.user.id,author_name:'E2E A',species:'cat',type:'danger',text:'Temporary test',lat:52.2,lng:5.4,geometry_type:'polygon',polygon:[[52.2,5.4],[52.3,5.4],[52.3,5.5]],photo_path:photo};
 await ok('/rest/v1/reports',ta,'POST',row);
-const reports=await ok('/rest/v1/reports?id=eq.e2e-report&select=*',tb);assert.equal(reports[0].polygon.length,3);
+const reports=await ok('/rest/v1/reports?id=eq.e2e-report&select=*',tb);assert.equal(reports[0].polygon.length,3);assert.equal(reports[0].species,'cat','Species choice must survive sharing between users');
 const signed=await ok('/storage/v1/object/sign/report-photos/'+photo,tb,'POST',{expiresIn:60});assert.ok(signed.signedURL);
 assert.ok((await fetch(url+'/storage/v1'+signed.signedURL)).ok);count++;
 assert.equal((await request('/rest/v1/reports?id=eq.e2e-report',tb,'PATCH',{text:'Attack'})).res.status,403);count++;
 await ok('/rest/v1/push_subscriptions',ta,'POST',{user_id:a.user.id,endpoint:'https://push.example.test/e2e',p256dh:'test',auth:'test'});
 assert.deepEqual(await ok('/rest/v1/push_subscriptions?select=*',tb),[]);
+assert.equal(await ok('/rest/v1/rpc/is_report_moderator',tb,'POST',{}),false,'Ordinary users must not gain moderator capability');
 assert.equal((await request('/rest/v1/rpc/moderate_report',tb,'POST',{target:'e2e-report',next_status:'hidden',explanation:'Attack'})).res.status,403);count++;
 const service=status.SERVICE_ROLE_KEY;
 await ok('/rest/v1/reports?id=eq.e2e-report',service,'PATCH',{status:'hidden'});
