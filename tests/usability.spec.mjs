@@ -365,6 +365,12 @@ test('preview isolates browser storage and rejects writes to the hosted project'
   await expect(page.locator('#wdAccountLogin')).toBeHidden();
   await expect(page.locator('#wdAccountRegister')).toBeHidden();
   await expect(page.locator('#wdAccountSigned')).toBeHidden();
+  await page.locator('#wdDemoSignup').click();
+  await expect(page.locator('#wdAccountCreate')).toBeVisible();
+  await expect(page.locator('#wdSignupEmail')).toBeDisabled();
+  await page.locator('#wdDemoProfile').click();
+  await expect(page.locator('#wdAccountProfile')).toBeVisible();
+  await expect(page.locator('#wdMemberSave')).toBeDisabled();
   await expect(page.locator('#wdAccountStatus')).toContainText('aanmelden is hier uitgeschakeld');
   const storage=await page.evaluate(()=>{
     window.__wdPreviewStorage.setItem('wd_reports_v1','preview-only');
