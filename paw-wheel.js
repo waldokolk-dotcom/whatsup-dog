@@ -1,0 +1,41 @@
+(()=>{
+  'use strict';
+  const KEY='wd_pawwheel_v1';
+  const choices=[['home','Home','⌂'],['map','Kaart','▤'],['feed','Buurt','●'],['alerts','Meldingen','♢'],['profile','Profiel','◯']];
+  const stored=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch{return null}};
+  const pointerDefault=()=>window.matchMedia?.('(pointer:coarse)').matches??false;
+  const initial=stored();
+  const preferences={enabled:typeof initial?.enabled==='boolean'?initial.enabled:pointerDefault(),side:initial?.side==='left'?'left':'right'};
+  const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(preferences))}catch{}};
+  const shell=document.createElement('div');shell.id='pawWheel';shell.className='wd-pawwheel';shell.setAttribute('aria-label','Snelle navigatie met één hand');
+  const rail=document.createElement('div');rail.className='wd-pawwheel-rail';rail.setAttribute('role','group');rail.setAttribute('aria-label','Schuif met je duim of tik op een pagina');
+  const nodes=choices.map(([view,label,symbol])=>{
+    const b=document.createElement('button');b.type='button';b.className='wd-pawwheel-item';b.dataset.pawView=view;b.setAttribute('aria-label',label);b.title=label;
+    const glyph=document.createElement('span');glyph.setAttribute('aria-hidden','true');glyph.textContent=symbol;
+    b.append(glyph);b.addEventListener('click',()=>open(view));rail.append(b);return b;
+  });
+  const caption=document.createElement('span');caption.id='pawWheelCaption';caption.className='wd-pawwheel-caption';caption.setAttribute('aria-live','polite');caption.textContent='Kaart';
+  shell.append(rail,caption);
+  let dragging=false,selection=-1,startY=0;
+  const select=i=>{selection=i;nodes.forEach((node,n)=>node.classList.toggle('selected',n===i));caption.textContent=choices[i][1]};
+  const closest=y=>{let index=0,dist=Infinity;nodes.forEach((node,i)=>{const rect=node.getBoundingClientRect(),d=Math.abs(y-(rect.top+rect.height/2));if(d<dist){dist=d;index=i}});return index};
+  function open(view){const nav=document.querySelector(`.bottom-nav [data-view="${view}"]`);if(nav)nav.click();selection=-1;nodes.forEach(node=>node.classList.remove('selected'))}
+  rail.addEventListener('pointerdown',event=>{if(event.pointerType==='mouse'&&event.button!==0)return;startY=event.clientY;dragging=true;select(closest(event.clientY));rail.setPointerCapture?.(event.pointerId)});
+  rail.addEventListener('pointermove',event=>{if(dragging)select(closest(event.clientY))});
+  rail.addEventListener('pointerup',event=>{if(!dragging)return;dragging=false;const i=closest(event.clientY),moved=Math.abs(event.clientY-startY)>8;if(moved){event.preventDefault();open(choices[i][0])}else select(i)});
+  rail.addEventListener('pointercancel',()=>{dragging=false;nodes.forEach(node=>node.classList.remove('selected'))});
+  const setting=document.createElement('div');setting.className='wd-pawwheel-settings settings-card compact';
+  const title=document.createElement('strong');title.textContent='PawWheel · bediening met één hand';
+  const note=document.createElement('p');note.className='wd-pawwheel-help';note.textContent='Sleep langs het wiel en laat los, of tik op een icoon. De gewone navigatie blijft beschikbaar.';
+  const enabledLabel=document.createElement('label');enabledLabel.className='wd-pawwheel-setting';
+  const enabled=document.createElement('input');enabled.type='checkbox';enabled.id='pawWheelEnabled';enabled.checked=preferences.enabled;
+  enabledLabel.append(enabled,document.createTextNode(' PawWheel gebruiken'));
+  const sideLabel=document.createElement('label');sideLabel.className='wd-pawwheel-setting';sideLabel.textContent='Bedieningskant ';
+  const side=document.createElement('select');side.id='pawWheelSide';for(const [value,label] of [['right','Rechts'],['left','Links']]){const o=document.createElement('option');o.value=value;o.textContent=label;side.append(o)}side.value=preferences.side;sideLabel.append(side);
+  setting.append(title,note,enabledLabel,sideLabel);
+  const apply=()=>{shell.hidden=!preferences.enabled;shell.dataset.side=preferences.side;side.disabled=!preferences.enabled;save()};
+  enabled.addEventListener('change',()=>{preferences.enabled=enabled.checked;apply()});
+  side.addEventListener('change',()=>{preferences.side=side.value==='left'?'left':'right';apply()});
+  document.querySelector('#view-profile')?.append(setting);
+  document.body.append(shell);apply();
+})();
