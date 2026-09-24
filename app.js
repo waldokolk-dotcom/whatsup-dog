@@ -85,8 +85,7 @@ function areaCenter(area){if(area.center)return area.center;if(area.polygon?.len
 window.openDogAreaDetail=function(area){currentArea=area;el('areaName').textContent=area.name;el('areaMeta').textContent=`${area.type==='omheind'?'Omheind · ':''}Gemeente Nijkerk`;el('areaDescription').textContent=area.type==='omheind'?'Een omheinde plek waar honden vrij kunnen bewegen en baasjes elkaar kunnen ontmoeten.':'Een vastgesteld losloopgebied met ruimte om te snuffelen, spelen en samen op pad te gaan.';if(!el('areaDialog').open)el('areaDialog').showModal()}
 function setupAreaDetail(){el('areaShowMap')?.addEventListener('click',()=>{if(!currentArea)return;const c=areaCenter(currentArea);el('areaDialog').close();showView('map');setTimeout(()=>map.setView(c,16),80)});el('areaRoute')?.addEventListener('click',()=>{if(!currentArea)return;const c=areaCenter(currentArea);window.open(`https://www.google.com/maps/dir/?api=1&destination=${c[0]},${c[1]}`,'_blank','noopener')})}
 
-function setupAlerts(){el('clearReports')?.addEventListener('click',()=>{const all=allReports();if(!all.length){toast('Er zijn geen meldingen om te wissen');return}if(!confirm('Alle meldingen op dit toestel wissen?'))return;const hidden=new Set(loadJSON(STORAGE.hiddenReports,[]));all.filter(r=>r._remote&&r.id).forEach(r=>hidden.add(r.id));saveJSON(STORAGE.hiddenReports,[...hidden]);saveJSON(STORAGE.reports,[]);drawReports();updateProfileUI();toast('Alle meldingen gewist');window.WhatsupDogCommunity?.refresh?.()})}
 function registerServiceWorker(){if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{})}
 
-setupDialogs();setupNavigation();initMap();setupProfile();setupReports();setupAreaDetail();setupAlerts();
+setupDialogs();setupNavigation();initMap();setupProfile();setupReports();setupAreaDetail();
 registerServiceWorker();
