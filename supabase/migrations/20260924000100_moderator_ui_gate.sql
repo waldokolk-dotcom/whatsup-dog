@@ -10,8 +10,7 @@ set search_path = ''
 as $$
   select auth.uid() is not null and exists (
     select 1 from private.moderators as m
-    where to_jsonb(m)->>'user_id' = auth.uid()::text
-       or to_jsonb(m)->>'id' = auth.uid()::text
+    where m.user_id = auth.uid()
   );
 $$;
 revoke all on function public.is_report_moderator() from public, anon;
