@@ -182,3 +182,21 @@ test('findability saves successfully and remains retryable after a failed save',
 test('invalid onboarding location gives a recoverable error instead of a dead end',async({page})=>{
   await installSafeRoutes(page,{geocode:'empty'});await openApp(page);await expect(page.locator('#onboardingDialog')).toBeVisible();await expect(page.locator('#avatarGrid')).toHaveAttribute('data-wd-enhanced','1');await expect(page.locator('body')).toHaveClass(/mode-dog/);const name=page.locator('#onboardingName');const home=page.locator('#onboardingHome');await name.fill('Bowie');await home.fill('Bestaatnietstad');await page.locator('#saveProfile').click();await expect(page.locator('#toast')).toContainText('kon ik niet vinden');await expect(page.locator('#onboardingDialog')).toBeVisible();await expect(page.locator('#saveProfile')).toBeEnabled();await expect(name).toHaveValue('Bowie');await expect(home).toHaveValue('Bestaatnietstad');
 });
+
+test('PawWheel is optional, reversible and preserves normal navigation',async({page})=>{
+  await installSafeRoutes(page);await seedProfile(page);await openApp(page);
+  await page.locator('.bottom-nav [data-view="profile"]').click();
+  const enabled=page.locator('#pawWheelEnabled'),side=page.locator('#pawWheelSide'),wheel=page.locator('#pawWheel');
+  await expect(enabled).toBeVisible();
+  await enabled.check();await side.selectOption('left');
+  await expect(wheel).toBeVisible();await expect(wheel).toHaveAttribute('data-side','left');
+  await wheel.locator('[data-paw-view="feed"]').click();
+  await expect(page.locator('#view-feed')).toHaveClass(/active/);
+  await page.reload();
+  await expect(page.locator('#pawWheel')).toHaveAttribute('data-side','left');
+  await page.locator('.bottom-nav [data-view="profile"]').click();
+  await page.locator('#pawWheelEnabled').uncheck();
+  await expect(page.locator('#pawWheel')).toBeHidden();
+  await page.locator('.bottom-nav [data-view="map"]').click();
+  await expect(page.locator('#view-map')).toHaveClass(/active/);
+});
