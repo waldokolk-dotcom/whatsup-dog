@@ -20,7 +20,7 @@
 .wd-wheel-sector:nth-child(1){top:5%;left:17%}.wd-wheel-sector:nth-child(2){top:5%;right:17%}
 .wd-wheel-sector:nth-child(3){top:35%;right:2%}.wd-wheel-sector:nth-child(4){bottom:5%;right:17%}
 .wd-wheel-sector:nth-child(5){bottom:5%;left:17%}.wd-wheel-sector:nth-child(6){top:35%;left:2%}
-.wd-wheel-sector:nth-child(3),.wd-wheel-sector:nth-child(6){color:#173d35;text-shadow:none}
+.wd-wheel-sector:nth-child(3){color:#173d35;text-shadow:none}
 .wd-wheel-sector:focus-visible,.wd-wheel-danger:focus-visible{outline:3px solid #fff;outline-offset:1px;background:#163d3555}
 .wd-wheel-sub{padding:5px 4px 10px}.wd-wheel-sub h3{font-size:22px;margin:10px 2px;color:#153d34}
 #wdWheelBack{border:0;background:#ecf5ed;color:#145a42;border-radius:15px;min-height:46px;padding:8px 13px}
