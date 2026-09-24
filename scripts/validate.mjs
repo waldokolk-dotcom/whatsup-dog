@@ -85,6 +85,20 @@ assert.match(read('community-backend.js'),/report\._shareIntent!==true/,'Legacy 
 assert.match(appSource,/_shareIntent:true/,'New point reports must record explicit sharing intent');
 assert.match(smartSource,/_shareIntent:true/,'New area reports must record explicit sharing intent');
 
+const quickWheel=read('quick-report-wheel.js');
+const quickStyles=read('quick-report-wheel.css');
+assert.match(indexSource,/quick-report-wheel\.js\?v=1/,'Thumb reporting wheel must ship');
+assert.match(indexSource,/v2-layout\.css\?v=1/,'Approved 2.0 visual system must ship');
+assert.match(quickWheel,/wd:quick-report-start/,'Quick category selection must trigger location prefill');
+assert.match(quickWheel,/wd-quick-report/,'A real thumb-sized report control is required');
+assert.match(quickStyles,/\.wd-wheel-disc/,'Quick reporting must show six actual categories');
+assert.match(read('smart-report-v3.js'),/getCurrentPosition/,'Quick reports must use real device GPS');
+assert.match(read('smart-report-v3.js'),/quickGpsPending/,'Quick reporting must wait for location result');
+assert.match(read('smart-report-v3.js'),/We gokken je locatie niet/,'GPS failure must not silently publish map center');
+assert.match(read('smart-report-v3.js'),/reportCameraV2/,'Camera capture must remain available');
+assert.match(read('smart-report-v3.js'),/reportPhotoV2/,'Gallery upload must remain available');
+assert.match(read('sw.js'),/quick-report-wheel\.js\?v=1/,'Offline cache must contain thumb reporting UI');
+
 const previewGuard=read('preview-guard.js');
 const previewBuilder=read('scripts/build-preview.mjs');
 assert.match(previewGuard,/__wdPreviewStorage/,'Preview must isolate browser data');
