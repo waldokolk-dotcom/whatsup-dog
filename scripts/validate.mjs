@@ -63,6 +63,10 @@ assert.match(speciesMigration,/add column if not exists species/,'Shared reports
 assert.match(productionFeed,/speciesMode\(\)/,'Public feed must use existing species preference');
 assert.match(read('community-backend.js'),/species:row\.species/,'Shared reports must preserve remote species');
 
+assert.doesNotMatch(appSource,/id="confirmReport"|id="thankReport"/,'Unverified point confirmation actions must not ship');
+assert.doesNotMatch(smartSource,/id="confirmReport"|id="thankReport"/,'Unverified polygon confirmation actions must not ship');
+assert.match(appSource,/const canManage=!r\._remote/,'Only owner can manage point report');
+assert.match(smartSource,/const canManage=!r\._remote/,'Only owner can manage area report');
 const backendSource=read('community-backend.js');
 assert.match(backendSource,/wd_hidden_reports_v1/,'Remote hidden report filter missing');
 assert.match(backendSource,/hiddenIds\.has\(row\.id\)/,'Remote refresh does not honor hidden reports');
