@@ -9,7 +9,7 @@ let busy=false,revision=0;
 function inject(){
  const parent=document.querySelector('#view-profile .settings-card.compact');if(!parent||$('directoryOptInRow'))return;
  const row=document.createElement('label');row.className='switch-row directory-switch';row.id='directoryOptInRow';
- row.innerHTML='<span><b>👋 Vindbaar in Whatsup Dog</b><small>Alleen als jij dit aanzet, kunnen buurtgenoten je profielnaam, avatar, diersoort en woonplaats zien en een chat beginnen. Je e-mail en exacte locatie blijven privé.</small><small id="directoryOptInStatus" class="directory-switch-status" role="status" aria-live="polite">Verbinding controleren…</small></span><input id="directoryOptIn" type="checkbox" disabled aria-describedby="directoryOptInStatus">';
+ row.innerHTML='<span><b>👋 Anderen mogen mij vinden</b><small>Andere gebruikers kunnen je profiel vinden en een chat met je beginnen. Je e-mailadres en exacte locatie blijven privé.</small><small id="directoryOptInStatus" class="directory-switch-status" role="status" aria-live="polite">Verbinding controleren…</small></span><input id="directoryOptIn" type="checkbox" disabled aria-describedby="directoryOptInStatus">';
  parent.append(row);$('directoryOptIn').addEventListener('change',save);
 }
 async function load(){
