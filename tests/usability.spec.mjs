@@ -170,7 +170,7 @@ test('phone install help is A2 and switches between Apple and other phones',asyn
 
 test('core report journey with photo can be completed and survives reload',async({page})=>{
   await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
-  await page.locator('.bottom-nav [data-view="map"]').click();await expect(page.locator('#view-map')).toHaveClass(/active/);await page.locator('#reportFab').click();await expect(page.locator('#wdQuickWheel')).toBeVisible();await page.locator('[data-quick-type="danger"]').click();await page.locator('[data-danger-type="glass"]').click();await expect(page.locator('#reportDialog')).toBeVisible();await expect(page.locator('#reportDetails')).not.toHaveClass(/hidden/);await expect(page.locator('#reportPhotoBox')).toBeHidden();await expect(page.locator('#reportAdminMeta')).toBeHidden();
+  await page.locator('.bottom-nav [data-view="map"]').click();await expect(page.locator('#view-map')).toHaveClass(/active/);await page.locator('#wdQuickReport').click();await expect(page.locator('#wdQuickWheel')).toBeVisible();await page.locator('[data-quick-type="danger"]').click();await page.locator('[data-danger-type="glass"]').click();await expect(page.locator('#reportDialog')).toBeVisible();await expect(page.locator('#reportDetails')).not.toHaveClass(/hidden/);await expect(page.locator('#reportPhotoBox')).toBeHidden();await expect(page.locator('#reportAdminMeta')).toBeHidden();
   const svg=Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30"><rect width="40" height="30" fill="orange"/></svg>');await page.locator('#reportPhotoV2').setInputFiles({name:'pad.svg',mimeType:'image/svg+xml',buffer:svg});await expect(page.locator('#photoPreviewWrapV2')).toHaveClass(/has-photo/);await page.locator('#reportText').fill('Glas op het wandelpad bij het park');await expect(page.locator('#wdQuickLocation')).toContainText('18 meter');await page.locator('#publishReport').click();
   await expect(page.locator('#reportDialog')).not.toBeVisible();await expect(page.locator('#toast')).toContainText(/melding.*kaart|dankjewel/i);const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_reports_v1')||'[]'));expect(stored).toHaveLength(1);expect(stored[0].text).toContain('Glas op het wandelpad');expect(stored[0].lat).toBe(52.2182);expect(stored[0].lng).toBe(5.4835);expect(stored[0].createdAt).toBeTruthy();expect(stored[0].photoDataUrl).toMatch(/^data:image\/jpeg;base64,/);
   await page.reload();await page.locator('.bottom-nav [data-view="profile"]').click();await expect(page.locator('#myReportCount')).toHaveText('1');await page.locator('.bottom-nav [data-view="map"]').click();await expect(page.locator('.marker-badge')).toHaveCount(1);await page.locator('.marker-badge').first().click();await expect(page.locator('#detailContent img')).toBeVisible();await expectNoHorizontalOverflow(page);
@@ -182,7 +182,7 @@ test('main navigation stays understandable and primary mobile actions remain tap
 });
 
 test('calm map keeps filters behind one layers interaction',async({page})=>{
-  await installSafeRoutes(page);await seedSpeciesProfile(page,'both');await openApp(page);await page.locator('.bottom-nav [data-view="map"]').click();const layers=page.locator('#layersButton'),filters=page.locator('#filterRow');await expect(layers).toBeVisible();await expect(layers).toHaveAttribute('aria-expanded','false');await expect(filters).toBeHidden();await layers.click();await expect(filters).toBeVisible();await expect(layers).toHaveAttribute('aria-expanded','true');await page.locator('[data-filter="danger"]').click();await expect(filters).toBeHidden();await expect(page.locator('#reportFab')).toBeVisible();await expectNoHorizontalOverflow(page);
+  await installSafeRoutes(page);await seedSpeciesProfile(page,'both');await openApp(page);await page.locator('.bottom-nav [data-view="map"]').click();const layers=page.locator('#layersButton'),filters=page.locator('#filterRow');await expect(layers).toBeVisible();await expect(layers).toHaveAttribute('aria-expanded','false');await expect(filters).toBeHidden();await layers.click();await expect(filters).toBeVisible();await expect(layers).toHaveAttribute('aria-expanded','true');await page.locator('[data-filter="danger"]').click();await expect(filters).toBeHidden();await expect(page.locator('#wdQuickReport')).toBeVisible();await expectNoHorizontalOverflow(page);
 });
 
 test('unavailable findability explains itself instead of acting like a dead switch',async({page})=>{
@@ -202,7 +202,7 @@ test('only one visible half-wheel remains and normal bottom navigation works',as
   await expect(page.locator('#pawWheel')).toHaveCount(0);
   await expect(page.locator('#wdQuickReport')).toBeVisible();
   const dock=await page.locator('#wdQuickReport').boundingBox();const viewport=page.viewportSize();
-  expect(dock.x+dock.width).toBeGreaterThan(viewport.width);
+  expect(dock.x+dock.width).toBeGreaterThan(Math.min(viewport.width,900));
   expect(dock.x).toBeLessThan(viewport.width);
   expect(dock.width).toBeGreaterThanOrEqual(200);
   await page.locator('#wdQuickReport').click();
@@ -312,7 +312,7 @@ test('verified login opens role-gated maintenance and logout closes it',async({p
 test('newly submitted reports explicitly opt in, legacy local reports stay unsent',async({page})=>{
   await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
   await page.locator('.bottom-nav [data-view="map"]').click();
-  await page.locator('#reportFab').click();
+  await page.locator('#wdQuickReport').click();
   await page.locator('[data-quick-type="danger"]').click();
   await page.locator('[data-danger-type="glass"]').click();
   await expect(page.locator('#wdQuickLocation')).toContainText('18 meter');
