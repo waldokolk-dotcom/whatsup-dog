@@ -7,7 +7,8 @@ const reportTypes=[
   {id:'road',icon:'🚧',label:'Pad / weg',marker:'danger'},
   {id:'fun',icon:'💚',label:'Leuke plek',marker:'fun'},
   {id:'walk',icon:'🐾',label:'Samen wandelen',marker:'social'},
-  {id:'spotted',icon:'🐕',label:'Hond gespot',marker:'social'},
+  {id:'spotted',icon:'🐾',label:'Dier gezien',marker:'social'},
+  {id:'other',icon:'⭐',label:'Overig',marker:'social'},
   {id:'lost',icon:'🚨',label:'Vermist / gevonden',marker:'lost'}
 ];
 const vegetationKinds=['Grasaren','Berenklauw','Eikenprocessierups','Brandnetels','Giftige plant','Stekelige struiken','Anders'];
