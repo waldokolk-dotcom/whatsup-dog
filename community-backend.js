@@ -88,6 +88,7 @@
     const p=profile();const polygon=cleanPolygon(report.polygon);
     const row={
       id:report.id,user_id:state.user.id,author_name:String(p?.name||report.author||'Hondenbezitter').slice(0,40),author_avatar:String(p?.avatar||'🐶').slice(0,16),
+      species:['dog','cat','both'].includes(report.species)?report.species:((['dog','cat','both'].includes(p?.speciesContext)?p.speciesContext:'dog')),
       type:String(report.type||'danger').slice(0,32),subtype:report.subtype?String(report.subtype).slice(0,80):null,text:String(report.text||'').slice(0,220),
       lat:Number(report.lat),lng:Number(report.lng),geometry_type:polygon?'polygon':'point',polygon:polygon,
       photo_path:photoPath,ai_suggestion:report.aiSuggestion&&typeof report.aiSuggestion==='object'?report.aiSuggestion:null
@@ -123,14 +124,14 @@
 
   async function refreshSharedReports(){
     if(!state.ready)return;
-    const {data,error}=await state.client.from('reports').select('id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,geometry_type,polygon,photo_path,ai_suggestion,confirmed_count,created_at').eq('status','active').order('created_at',{ascending:false}).limit(Number(CFG.maxSharedReports)||200);
+    const {data,error}=await state.client.from('reports').select('id,user_id,author_name,author_avatar,species,type,subtype,text,lat,lng,geometry_type,polygon,photo_path,ai_suggestion,confirmed_count,created_at').eq('status','active').order('created_at',{ascending:false}).limit(Number(CFG.maxSharedReports)||200);
     if(error)throw error;
     const remote=[];
     const hiddenIds=hidden();
     for(const row of data||[]){
       if(hiddenIds.has(row.id))continue;
       const photoUrl=await signedPhoto(row.photo_path);
-      remote.push({id:row.id,type:row.type,subtype:row.subtype,text:row.text,lat:Number(row.lat),lng:Number(row.lng),time:relativeTime(row.created_at),author:row.author_name||'Hondenbezitter',authorAvatar:row.author_avatar||'🐶',confirmed:Number(row.confirmed_count||0),geometryType:row.geometry_type||'point',polygon:Array.isArray(row.polygon)?row.polygon:null,photoDataUrl:photoUrl,photoPath:row.photo_path||null,aiSuggestion:row.ai_suggestion||null,_remote:true,userId:row.user_id,createdAt:row.created_at});
+      remote.push({id:row.id,species:row.species||'dog',type:row.type,subtype:row.subtype,text:row.text,lat:Number(row.lat),lng:Number(row.lng),time:relativeTime(row.created_at),author:row.author_name||'Hondenbezitter',authorAvatar:row.author_avatar||'🐶',confirmed:Number(row.confirmed_count||0),geometryType:row.geometry_type||'point',polygon:Array.isArray(row.polygon)?row.polygon:null,photoDataUrl:photoUrl,photoPath:row.photo_path||null,aiSuggestion:row.ai_suggestion||null,_remote:true,userId:row.user_id,createdAt:row.created_at});
     }
     const remoteIds=new Set(remote.map(r=>r.id));
     const local=reports().filter(r=>!r._remote&&!remoteIds.has(r.id));
