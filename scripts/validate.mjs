@@ -77,6 +77,8 @@ assert.match(indexSource,/account-login\.css\?v=1/,'Login design stylesheet miss
 assert.match(read('sw.js'),/account-login\.js\?v=1/,'Login must be included in the offline app shell');
 assert.match(loginSource,/signInWithPassword/,'Password sign-in missing');
 assert.match(loginSource,/shouldCreateUser:false/,'Magic link must never silently create a new account');
+assert.match(loginSource,/shouldCreateUser:true/,'Ordinary users need an explicit verified signup option');
+assert.match(loginSource,/id='wdAccountRegister'/,'Signup needs a dedicated, clearly labeled control');
 assert.match(loginSource,/auth\.signOut/,'Account logout missing');
 assert.match(read('community-backend.js'),/detectSessionInUrl:true/,'Magic-link callback sessions must be recognized');
 assert.match(read('community-backend.js'),/wd:auth-changed/,'Shared backend must react to account changes');
@@ -112,6 +114,16 @@ assert.match(groupMigration,/reports_type_check/,'Other category must be accepte
 assert.match(quickWheel,/wdWheelDangerOptions/,'Danger must open a short dedicated submenu');
 assert.match(quickWheel,/data-quick-type|dataset\.quickType/,'The six report options must be concrete controls');
 assert.doesNotMatch(indexSource,/id="pawWheel"/,'No second side navigation wheel');
+
+const directory=read('directory-ui.js');
+const directoryMigration=read('supabase/migrations/20260924000400_profile_directory_hosted.sql');
+const visibilityGuard=read('supabase/migrations/20260924000500_profile_visibility_guard.sql');
+assert.match(directory,/set_profile_discoverability/,'Findability must use the trusted RPC');
+assert.match(directory,/!verified\(\)/,'Anonymous visitors may not opt in');
+assert.match(directory,/__WD_PREVIEW__/,'Preview cannot mutate real profile visibility');
+assert.match(directory,/discoverable/,'Findability must be verified against the persisted server value');
+assert.match(directoryMigration,/list_discoverable_profiles/,'Only opt-in profile fields may be returned');
+assert.match(visibilityGuard,/enforce_verified_profile_visibility/,'Anonymous users must not bypass verified opt-in with direct writes');
 
 const previewGuard=read('preview-guard.js');
 const previewBuilder=read('scripts/build-preview.mjs');
