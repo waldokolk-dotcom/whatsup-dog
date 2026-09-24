@@ -226,3 +226,26 @@ test('maintenance stays hidden without a server-verified moderator role',async({
   await page.locator('.bottom-nav [data-view="profile"]').click();
   await expect(page.locator('#wdMaintenance')).toBeHidden();
 });
+
+test('personal alerts show only real shared reports and persist filters',async({page})=>{
+  await installSafeRoutes(page);await seedProfile(page);await openApp(page);
+  await page.evaluate(()=>{
+    localStorage.setItem('wd_reports_v1',JSON.stringify([
+      {id:'a1',type:'danger',species:'dog',text:'Glas bij het park',_remote:true,createdAt:'2026-09-24T10:00:00Z'},
+      {id:'a2',type:'fun',species:'dog',text:'Leuke ontmoetingsplek',_remote:true,createdAt:'2026-09-24T09:00:00Z'},
+      {id:'a3',type:'danger',species:'dog',text:'Nog niet gedeeld',_remote:false,createdAt:'2026-09-24T08:00:00Z'}
+    ]));
+    document.documentElement.dataset.community='community-aan';
+    document.dispatchEvent(new CustomEvent('wd:shared-reports-updated'));
+  });
+  await page.locator('.bottom-nav [data-view="alerts"]').click();
+  await expect(page.locator('#wdAlertList .wd-feed-card')).toHaveCount(1);
+  await expect(page.locator('#wdAlertList')).not.toContainText('Nog niet gedeeld');
+  await page.locator('#wdAlertActivities').check();
+  await expect(page.locator('#wdAlertList .wd-feed-card')).toHaveCount(2);
+  await page.locator('#wdAlertDanger').uncheck();
+  await expect(page.locator('#wdAlertList .wd-feed-card')).toHaveCount(1);
+  await expect(page.locator('#wdAlertList')).toContainText('Leuke ontmoetingsplek');
+  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_alert_preferences_v1')));
+  expect(saved.activities).toBe(true);expect(saved.danger).toBe(false);
+});
