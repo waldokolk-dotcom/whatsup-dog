@@ -1,0 +1,16 @@
+/* Production feed extends the existing Whatsup Dog design tokens. */
+.wd-feed-page{padding:18px 16px 110px}
+.wd-feed-page .page-brand{margin-bottom:18px}
+.wd-feed-status{color:var(--muted);font-size:.94rem;line-height:1.5;margin:12px 0 18px}
+.wd-feed-list{display:grid;gap:12px}
+.wd-feed-card{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 6px 18px rgba(57,38,24,.06)}
+.wd-feed-card-heading{display:flex;align-items:center;gap:12px}
+.wd-feed-avatar{display:grid;place-items:center;width:48px;height:48px;flex-shrink:0;border-radius:17px;background:var(--green-soft);font-size:25px}
+.wd-feed-card-info{display:grid;gap:3px;min-width:0}
+.wd-feed-card-info strong{font-size:1rem}
+.wd-feed-card-info small{color:var(--muted);font-size:.82rem}
+.wd-feed-description{overflow-wrap:anywhere;line-height:1.55;margin:14px 0}
+.wd-feed-open{min-height:48px;border:0;border-radius:14px;background:var(--green);color:#fff;font-weight:750;padding:11px 18px}
+.wd-feed-open:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+@media(min-width:650px){.wd-feed-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.wd-feed-page *{scroll-behavior:auto;animation:none;transition:none}}
