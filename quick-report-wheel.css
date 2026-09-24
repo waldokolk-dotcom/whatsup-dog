@@ -1,37 +1,46 @@
-/* One accessible reporting wheel: a colorful half-docked disk at the phone edge. */
-.wd-quick-report{position:fixed;z-index:690;top:39%;right:-119px;width:248px;height:248px;border:5px solid #fff;border-radius:50%;color:#173d35;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;
- background:conic-gradient(from -30deg,#cb193a 0 60deg,#367bf0 60deg 120deg,#f2c52b 120deg 180deg,#d92444 180deg 240deg,#4382e9 240deg 300deg,#09934a 300deg 360deg);
- box-shadow:0 7px 25px #0d372e35;}
-.wd-dock-center{width:79px;height:79px;border-radius:50%;display:grid;place-items:center;background:#fffdf8;border:4px solid white;font-size:34px;box-shadow:0 2px 9px #123b3630}
+/* One half-docked, six-option reporting wheel. The same segment artwork is visible before opening. */
+.wd-quick-report{position:fixed;z-index:690;top:39%;right:-119px;width:248px;height:248px;padding:0;border:5px solid #fff;border-radius:50%;background:#fff;color:#173d35;box-shadow:0 7px 25px #0d372e35;cursor:grab;touch-action:none;user-select:none;overflow:hidden}
+.wd-quick-report:active{cursor:grabbing}
+.wd-dock-face{display:block;position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(from -60deg,#fff 0deg 1deg,transparent 1deg 60deg),conic-gradient(from -60deg,#cb193a 0 60deg,#367bf0 60deg 120deg,#f2c52b 120deg 180deg,#d92444 180deg 240deg,#4382e9 240deg 300deg,#09934a 300deg 360deg);transform:rotate(var(--wd-angle,0deg));transform-origin:center}
+.wd-dock-face.is-snapping,.wd-wheel-disc.is-snapping{transition:transform .16s cubic-bezier(.25,.8,.25,1)}
+.wd-dock-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(var(--wd-counter-angle,0deg));width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:#fffdf8;border:3px solid white;font-size:27px;box-shadow:0 2px 9px #123b3630}
 .wd-quick-report:focus-visible{outline:4px solid #155e47;outline-offset:3px}
 .wd-quick-wheel[hidden],.wd-wheel-sub[hidden],.wd-wheel-disc[hidden],.wd-wheel-danger[hidden]{display:none!important}
 .wd-quick-wheel{position:fixed;z-index:1900;inset:0;background:#102921b8;display:flex;align-items:center;justify-content:center;padding:12px}
-.wd-wheel-panel{width:min(100%,410px);background:#fffdf8;border-radius:27px;padding:15px 12px 19px;box-shadow:0 16px 50px #0019;overflow:hidden}
+.wd-wheel-panel{width:min(100%,410px);background:#fffdf8;border-radius:27px;padding:15px 12px 16px;box-shadow:0 16px 50px #0019;overflow:hidden}
 .wd-wheel-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 5px 12px}
 .wd-wheel-top h2{margin:0;color:#173d35;font-size:clamp(20px,5.5vw,28px)}
-.wd-wheel-close{width:44px;height:44px;border:0;border-radius:50%;background:#f1f5ef;color:#163d35;font-size:30px}
-.wd-wheel-disc{position:relative;width:min(88vw,365px);height:min(88vw,365px);margin:0 auto;overflow:hidden;border-radius:50%;
- border:5px solid #fff;box-shadow:0 5px 21px #173d3425;
- background:repeating-conic-gradient(from -30deg,#fff 0deg 1deg,transparent 1deg 60deg),
- conic-gradient(from -30deg,#cb193a 0 60deg,#367bf0 60deg 120deg,#f2c52b 120deg 180deg,#d92444 180deg 240deg,#4382e9 240deg 300deg,#09934a 300deg 360deg)}
-.wd-wheel-disc:after{content:'🐾';pointer-events:none;position:absolute;left:calc(50% - 30px);top:calc(50% - 30px);width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:#fffdf8;border:3px solid #fff;box-shadow:0 2px 8px #163d3440;font-size:25px}
-.wd-wheel-sector{position:absolute;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;width:29%;height:27%;border:0;border-radius:50%;background:transparent;color:#fff;text-align:center;line-height:1.05;font-size:clamp(11px,3.4vw,14px);font-weight:850;text-shadow:0 1px 2px #193b344a;touch-action:manipulation}
-.wd-wheel-sector span{font-size:clamp(21px,7vw,31px);text-shadow:0 2px 3px #173d3433}
-.wd-wheel-sector:nth-child(1){top:5%;left:17%}.wd-wheel-sector:nth-child(2){top:5%;right:17%}
-.wd-wheel-sector:nth-child(3){top:35%;right:2%}.wd-wheel-sector:nth-child(4){bottom:5%;right:17%}
-.wd-wheel-sector:nth-child(5){bottom:5%;left:17%}.wd-wheel-sector:nth-child(6){top:35%;left:2%}
-.wd-wheel-sector:nth-child(3){color:#173d35;text-shadow:none}
+.wd-wheel-close{width:44px;height:44px;border:0;border-radius:50%;background:#f1f5ef;color:#163d35;font-size:30px;flex-shrink:0}
+.wd-wheel-stage{position:relative;width:min(88vw,365px);height:min(88vw,365px);margin:0 auto}
+.wd-wheel-disc{position:relative;width:100%;height:100%;border:5px solid #fff;box-sizing:border-box;overflow:hidden;border-radius:50%;cursor:grab;touch-action:none;user-select:none;box-shadow:0 5px 21px #173d3425;transform:rotate(var(--wd-angle,0deg));transform-origin:center;
+background:repeating-conic-gradient(from -60deg,#fff 0deg 1deg,transparent 1deg 60deg),conic-gradient(from -60deg,#cb193a 0 60deg,#367bf0 60deg 120deg,#f2c52b 120deg 180deg,#d92444 180deg 240deg,#4382e9 240deg 300deg,#09934a 300deg 360deg)}
+.wd-wheel-disc:active{cursor:grabbing}
+.wd-wheel-disc:focus-visible{outline:4px solid #155e47;outline-offset:-4px}
+.wd-wheel-disc:after{content:'🐾';pointer-events:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(var(--wd-counter-angle,0deg));width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:#fffdf8;border:3px solid #fff;box-shadow:0 2px 8px #163d3440;font-size:25px;box-sizing:border-box}
+.wd-wheel-pointer{position:absolute;right:-5px;top:50%;transform:translateY(-50%);font-size:25px;color:#173d35;line-height:1;pointer-events:none;filter:drop-shadow(0 0 2px #fff)}
+.wd-wheel-selection{min-height:22px;font-size:13px;font-weight:750;color:#245b47;text-align:center;margin:8px 0 0}
+.wd-wheel-sector,.wd-dock-sector{position:absolute;display:flex;align-items:center;justify-content:center;width:29%;height:27%;border:0;border-radius:50%;background:transparent;color:#fff;text-align:center;line-height:1.08;font-weight:850;text-shadow:0 1px 2px #193b344a;touch-action:none}
+.wd-wheel-sector{font-size:clamp(11px,3.4vw,14px);cursor:pointer}
+.wd-dock-sector{font-size:10px;pointer-events:none}
+.wd-wheel-content{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:100%;transform:rotate(var(--wd-counter-angle,0deg));pointer-events:none}
+.wd-wheel-sector .wd-wheel-icon{font-size:clamp(22px,7vw,31px);line-height:1.1}
+.wd-dock-sector .wd-wheel-icon{font-size:21px;line-height:1.05}
+.wd-wheel-content b{display:block;max-width:100%;font-size:inherit;overflow-wrap:normal;white-space:nowrap}
+.wd-wheel-sector:nth-child(1),.wd-dock-sector:nth-child(1){top:5%;left:17%}
+.wd-wheel-sector:nth-child(2),.wd-dock-sector:nth-child(2){top:5%;right:17%}
+.wd-wheel-sector:nth-child(3),.wd-dock-sector:nth-child(3){top:35%;right:2%;color:#173d35;text-shadow:none}
+.wd-wheel-sector:nth-child(4),.wd-dock-sector:nth-child(4){bottom:5%;right:17%}
+.wd-wheel-sector:nth-child(5),.wd-dock-sector:nth-child(5){bottom:5%;left:17%}
+.wd-wheel-sector:nth-child(6),.wd-dock-sector:nth-child(6){top:35%;left:2%}
 .wd-wheel-sector:focus-visible,.wd-wheel-danger:focus-visible{outline:3px solid #fff;outline-offset:1px;background:#163d3555}
 .wd-wheel-sub{padding:5px 4px 10px}.wd-wheel-sub h3{font-size:22px;margin:10px 2px;color:#153d34}
 #wdWheelBack{border:0;background:#ecf5ed;color:#145a42;border-radius:15px;min-height:46px;padding:8px 13px}
 #wdWheelDangerOptions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .wd-wheel-danger{border:1px solid #dce9df;border-radius:17px;min-height:64px;background:#f3f9f3;color:#173d35;font-size:16px;font-weight:750}
 body.wd-wheel-open{overflow:hidden}
-body:has(dialog[open]) .wd-quick-report,body.wd-wheel-open .wd-quick-report,
-body:has(#view-profile.active) .wd-quick-report,body:has(#view-chat.active) .wd-quick-report{display:none}
-@media(max-width:365px){.wd-quick-report{width:222px;height:222px;right:-108px}.wd-wheel-panel{padding:13px 8px}.wd-wheel-disc{width:min(91vw,315px);height:min(91vw,315px)}}
+body:has(dialog[open]) .wd-quick-report,body.wd-wheel-open .wd-quick-report,body:has(#view-profile.active) .wd-quick-report,body:has(#view-chat.active) .wd-quick-report{display:none}
+@media(max-width:365px){.wd-quick-report{width:222px;height:222px;right:-108px}.wd-wheel-panel{padding:13px 8px}.wd-wheel-stage{width:min(91vw,315px);height:min(91vw,315px)}}
 @media(min-width:720px){.wd-quick-report{right:calc((100vw - min(100vw,900px)) / 2 - 119px);top:calc(50% - 124px)}}
-@media(prefers-reduced-motion:reduce){.wd-quick-wheel *{transition:none!important}}
-
-/* Keep legacy launchers in the DOM for existing application events but not as competing controls. */
+@media(prefers-reduced-motion:reduce){.wd-dock-face.is-snapping,.wd-wheel-disc.is-snapping{transition:none!important}}
+/* The old map launchers remain solely as programmatic adapters. */
 #mapPlusBtn,#reportFab{display:none!important}
