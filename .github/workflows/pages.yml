@@ -63,7 +63,7 @@ jobs:
       - name: Checkout isolated preview snapshot
         uses: actions/checkout@v4
         with:
-          ref: c88af838ae75110c72d61eaaf08a85eabfead5a5
+          ref: 048dac423bce40bf3e243b1411541f92a785cd65
           path: .preview-source
           persist-credentials: false
       - name: Build read-only preview alongside unchanged production assets
