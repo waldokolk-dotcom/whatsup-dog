@@ -21,7 +21,8 @@
   const status=document.createElement('p');status.id='wdAccountStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   panel.append(heading,description,form,signed,status);
   profile.append(panel);
-  let busy=false,linkCooldownUntil=0;
+  let busy=false,linkCooldownUntil=0,cooldownTimer=null;
+  function deferLink(){clearTimeout(cooldownTimer);cooldownTimer=setTimeout(()=>render(),Math.max(1000,linkCooldownUntil-Date.now()+100))}
   const client=()=>window.WhatsupDogCommunity?.client;
   function render(){
     const account=window.WhatsupDogCommunity;
@@ -55,9 +56,9 @@
       const redirect=window.location.origin+window.location.pathname;
       const {error}=await client().auth.signInWithOtp({email:email.value.trim(),options:{shouldCreateUser:false,emailRedirectTo:redirect}});
       if(error)throw error;
-      linkCooldownUntil=Date.now()+60000;
+      linkCooldownUntil=Date.now()+60000;deferLink();
       status.textContent='Als dit account bestaat, ontvang je een inloglink. Open die op hetzelfde apparaat. Controleer eventueel je spammap.';
-    }catch(err){const limited=Number(err?.status)===429||/rate.?limit|after [0-9]+ seconds|too many/i.test(String(err?.message||''));if(limited)linkCooldownUntil=Date.now()+60000;status.textContent=limited?'Je hebt net een inloglink aangevraagd. Wacht minstens één minuut en kijk eerst in je mailbox.':'De inloglink kon niet worden verstuurd. Controleer je verbinding en probeer later opnieuw.';console.warn('Whatsup Dog inloglink mislukt',err)}
+    }catch(err){const limited=Number(err?.status)===429||/rate.?limit|after [0-9]+ seconds|too many/i.test(String(err?.message||''));if(limited){linkCooldownUntil=Date.now()+60000;deferLink()}status.textContent=limited?'Je hebt net een inloglink aangevraagd. Wacht minstens één minuut en kijk eerst in je mailbox.':'De inloglink kon niet worden verstuurd. Controleer je verbinding en probeer later opnieuw.';console.warn('Whatsup Dog inloglink mislukt',err)}
     finally{setBusy(false)}
   });
   signOut.addEventListener('click',async()=>{
