@@ -1,5 +1,6 @@
 (()=>{
   'use strict';
+  const preview=Boolean(window.__WD_PREVIEW__);
   const profile=document.getElementById('view-profile');
   if(!profile)return;
   const panel=document.createElement('section');
@@ -20,7 +21,9 @@
   const signedText=document.createElement('p');const signOut=document.createElement('button');signOut.type='button';signOut.className='outline-btn';signOut.textContent='Uitloggen';
   signed.append(signedText,signOut);
   const status=document.createElement('p');status.id='wdAccountStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-  panel.append(heading,description,form,signed,status);
+  const previewNotice=document.createElement('p');previewNotice.id='wdAccountPreviewNotice';previewNotice.hidden=!preview;
+  previewNotice.textContent='Je bekijkt de alleen-lezen proefversie. Aanmelden en accounts aanmaken zijn hier uitgeschakeld; vul hier geen e-mailadres of wachtwoord in. De accountfunctie wordt pas beschikbaar na de beveiligde praktijktest.';
+  panel.append(heading,description,previewNotice,form,signed,status);
   profile.append(panel);
   let busy=false,linkCooldownUntil=0,cooldownTimer=null;
   function deferLink(){clearTimeout(cooldownTimer);cooldownTimer=setTimeout(()=>render(),Math.max(1000,linkCooldownUntil-Date.now()+100))}
@@ -29,15 +32,16 @@
     const account=window.WhatsupDogCommunity;
     const user=account?.user;
     const verified=Boolean(user&&!user.is_anonymous);
-    form.hidden=verified;signed.hidden=!verified;
+    form.hidden=verified||preview;signed.hidden=!verified||preview;
     if(verified){signedText.textContent='Ingelogd als '+(user.email||'geverifieerd account');}
-    if(!client()&&!busy)status.textContent='De beveiligde verbinding wordt opgezet. Inloggen is nog niet beschikbaar.';
+    if(preview){status.textContent='Proefversie: aanmelden is hier uitgeschakeld.';return;}
+    if(!client()&&!busy)status.textContent=account?.status==='error'?'De accountverbinding is niet beschikbaar. Probeer het later opnieuw.':'De beveiligde verbinding wordt opgezet. Inloggen is nog niet beschikbaar.';
     submit.disabled=busy||!client();link.disabled=busy||!client()||Date.now()<linkCooldownUntil;register.disabled=busy||!client()||Date.now()<linkCooldownUntil||Boolean(window.__WD_PREVIEW__);signOut.disabled=busy;
   }
   const setBusy=value=>{busy=value;render()};
   form.addEventListener('submit',async event=>{
     event.preventDefault();
-    if(busy||!client()||!form.reportValidity())return;
+    if(preview||busy||!client()||!form.reportValidity())return;
     if(!password.value){status.textContent='Vul je wachtwoord in, of gebruik de inloglink per e-mail.';password.focus();return}
     setBusy(true);status.textContent='Je account wordt gecontroleerd…';
     try{
@@ -51,7 +55,7 @@
   });
   link.addEventListener('click',async()=>{
     if(Date.now()<linkCooldownUntil){status.textContent='Wacht nog even voordat je een nieuwe inloglink aanvraagt. Kijk eerst in je mailbox.';return}
-    if(busy||!client()||!email.checkValidity()){email.reportValidity();return}
+    if(preview||busy||!client()||!email.checkValidity()){if(!preview)email.reportValidity();return}
     setBusy(true);status.textContent='Inloglink aanvragen…';
     try{
       const redirect=window.location.origin+window.location.pathname;
