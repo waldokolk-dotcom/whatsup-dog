@@ -47,7 +47,7 @@ const localStorage=window.__wdPreviewStorage;
     style.textContent='body:has(#wdPreviewBanner) #reportFab,body:has(#wdPreviewBanner) #homeReport,body:has(#wdPreviewBanner) #mapPlusBtn,body:has(#wdPreviewBanner) #wdAccountSigned .outline-btn{touch-action:manipulation}';
     document.head.append(style);
     document.addEventListener('click',e=>{
-      const button=e.target.closest('#reportFab,#homeReport,#mapPlusBtn,#publishReport,#resolveReport,#deleteReport');
+      const button=e.target.closest('#publishReport,#resolveReport,#deleteReport');
       if(!button)return;
       e.preventDefault();e.stopImmediatePropagation();
       const toast=document.getElementById('toast');if(toast){toast.textContent='Proefversie: wijzigingen zijn uitgeschakeld.';toast.classList.add('show')}
