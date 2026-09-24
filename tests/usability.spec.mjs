@@ -358,6 +358,13 @@ test('preview isolates browser storage and rejects writes to the hosted project'
   await installSafeRoutes(page);
   await page.goto('/dist/');
   await expect(page.locator('#wdPreviewBanner')).toContainText('PROEFVERSIE');
+  await page.locator('.bottom-nav [data-view="profile"]').click();
+  await expect(page.locator('#wdAccountPreviewNotice')).toBeVisible();
+  await expect(page.locator('#wdAccountPreviewNotice')).toContainText('vul hier geen e-mailadres of wachtwoord in');
+  await expect(page.locator('#wdAccountLogin')).toBeHidden();
+  await expect(page.locator('#wdAccountRegister')).toBeHidden();
+  await expect(page.locator('#wdAccountSigned')).toBeHidden();
+  await expect(page.locator('#wdAccountStatus')).toContainText('aanmelden is hier uitgeschakeld');
   const storage=await page.evaluate(()=>{
     window.__wdPreviewStorage.setItem('wd_reports_v1','preview-only');
     return {preview:window.__wdPreviewStorage.getItem('wd_reports_v1'),
