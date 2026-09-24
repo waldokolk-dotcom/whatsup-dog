@@ -69,6 +69,9 @@ assert.match(appSource,/const canManage=!r\._remote/,'Only owner can manage poin
 assert.match(smartSource,/const canManage=!r\._remote/,'Only owner can manage area report');
 assert.match(productionFeed,/async function loadOlder\(\)/,'Public feed needs pagination beyond initial reports');
 assert.match(productionFeed,/limit\(100\)/,'Pagination must be bounded');
+assert.match(indexSource,/production-alerts\.js\?v=1/,'Production alert preferences must be functional');
+assert.match(read('production-alerts.js'),/wd_alert_preferences_v1/,'Alert preferences must persist');
+assert.doesNotMatch(indexSource,/id="clearReports"|id="pushDemo"/,'No inert mass-clear or test notification controls');
 const backendSource=read('community-backend.js');
 assert.match(backendSource,/wd_hidden_reports_v1/,'Remote hidden report filter missing');
 assert.match(backendSource,/hiddenIds\.has\(row\.id\)/,'Remote refresh does not honor hidden reports');
