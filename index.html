@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="styles.css?v=6" /><link rel="stylesheet" href="breed.css?v=2" />
   <link rel="stylesheet" href="home.css?v=5" />
   <link rel="stylesheet" href="smart-report.css?v=3" />
-  <link rel="stylesheet" href="design-system.css?v=1.9.1" /><link rel="stylesheet" href="production-feed.css?v=1" /><link rel="stylesheet" href="maintenance-ui.css?v=1" /><link rel="stylesheet" href="account-login.css?v=1" /><link rel="stylesheet" href="quick-report-wheel.css?v=1" /><link rel="stylesheet" href="v2-layout.css?v=1" />
+  <link rel="stylesheet" href="design-system.css?v=1.9.1" /><link rel="stylesheet" href="production-feed.css?v=1" /><link rel="stylesheet" href="maintenance-ui.css?v=1" /><link rel="stylesheet" href="account-login.css?v=1" /><link rel="stylesheet" href="quick-report-wheel.css?v=1" /><link rel="stylesheet" href="v2-layout.css?v=1" /><link rel="stylesheet" href="community-chat.css?v=1" />
   <title>Whatsup dog</title>
 </head>
 <body>
@@ -55,6 +55,19 @@
         <div id="publicFeedList" class="wd-feed-list" aria-live="polite"></div>
       </section>
 
+      <section id="view-chat" class="view wd-chat-page" aria-label="Privé- en groepschats">
+        <div id="wdChat">
+          <header class="wd-chat-header"><div><h1>Chats</h1><p>Privé en met je eigen groep</p></div><button id="wdChatRefresh" type="button" aria-label="Ververs chats">↻</button></header>
+          <p id="wdChatStatus" class="wd-chat-status" role="status" aria-live="polite"></p>
+          <div id="wdChatGate" class="wd-chat-gate"><h2>Praat met je buurt</h2><p>Buurtmeldingen kun je zonder account lezen. Voor privé- en groepschats meld je je aan met een geverifieerd account.</p><button id="wdChatLogin" class="wd-chat-primary" type="button">Aanmelden of inloggen</button></div>
+          <div id="wdChatContent" hidden>
+            <div id="wdChatListView"><div class="wd-chat-actions"><button id="wdChatPrivate" class="wd-chat-primary" type="button">＋ Privéchat</button><button id="wdChatGroup" class="wd-chat-btn" type="button">＋ Groep maken</button></div><div id="wdChatRooms" aria-label="Mijn gesprekken"></div></div>
+            <form id="wdChatPicker" class="wd-chat-panel" hidden><div class="wd-chat-picker-head"><h2 id="wdChatPickerTitle">Nieuwe privéchat</h2><button id="wdChatCancel" type="button">Sluiten</button></div><label id="wdChatGroupNameWrap" class="wd-chat-group-name" hidden>Groepsnaam<input id="wdChatGroupName" maxlength="80" placeholder="Bijvoorbeeld Wandelen Nijkerk"></label><div id="wdChatContacts" aria-label="Vindbare deelnemers"></div><button id="wdChatStart" class="wd-chat-primary" type="submit">Gesprek openen</button></form>
+            <div id="wdChatConversation" class="wd-chat-panel" hidden><div class="wd-chat-conversation-head"><button id="wdChatBack" type="button" aria-label="Terug naar mijn chats">←</button><div><h2 id="wdChatTitle">Gesprek</h2><small id="wdChatParticipants"></small></div></div><div id="wdChatMessages" class="wd-chat-messages" role="log" aria-live="polite"></div><form id="wdChatComposer" class="wd-chat-composer"><input id="wdChatInput" maxlength="2000" autocomplete="off" placeholder="Bericht… (alleen deelnemers)" aria-label="Bericht"><button id="wdChatSend" class="wd-chat-primary" type="submit">Stuur</button></form></div>
+          </div>
+        </div>
+      </section>
+
       <section id="view-alerts" class="view page-view" aria-label="Meldingen voor jou">
         <header class="page-brand"><div class="chat-logo" aria-hidden="true">🔔</div><div><h1>Meldingen</h1><p>Echte buurtmeldingen volgens jouw voorkeuren.</p></div></header>
         <div class="settings-card wd-alert-settings">
@@ -77,7 +90,7 @@
         <div class="settings-card compact"><div class="data-row"><span>Mijn meldingen</span><b id="myReportCount">0</b></div><div class="data-row"><span>Profielstatus</span><b id="profileStatus">Lokaal</b></div></div>
       </section>
     </main>
-    <nav class="bottom-nav five-nav" aria-label="Hoofdnavigatie"><button class="nav-item active" data-view="home"><svg><use href="#i-home"/></svg><small>Home</small></button><button class="nav-item" data-view="map"><svg><use href="#i-map"/></svg><small>Kaart</small></button><button class="nav-item" data-view="feed"><svg><use href="#i-community"/></svg><small>Buurt</small></button><button class="nav-item" data-view="alerts"><span class="nav-badge">●</span><svg><use href="#i-bell"/></svg><small>Meldingen</small></button><button class="nav-item" data-view="profile"><svg><use href="#i-profile"/></svg><span id="navProfileAvatar" class="nav-avatar-data" aria-hidden="true"></span><small>Profiel</small></button></nav>
+    <nav class="bottom-nav five-nav" aria-label="Hoofdnavigatie"><button class="nav-item active" data-view="home"><svg><use href="#i-home"/></svg><small>Home</small></button><button class="nav-item" data-view="map"><svg><use href="#i-map"/></svg><small>Kaart</small></button><button class="nav-item" data-view="feed"><svg><use href="#i-community"/></svg><small>Buurt</small></button><button class="nav-item" data-view="chat"><svg><use href="#i-community"/></svg><small>Chats</small></button><button class="nav-item" data-view="profile"><svg><use href="#i-profile"/></svg><span id="navProfileAvatar" class="nav-avatar-data" aria-hidden="true"></span><small>Profiel</small></button></nav>
   </div>
 
   <dialog id="onboardingDialog" class="full-dialog onboarding-dialog">
@@ -101,6 +114,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="./vendor/leaflet/leaflet.js" crossorigin=""></script>
   <script src="app.js?v=7"></script><script src="breed-catalog.js?v=2"></script><script src="install-guide.js?v=1.9.1"></script>
-  <script src="production-feed.js?v=1"></script><script src="production-alerts.js?v=1"></script><script src="maintenance-ui.js?v=1"></script><script src="account-login.js?v=1"></script><script src="official-areas.js?v=9"></script><script src="home.js?v=5"></script><script src="smart-report-v3.js?v=3"></script><script src="backend-config.js?v=4"></script><script src="community-backend.js?v=2"></script><script src="quick-report-wheel.js?v=1"></script><script src="species-context.js?v=1.9.1"></script>
+  <script src="production-feed.js?v=1"></script><script src="production-alerts.js?v=1"></script><script src="maintenance-ui.js?v=1"></script><script src="account-login.js?v=1"></script><script src="official-areas.js?v=9"></script><script src="home.js?v=5"></script><script src="smart-report-v3.js?v=3"></script><script src="backend-config.js?v=4"></script><script src="community-backend.js?v=2"></script><script src="community-chat.js?v=1"></script><script src="quick-report-wheel.js?v=1"></script><script src="species-context.js?v=1.9.1"></script>
 </body>
 </html>
