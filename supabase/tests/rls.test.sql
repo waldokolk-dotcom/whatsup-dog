@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(26);
-insert into auth.users(id) values ('11111111-1111-4111-8111-111111111111'),('22222222-2222-4222-8222-222222222222'),('33333333-3333-4333-8333-333333333333');
+select plan(35);
+insert into auth.users(id) values ('11111111-1111-4111-8111-111111111111'),('22222222-2222-4222-8222-222222222222'),('33333333-3333-4333-8333-333333333333'),('44444444-4444-4444-8444-444444444444');
 insert into private.moderators values('33333333-3333-4333-8333-333333333333');
 insert into public.chat_rooms(id,name,created_by) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Private test','11111111-1111-4111-8111-111111111111');
 insert into public.chat_members values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','11111111-1111-4111-8111-111111111111');
@@ -35,6 +35,24 @@ select is((select count(*) from public.moderation_actions),1::bigint,'Audit acti
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
 select is((select count(*) from public.reports where id='test-point'),0::bigint,'Hidden report inaccessible to other users');
 select is((select count(*) from public.moderation_actions),0::bigint,'Moderation audit private');
+-- Private and group chat: guests cannot start conversations, members only can read and write.
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+select lives_ok($insert into public.profiles(id,display_name,discoverable) values(auth.uid(),'Buren B',true)$,'User B explicitly opts in');
+select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+select lives_ok($insert into public.profiles(id,display_name,discoverable) values(auth.uid(),'Buren C',true)$,'User C explicitly opts in');
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","is_anonymous":true}',true);
+select throws_ok($select public.start_private_chat('22222222-2222-4222-8222-222222222222')$,'42501','Verified account required','Anonymous user cannot create a private conversation');
+select throws_ok($select public.start_group_chat('Wandelen',array['22222222-2222-4222-8222-222222222222'::uuid,'33333333-3333-4333-8333-333333333333'::uuid])$,'42501','Verified account required','Anonymous user cannot create a group');
+select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","is_anonymous":false}',true);
+select lives_ok($select public.start_group_chat('Wandelen',array['22222222-2222-4222-8222-222222222222'::uuid,'33333333-3333-4333-8333-333333333333'::uuid])$,'Verified user can create an opt-in group');
+select is((select count(*) from public.chat_members where room_id=(select id from public.chat_rooms where name='Wandelen')),3::bigint,'Created group has exactly three members');
+select throws_ok($select public.start_group_chat('Duplicate',array['22222222-2222-4222-8222-222222222222'::uuid,'22222222-2222-4222-8222-222222222222'::uuid])$,'42501','Only distinct, discoverable members can be invited','Duplicate invitations rejected');
+select set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
+select set_config('request.jwt.claims','{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated","is_anonymous":false}',true);
+select is((select count(*) from public.chat_messages),0::bigint,'Nonmember cannot read any private or group messages');
+select throws_ok($insert into public.chat_messages(room_id,user_id,body) values((select id from public.chat_rooms where name='Wandelen'),auth.uid(),'Intrusion')$,'42501',null,'Nonmember cannot send to group');
+
 set local role anon;
 select throws_ok($$select * from public.reports$$,'42501',null,'Unauthenticated reads denied');
 select * from finish();
