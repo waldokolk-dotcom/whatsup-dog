@@ -40,6 +40,7 @@
         const meta=el('small','',`${report.author_name||'Gebruiker'} · ${report.created_at?new Date(report.created_at).toLocaleString('nl-NL'):'Datum onbekend'}`);
         const description=el('p','',report.text||'Geen omschrijving');
         const actions=el('div','wd-maintenance-actions');
+        if(window.__WD_PREVIEW__){actions.append(el('span','wd-maintenance-result','Proefversie: beheeracties zijn uitgeschakeld.'));card.append(heading,meta,description,actions);rows.append(card);continue}
         const reportStatus=el('span','wd-maintenance-result','');
         for(const [next,label] of [['hidden','Verbergen'],['resolved','Opgelost']]){
           if(report.status===next)continue;
