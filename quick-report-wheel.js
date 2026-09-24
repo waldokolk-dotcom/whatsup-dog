@@ -1,9 +1,9 @@
 (()=>{
 'use strict';
 const choices=[
- ['danger','Gevaar','❗'],['dirty','Poep / afval','💩'],
- ['spotted','Dier gezien','🐾'],['lost','Vermist dier','❤️'],
- ['vegetation','Vegetatie','🌿'],['fun','Leuke plek','★']
+ ['danger','Gevaar','❗'],['dirty','Poep op straat','💩'],
+ ['spotted-dog','Hond gezien','🐕'],['spotted-cat','Kat gezien','🐈'],
+ ['lost','Vermist dier','❤️'],['other','Overig','★']
 ];
 let opened=false,previousFocus=null,allowOriginal=false;
 const backdrop=document.createElement('div');backdrop.id='wdQuickWheel';backdrop.className='wd-quick-wheel';backdrop.hidden=true;
@@ -35,9 +35,12 @@ function choose(id){
  if(!launcher)return;
  allowOriginal=true;
  try{launcher.click()}finally{allowOriginal=false}
- const category=document.querySelector('#reportTypes [data-report-type="'+id+'"]');
+ const categoryId=id.startsWith('spotted-')?'spotted':id;
+ const category=document.querySelector('#reportTypes [data-report-type="'+categoryId+'"]');
  category?.click();
- setTimeout(()=>document.dispatchEvent(new CustomEvent('wd:quick-report-start',{detail:{type:id}})),90);
+ const species=id==='spotted-cat'?'cat':id==='spotted-dog'?'dog':null;
+ if(species){const choice=document.querySelector('#reportAudience input[name="reportSpecies"][value="'+species+'"]');if(choice)choice.checked=true}
+ setTimeout(()=>document.dispatchEvent(new CustomEvent('wd:quick-report-start',{detail:{type:categoryId,species}})),90);
 }
 openButton.addEventListener('click',open);
 backdrop.querySelector('.wd-wheel-close').addEventListener('click',close);
