@@ -215,6 +215,13 @@ test('PawWheel is compact, routes by tap, and preserves bottom navigation',async
   await page.locator('.bottom-nav [data-view=home]').click();await expect(page.locator('#view-home')).toHaveClass(/active/);
 });
 
+test('map keeps one labelled quick report clear of the PawWheel launcher',async({page})=>{
+ await installSafeRoutes(page);await seedProfile(page);await openApp(page);await page.locator('.bottom-nav [data-view=map]').click();
+ await expect(page.locator('#reportFab')).toBeVisible();
+ const a=await page.locator('#reportFab').boundingBox(),b=await page.locator('#wdQuickReport').boundingBox();expect(a.x+a.width).toBeLessThan(b.x);
+ await page.locator('#reportFab').click();await expect(page.locator('[data-quick-type=danger]')).toBeVisible();await expect(page.locator('.wd-paw-orbit')).toBeHidden();
+});
+
 test('PawWheel keyboard, Escape, outside dismissal and submenu focus work',async({page})=>{
  await installSafeRoutes(page);await seedProfile(page);await openApp(page);
  const launcher=page.locator('#wdQuickReport');await launcher.focus();await page.keyboard.press('Enter');

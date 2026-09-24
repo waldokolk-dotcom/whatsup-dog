@@ -31,10 +31,8 @@
 .wd-quick-wheel [hidden]{display:none!important}
 body.wd-wheel-open{overflow:hidden}
 body:has(dialog[open]) .wd-quick-report{display:none}
-/* Keep the existing quick report on the map; the global poot is navigation. */
-#reportFab{display:none!important}
-#mapPlusBtn{right:20px!important;bottom:86px!important}
-body:has(#view-map.active) .wd-quick-report{bottom:calc(158px + env(safe-area-inset-bottom))}
+/* One labelled quick report on the map, separate from the navigation launcher. */
+#view-map #reportFab{display:flex!important;position:fixed!important;left:max(20px,calc((100vw - 900px)/2 + 20px));right:auto!important;bottom:calc(94px + env(safe-area-inset-bottom))!important;width:auto!important;min-height:56px;padding:0 20px!important;border-radius:18px!important;background:#edf2e9!important;color:#244f45!important;border:1px solid #b5c7b7;box-shadow:0 4px 16px #173d351a!important}
 @media(max-width:350px){.wd-paw-choice{width:72px;height:72px;border-radius:22px}.wd-paw-choice[data-paw-view=alerts]{width:82px;height:82px}.wd-wheel-panel{padding:16px 12px}.wd-wheel-top h2{font-size:19px}.wd-wheel-sector{gap:8px;padding:12px}}
 @media(max-height:560px){.wd-quick-wheel{max-height:calc(100dvh - 24px);margin:auto}.wd-paw-orbit{max-width:260px}.wd-wheel-panel{padding-top:12px}}
 @media(hover:hover){.wd-paw-choice:hover,.wd-wheel-sector:hover,.wd-wheel-danger:hover{border-color:#6f8b77;box-shadow:0 3px 10px #173d3519}}
