@@ -56,7 +56,7 @@ const registerButton=$('wdAccountRegister');
 function showCreate(){if(preview)return;signup.hidden=false;const initial=$('wdAccountEmail')?.value.trim();if(initial)$('wdSignupEmail').value=initial;signup.scrollIntoView({block:'nearest'});$('wdSignupEmail').focus({preventScroll:true})}
 registerButton?.addEventListener('click',()=>setTimeout(showCreate,0));
 $('wdSignupCancel').addEventListener('click',()=>{signup.hidden=true;$('wdAccountEmail')?.focus({preventScroll:true})});
-function cooldown(){if(Date.now()-lastMail<60000){status('wdSignupStatus','Er is al een e-mail aangevraagd. Kijk eerst in je mailbox en wacht één minuut.');return true}return false}
+function cooldown(target='wdSignupStatus'){if(Date.now()-lastMail<60000){status(target,'Er is al een e-mail aangevraagd. Kijk eerst in je mailbox en wacht één minuut.');return true}return false}
 function setBusy(value){busy=value;for(const id of ['wdSignupSubmit','wdSignupLink','wdMemberSave']){if($(id))$(id).disabled=value||preview}}
 function errorMessage(error){if(Number(error?.status)===429||/rate.?limit|too many/i.test(String(error?.message||''))){lastMail=Date.now();return 'Er zijn te veel e-mails aangevraagd. Wacht en kijk eerst in je mailbox.'}return 'Dit lukt nu niet. Controleer het e-mailadres en probeer het later opnieuw.'}
 signup.addEventListener('submit',async event=>{
@@ -84,7 +84,7 @@ $('wdSignupLink').addEventListener('click',async()=>{
 forgot.addEventListener('click',async()=>{
  const mail=$('wdAccountEmail');if(preview||busy||!client())return;
  if(!mail?.checkValidity()){mail?.reportValidity();return}
- if(cooldown())return;
+ if(cooldown('wdAccountStatus'))return;
  setBusy(true);
  try{
   const {error}=await client().auth.resetPasswordForEmail(mail.value.trim(),{redirectTo:redirect()});
