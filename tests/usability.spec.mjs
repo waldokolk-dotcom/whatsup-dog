@@ -356,6 +356,7 @@ test('newly submitted reports explicitly opt in, legacy local reports stay unsen
 
 test('preview isolates browser storage and rejects writes to the hosted project',async({page})=>{
   await installSafeRoutes(page);
+  await page.addInitScript(()=>window.localStorage.setItem('wd-preview-wd_profile_v1',JSON.stringify({name:'Testprofiel',avatar:'🐾',homePlace:'Nijkerk',homeLat:52.2182,homeLng:5.4835,speciesContext:'dog'})));
   await page.goto('/dist/');
   await expect(page.locator('#wdPreviewBanner')).toContainText('PROEFVERSIE');
   await page.locator('.bottom-nav [data-view="profile"]').click();
