@@ -108,7 +108,7 @@
     if(!state.ready||state.processing||!navigator.onLine||!state.user?.is_anonymous)return;state.processing=true;
     try{
       for(const id of queue()){
-        const report=reports().find(r=>r.id===id);if(!report){removeQueue(id);continue}
+        const report=reports().find(r=>r.id===id);if(!report||report._shareIntent!==true){removeQueue(id);continue}
         try{await shareOne(report)}catch(err){console.warn('Whatsup dog delen uitgesteld',err);setStatus('Wacht op sync','Melding staat lokaal veilig en wordt later opnieuw gedeeld');break}
       }
     }finally{state.processing=false}
@@ -148,13 +148,13 @@
 
   function watchLocalReports(){
     state.knownIds=new Set(reports().map(r=>r.id));
-    for(const r of reports())if(r?.id&&!r._remote)addQueue(r.id);
+    // Never enqueue legacy local-only or demonstration reports on app startup.
     state.monitor=setInterval(()=>{
       const rows=reports();
       for(const r of rows){
         if(!r?.id||state.knownIds.has(r.id))continue;
         state.knownIds.add(r.id);
-        if(!r._remote){addQueue(r.id);processQueue()}
+        if(!r._remote&&r._shareIntent===true){addQueue(r.id);processQueue()}
       }
     },700);
     window.addEventListener('online',()=>{setStatus('Synchroniseren','Internet teruggevonden');processQueue();scheduleRefresh(0)});
