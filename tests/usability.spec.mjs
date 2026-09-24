@@ -170,7 +170,7 @@ test('phone install help is A2 and switches between Apple and other phones',asyn
 
 test('core report journey with photo can be completed and survives reload',async({page})=>{
   await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
-  await page.locator('.bottom-nav [data-view="map"]').click();await expect(page.locator('#view-map')).toHaveClass(/active/);await page.locator('#wdQuickReport').click();await expect(page.locator('#wdQuickWheel')).toBeVisible();await page.locator('[data-quick-type="danger"]').click();await page.locator('[data-danger-type="glass"]').click();await expect(page.locator('#reportDialog')).toBeVisible();await expect(page.locator('#reportDetails')).not.toHaveClass(/hidden/);await expect(page.locator('#reportPhotoBox')).toBeHidden();await expect(page.locator('#reportAdminMeta')).toBeHidden();
+  await page.locator('.bottom-nav [data-view="map"]').click();await expect(page.locator('#view-map')).toHaveClass(/active/);await page.locator('#wdQuickReport').click();await page.locator('[data-paw-view=report]').click();await expect(page.locator('#wdQuickWheel')).toBeVisible();await page.locator('[data-quick-type="danger"]').click();await page.locator('[data-danger-type="glass"]').click();await expect(page.locator('#reportDialog')).toBeVisible();await expect(page.locator('#reportDetails')).not.toHaveClass(/hidden/);await expect(page.locator('#reportPhotoBox')).toBeHidden();await expect(page.locator('#reportAdminMeta')).toBeHidden();
   const svg=Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30"><rect width="40" height="30" fill="orange"/></svg>');await page.locator('#reportPhotoV2').setInputFiles({name:'pad.svg',mimeType:'image/svg+xml',buffer:svg});await expect(page.locator('#photoPreviewWrapV2')).toHaveClass(/has-photo/);await page.locator('#reportText').fill('Glas op het wandelpad bij het park');await expect(page.locator('#wdQuickLocation')).toContainText('18 meter');await page.locator('#publishReport').click();
   await expect(page.locator('#reportDialog')).not.toBeVisible();await expect(page.locator('#toast')).toContainText(/melding.*kaart|dankjewel/i);const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_reports_v1')||'[]'));expect(stored).toHaveLength(1);expect(stored[0].text).toContain('Glas op het wandelpad');expect(stored[0].lat).toBe(52.2182);expect(stored[0].lng).toBe(5.4835);expect(stored[0].createdAt).toBeTruthy();expect(stored[0].photoDataUrl).toMatch(/^data:image\/jpeg;base64,/);
   await page.reload();await page.locator('.bottom-nav [data-view="profile"]').click();await expect(page.locator('#myReportCount')).toHaveText('1');await page.locator('.bottom-nav [data-view="map"]').click();await expect(page.locator('.marker-badge')).toHaveCount(1);await page.locator('.marker-badge').first().click();await expect(page.locator('#detailContent img')).toBeVisible();await expectNoHorizontalOverflow(page);
@@ -197,56 +197,42 @@ test('invalid onboarding location gives a recoverable error instead of a dead en
   await installSafeRoutes(page,{geocode:'empty'});await openApp(page);await expect(page.locator('#onboardingDialog')).toBeVisible();await expect(page.locator('#avatarGrid')).toHaveAttribute('data-wd-enhanced','1');await expect(page.locator('body')).toHaveClass(/mode-dog/);const name=page.locator('#onboardingName');const home=page.locator('#onboardingHome');await name.fill('Bowie');await home.fill('Bestaatnietstad');await page.locator('#saveProfile').click();await expect(page.locator('#onboardingDialog')).toBeVisible();await expect(page.locator('#saveProfile')).toBeEnabled();await expect(name).toHaveValue('Bowie');await expect(home).toHaveValue('Bestaatnietstad');
 });
 
-test('only one visible half-wheel remains and normal bottom navigation works',async({page})=>{
+test('PawWheel is compact, routes by tap, and preserves bottom navigation',async({page})=>{
   await installSafeRoutes(page);await seedProfile(page);await openApp(page);
   await expect(page.locator('#pawWheel')).toHaveCount(0);
-  await expect(page.locator('#wdQuickReport')).toBeVisible();
-  const dock=await page.locator('#wdQuickReport').boundingBox();const viewport=page.viewportSize();
-  expect(dock.x+dock.width).toBeGreaterThan(Math.min(viewport.width,900));
-  expect(dock.x).toBeLessThan(viewport.width);
-  expect(dock.width).toBeGreaterThanOrEqual(200);
-  await page.locator('#wdQuickReport').click();
-  await expect(page.locator('#wdQuickWheel')).toBeVisible();
-  await expect(page.locator('#wdQuickWheel [data-quick-type]')).toHaveCount(6);
-  await page.locator('[data-quick-type="other"]').click();
-  await expect(page.locator('#wdWheelSub')).toBeVisible();
-  await page.locator('[data-danger-type="dirty"]').click();
-  await expect(page.locator('#reportDialog')).toBeVisible();
-  await expect(page.locator('#wdWheelSub')).toBeHidden();
-  await page.locator('#reportDialog [data-close-dialog]').click();
-  await page.locator('.bottom-nav [data-view="chat"]').click();
-  await expect(page.locator('#view-chat')).toHaveClass(/active/);
+  const box=await page.locator('#wdQuickReport').boundingBox();
+  expect(box.width).toBe(56);expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x+box.width).toBeLessThanOrEqual(page.viewportSize().width);
+  for(const view of ['map','chat','profile','alerts']){
+    await page.locator('#wdQuickReport').click();
+    const buttons=await page.locator('.wd-paw-choice').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height}}));
+    for(const r of buttons){expect(r.w).toBeGreaterThanOrEqual(44);expect(r.h).toBeGreaterThanOrEqual(44);expect(r.x).toBeGreaterThanOrEqual(0);expect(r.x+r.w).toBeLessThanOrEqual(page.viewportSize().width)}
+    for(let i=0;i<buttons.length;i++)for(let j=i+1;j<buttons.length;j++){const a=buttons[i],b=buttons[j];expect(a.x+a.w<=b.x||b.x+b.w<=a.x||a.y+a.h<=b.y||b.y+b.h<=a.y).toBeTruthy()}
+    await page.locator('[data-paw-view="'+view+'"]').click();
+    await expect(page.locator('#view-'+view)).toHaveClass(/active/);
+    await expect(page.locator('#wdQuickWheel')).toBeHidden();
+  }
+  await page.locator('.bottom-nav [data-view=home]').click();await expect(page.locator('#view-home')).toHaveClass(/active/);
 });
 
-test('docked wheel shows the six aligned choices before opening and supports keyboard snap',async({page})=>{
-  await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
-  await expect(page.locator('#wdQuickReport .wd-dock-sector')).toHaveCount(6);
-  await expect(page.locator('#wdQuickReport')).toContainText('Gevaar');
-  await expect(page.locator('#wdQuickReport')).toContainText('Overig');
-  await page.locator('#wdQuickReport').click();
-  const wheel=page.locator('.wd-wheel-disc');
-  await expect(wheel).toBeFocused();
-  await expect(page.locator('#wdWheelSelection')).toContainText('Hond');
-  await page.keyboard.press('ArrowRight');
-  await expect(page.locator('#wdWheelSelection')).toContainText('Kat');
-  await page.keyboard.press('Enter');
-  await expect(page.locator('#reportDialog')).toBeVisible();
-  await expect(page.locator('#wdQuickWheel')).toBeHidden();
+test('PawWheel keyboard, Escape, outside dismissal and submenu focus work',async({page})=>{
+ await installSafeRoutes(page);await seedProfile(page);await openApp(page);
+ const launcher=page.locator('#wdQuickReport');await launcher.focus();await page.keyboard.press('Enter');
+ await expect(page.locator('[data-paw-view=map]')).toBeFocused();
+ for(let i=0;i<9;i++){await page.keyboard.press('Tab');expect(await page.evaluate(()=>document.activeElement.closest('#wdQuickWheel')!==null)).toBeTruthy()}
+ await page.keyboard.press('Escape');await expect(launcher).toBeFocused();await expect(launcher).toHaveAttribute('aria-expanded','false');
+ await launcher.click();await page.mouse.click(2,2);await expect(page.locator('#wdQuickWheel')).toBeHidden();
+ await launcher.click();await page.locator('[data-paw-view=report]').click();await page.locator('[data-quick-type=other]').click();
+ await expect(page.locator('[data-danger-type=dirty]')).toBeFocused();
+ for(let i=0;i<8;i++){await page.keyboard.press('Tab');expect(await page.evaluate(()=>document.activeElement.closest('#wdQuickWheel')!==null)).toBeTruthy()}
+ await page.keyboard.press('Escape');await expect(page.locator('#wdQuickWheel')).toBeHidden();
+ await launcher.click();await page.locator('[data-paw-view=report]').click();await page.locator('[data-quick-type=other]').click();await page.locator('[data-danger-type=dirty]').click();await expect(page.locator('#reportDialog')).toBeVisible();
 });
 
-test('one-finger wheel drag snaps to a choice and opens its quick form',async({page})=>{
-  await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
-  await page.locator('#wdQuickReport').click();
-  const box=await page.locator('.wd-wheel-disc').boundingBox();
-  expect(box).not.toBeNull();
-  const centerX=box.x+box.width/2,centerY=box.y+box.height/2,radius=box.width*.32;
-  await page.mouse.move(centerX+radius,centerY);
-  await page.mouse.down();
-  await page.mouse.move(centerX+radius*.5,centerY-radius*.87,{steps:10});
-  await page.mouse.up();
-  await expect(page.locator('#reportDialog')).toBeVisible();
-  await expect(page.locator('#wdQuickWheel')).toBeHidden();
-  await expect(page.locator('#wdQuickLocation')).toContainText('18 meter');
+test('dragging empty orbit never selects a route or report',async({page})=>{
+ await installSafeRoutes(page);await seedProfile(page);await openApp(page);await page.locator('#wdQuickReport').click();
+ const box=await page.locator('.wd-paw-orbit').boundingBox();await page.mouse.move(box.x+10,box.y+10);await page.mouse.down();await page.mouse.move(box.x+45,box.y+45,{steps:8});await page.mouse.up();
+ await expect(page.locator('#wdQuickWheel')).toBeVisible();await expect(page.locator('#reportDialog')).toBeHidden();await expect(page.locator('#view-home')).toHaveClass(/active/);
 });
 
 test('public feed never represents local pending reports as shared',async({page})=>{
@@ -343,7 +329,7 @@ test('verified login opens role-gated maintenance and logout closes it',async({p
 test('newly submitted reports explicitly opt in, legacy local reports stay unsent',async({page})=>{
   await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
   await page.locator('.bottom-nav [data-view="map"]').click();
-  await page.locator('#wdQuickReport').click();
+  await page.locator('#wdQuickReport').click();await page.locator('[data-paw-view=report]').click();
   await page.locator('[data-quick-type="danger"]').click();
   await page.locator('[data-danger-type="glass"]').click();
   await expect(page.locator('#wdQuickLocation')).toContainText('18 meter');
@@ -390,7 +376,7 @@ test('preview isolates browser storage and rejects writes to the hosted project'
 
 test('quick wheel prefills GPS and local date with camera and gallery options',async({page})=>{
   await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
-  await page.locator('#wdQuickReport').click();
+  await page.locator('#wdQuickReport').click();await page.locator('[data-paw-view=report]').click();
   await expect(page.locator('#wdQuickWheel')).toBeVisible();
   await page.locator('[data-quick-type="danger"]').click();
   await expect(page.locator('#wdWheelSub')).toBeVisible();
@@ -406,7 +392,7 @@ test('quick reporting never guesses a position when GPS fails',async({page})=>{
   await page.addInitScript(()=>Object.defineProperty(navigator,'geolocation',{configurable:true,value:{
     getCurrentPosition:(_,failure)=>failure({code:1})
   }}));
-  await openApp(page);await page.locator('#wdQuickReport').click();
+  await openApp(page);await page.locator('#wdQuickReport').click();await page.locator('[data-paw-view=report]').click();
   await page.locator('[data-quick-type="danger"]').click();
   await page.locator('[data-danger-type="glass"]').click();
   await expect(page.locator('#wdQuickLocation')).toContainText('Kies zelf een plek');

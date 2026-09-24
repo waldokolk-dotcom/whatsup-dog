@@ -97,7 +97,7 @@ assert.match(smartSource,/_shareIntent:true/,'New area reports must record expli
 
 const quickWheel=read('quick-report-wheel.js');
 const quickStyles=read('quick-report-wheel.css');
-assert.match(indexSource,/quick-report-wheel\.js\?v=1/,'Thumb reporting wheel must ship');
+assert.match(indexSource,/quick-report-wheel\.js\?v=2/,'Thumb reporting wheel must ship');
 assert.match(indexSource,/v2-layout\.css\?v=1/,'Approved 2.0 visual system must ship');
 assert.match(quickWheel,/wd:quick-report-start/,'Quick category selection must trigger location prefill');
 assert.match(quickWheel,/wd-quick-report/,'A real thumb-sized report control is required');
@@ -107,7 +107,7 @@ assert.match(read('smart-report-v3.js'),/quickGpsPending/,'Quick reporting must 
 assert.match(read('smart-report-v3.js'),/We gokken je locatie niet/,'GPS failure must not silently publish map center');
 assert.match(read('smart-report-v3.js'),/reportCameraV2/,'Camera capture must remain available');
 assert.match(read('smart-report-v3.js'),/reportPhotoV2/,'Gallery upload must remain available');
-assert.match(read('sw.js'),/quick-report-wheel\.js\?v=1/,'Offline cache must contain thumb reporting UI');
+assert.match(read('sw.js'),/quick-report-wheel\.js\?v=2/,'Offline cache must contain thumb reporting UI');
 
 const chatSource=read('community-chat.js');
 const groupMigration=read('supabase/migrations/20260924000300_verified_group_chat.sql');
