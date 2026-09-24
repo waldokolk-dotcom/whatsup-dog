@@ -43,6 +43,15 @@ recovery.innerHTML=`<h3>Nieuw wachtwoord instellen</h3><label for="wdRecoveryPas
 const forgot=document.createElement('button');forgot.id='wdAccountForgot';forgot.type='button';forgot.className='wd-account-quiet';forgot.textContent='Wachtwoord vergeten?';
 $('wdAccountLogin')?.append(forgot);
 panel.append(signup,profile,recovery);
+let demoMode='none';
+if(preview){
+ const demo=document.createElement('div');demo.id='wdAccountDemo';demo.className='wd-account-demo';
+ demo.innerHTML='<h3>Bekijk hoe je straks een account maakt</h3><p>Dit zijn voorbeelden. Je kunt hier geen echte gegevens invullen of versturen.</p><div class="wd-account-actions"><button type="button" id="wdDemoSignup" class="outline-btn">Accountgegevens</button><button type="button" id="wdDemoProfile" class="outline-btn">Hond- of kattenprofiel</button></div>';
+ panel.append(demo);
+ for(const form of [signup,profile])form.querySelectorAll('input,select,button').forEach(field=>{field.disabled=true;field.autocomplete='off'});
+ $('wdDemoSignup').addEventListener('click',()=>{demoMode=demoMode==='signup'?'none':'signup';signup.hidden=demoMode!=='signup';profile.hidden=true});
+ $('wdDemoProfile').addEventListener('click',()=>{demoMode=demoMode==='profile'?'none':'profile';profile.hidden=demoMode!=='profile';signup.hidden=true});
+}
 const registerButton=$('wdAccountRegister');
 function showCreate(){if(preview)return;signup.hidden=false;const initial=$('wdAccountEmail')?.value.trim();if(initial)$('wdSignupEmail').value=initial;signup.scrollIntoView({block:'nearest'});$('wdSignupEmail').focus({preventScroll:true})}
 registerButton?.addEventListener('click',()=>setTimeout(showCreate,0));
@@ -139,7 +148,7 @@ profile.addEventListener('submit',async event=>{
  finally{setBusy(false)}
 });
 function refresh(){
- if(preview){signup.hidden=true;profile.hidden=true;recovery.hidden=true;forgot.hidden=true;return}
+ if(preview){signup.hidden=demoMode!=='signup';profile.hidden=demoMode!=='profile';recovery.hidden=true;forgot.hidden=true;return}
  if(verified()){loadProfile().catch(console.warn);signup.hidden=true}else{profile.hidden=true;profileOwner=null}
  if(client()&&!authListener&&typeof client().auth?.onAuthStateChange==='function'){
   authListener=true;client().auth.onAuthStateChange((event)=>{
