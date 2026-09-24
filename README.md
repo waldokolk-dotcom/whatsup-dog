@@ -8,6 +8,8 @@ Serve this directory over HTTP (for example `python -m http.server 8765`). Run:
 
 ```
 node scripts/validate.mjs
+npm install --no-audit --no-fund
+npm run test:usability
 supabase start
 supabase db reset
 supabase test db
@@ -31,10 +33,18 @@ The GitHub validation workflow runs the same tests against an ephemeral local Su
 - Active reports are readable by signed-in users (including anonymous Auth users). Hidden/resolved reports are visible only to their owner/moderators. Clients insert reports but cannot overwrite or unhide published content. Retry checks report ownership; photo objects are immutable.
 - Leaflet [lat,lng] polygons are validated and converted to indexed PostGIS geometry. Maximum 120 points; invalid/self-intersecting polygons are rejected.
 - Photos are private JPEG objects, max 5 MiB. Signed URLs expire after the configured lifetime (default one hour). Hiding a report prevents NEW signed URLs; an already issued URL can remain valid until expiry. Trusted cleanup may remove orphaned uploads. Do not delete storage rows with SQL; use the Storage API.
-- Chat rooms/membership are provisioned by trusted server code. Only members may read/write messages. The existing chat UI remains a local demonstration; shared chat UI and membership invitations are not implemented.
-- `moderation_flags` receives user flags. Provision moderators server-side in `private.moderators`; never trust user_metadata roles. `moderate_report` checks membership and atomically records an audit entry. The moderator UI is future work.
-- Push subscriptions are owner-only. The worker can display received pushes. Browser subscription enrollment and the trusted push sender are future work; keep VAPID private keys and service-role credentials on the server. A sender must allowlist supported push-provider hosts, reject private/loopback destinations and redirects, enforce consent, and remove expired endpoints. The existing test-notification button is not remote push delivery.
-- Confirmation counts currently remain local/demo behavior; a deduplicated server confirmation RPC is future work.
+- Chat rooms/membership remain server-protected, but the local demonstration chat is removed from the production frontend. Shared chat and invitations are not exposed until implemented and verified.
+- `moderation_flags` receives user flags. Provision moderators server-side in `private.moderators`; never trust user_metadata roles. `moderate_report` checks membership and atomically records an audit entry. The maintenance UI is gated by `is_report_moderator` and uses the audited `moderate_report` RPC. A real maintenance identity must be provisioned server-side in the hosted project; browser metadata never grants access.
+- Push subscriptions are owner-only. The worker can display received pushes. Browser subscription enrollment and the trusted push sender are future work; keep VAPID private keys and service-role credentials on the server. A sender must allowlist supported push-provider hosts, reject private/loopback destinations and redirects, enforce consent, and remove expired endpoints. The test-notification button has been removed; no UI may claim remote push delivery until the sender is implemented.
+- Demo confirmation and thank-you actions have been removed from report details. A real deduplicated server confirmation RPC is future work, not part of the production UI.
 - Do not deploy `.env`, SQL, test fixtures or service-role credentials as site assets. `scripts/build-site.mjs` creates the static-only `dist` directory.
 
 References: [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security), [Storage access control](https://supabase.com/docs/guides/storage/security/access-control), [Migrations](https://supabase.com/docs/guides/local-development/database-migrations).
+
+## Production transition (release blocking)
+
+This branch is a **draft** until the hosted project has the same migrations as the tested local database. In particular, shared report `species` and the read-only moderator capability RPC must exist in the hosted schema before merging. The current Pages workflow tests a **local** Supabase stack and does not push the schema to the hosted project. Never use `supabase db reset --linked` on production. Review pending migrations with `supabase db push --dry-run` and apply only the reviewed non-destructive changes via `supabase db push` using authorized credentials. See the official [Supabase migration workflow](https://supabase.com/docs/guides/local-development/cli-workflows).
+
+After migrating, use the existing manual, project-pinned Hosted production E2E workflow with its protected service-role secret and exact fixture cleanup. It verifies two actual Auth identities, private profile visibility, shared reports/photos, report ownership, species, moderator denial and hiding. The existing workflow never runs automatically on a PR or push. Do not merge or publish until hosted checks and the regular GitHub Actions suite pass.
+
+Public report feed paging reads older server-side confirmed reports in bounded batches of 100; the live map intentionally renders a bounded recent window for mobile performance. Personal alert-category choices are stored on the device and filter real shared reports. They do **not** imply that remote push delivery is enabled. The optional left/right PawWheel has a persistent off-switch; conventional navigation remains available.
