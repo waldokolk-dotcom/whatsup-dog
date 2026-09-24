@@ -85,7 +85,15 @@ assert.match(read('community-backend.js'),/report\._shareIntent!==true/,'Legacy 
 assert.match(appSource,/_shareIntent:true/,'New point reports must record explicit sharing intent');
 assert.match(smartSource,/_shareIntent:true/,'New area reports must record explicit sharing intent');
 
+const previewGuard=read('preview-guard.js');
+const previewBuilder=read('scripts/build-preview.mjs');
+assert.match(previewGuard,/__wdPreviewStorage/,'Preview must isolate browser data');
+assert.match(previewGuard,/PREVIEW_READ_ONLY/,'Preview must refuse changes to hosted Supabase');
+assert.match(previewGuard,/wdPreviewBanner/,'Preview must visibly identify itself');
+assert.match(previewBuilder,/preview-guard\.js/,'Preview build must load read-only guard before app scripts');
+
 const backendSource=read('community-backend.js');
+assert.match(backendSource,/storageKey:window\.__WD_PREVIEW__/,'Preview must isolate Supabase Auth storage');
 assert.match(backendSource,/wd_hidden_reports_v1/,'Remote hidden report filter missing');
 assert.match(backendSource,/hiddenIds\.has\(row\.id\)/,'Remote refresh does not honor hidden reports');
 assert.match(backendConfigSource,new RegExp(`report-lifecycle\\.js\\?v=${version.replaceAll('.','\\.')}`),'Persistent report lifecycle controller is not release-versioned');
