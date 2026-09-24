@@ -305,3 +305,23 @@ test('newly submitted reports explicitly opt in, legacy local reports stay unsen
   const rows=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_reports_v1')||'[]'));
   expect(rows.at(-1)._shareIntent).toBe(true);
 });
+
+test('preview isolates browser storage and rejects writes to the hosted project',async({page})=>{
+  await installSafeRoutes(page);
+  await page.goto('/dist/');
+  await expect(page.locator('#wdPreviewBanner')).toContainText('PROEFVERSIE');
+  const storage=await page.evaluate(()=>{
+    window.__wdPreviewStorage.setItem('wd_reports_v1','preview-only');
+    return {preview:window.__wdPreviewStorage.getItem('wd_reports_v1'),
+      production:window.localStorage.getItem('wd_reports_v1'),
+      backing:window.localStorage.getItem('wd-preview-wd_reports_v1')}
+  });
+  expect(storage).toEqual({preview:'preview-only',production:null,backing:'preview-only'});
+  const response=await page.evaluate(async()=>{
+    const result=await fetch('https://dohelzkgruxnmejmplgw.supabase.co/rest/v1/reports',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    return {status:result.status,body:await result.json()};
+  });
+  expect(response.status).toBe(403);
+  expect(response.body.code).toBe('PREVIEW_READ_ONLY');
+});
