@@ -1,5 +1,12 @@
 import {test,expect} from '@playwright/test';
 
+test('community backend and report modules load exactly once',async({page})=>{
+  await page.goto('/');
+  await page.waitForLoadState('domcontentloaded');
+  const counts=await page.evaluate(()=>Object.fromEntries(['smart-report-v3.js','backend-config.js','community-backend.js'].map(name=>[name,[...document.scripts].filter(script=>new URL(script.src).pathname.endsWith('/'+name)).length])));
+  expect(counts).toEqual({'smart-report-v3.js':1,'backend-config.js':1,'community-backend.js':1});
+});
+
 test('verified account creation persists the pet profile while discoverability defaults off',async({page})=>{
  await page.addInitScript(()=>localStorage.setItem('wd_profile_v1',JSON.stringify({name:'Bowie',avatar:'🐶',homePlace:'Nijkerk',homeLat:52.2182,homeLng:5.4835,speciesContext:'dog'})));
  await page.route('**/backend-config.js*',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.WHATSUP_DOG_BACKEND={enabled:false};'}));
