@@ -7,11 +7,11 @@
   panel.className='wd-account settings-card compact';panel.id='wdAccount';
   const heading=document.createElement('h2');heading.textContent='Mijn account';
   const description=document.createElement('p');description.textContent=preview?'Je bekijkt de proefversie. Accountregistratie en inloggen komen beschikbaar in de definitieve app.':'Bekijk buurtmeldingen zonder account. Maak gratis een account als je zelf wilt melden, gevonden wilt worden of wilt chatten.';
-  const form=document.createElement('form');form.id='wdAccountLogin';form.autocomplete='on';
+  const form=document.createElement('form');form.id='wdAccountLogin';form.autocomplete='off';
   const emailLabel=document.createElement('label');emailLabel.htmlFor='wdAccountEmail';emailLabel.textContent='E-mailadres';
-  const email=document.createElement('input');email.id='wdAccountEmail';email.name='email';email.type='email';email.autocomplete='username';email.inputMode='email';email.spellcheck=false;email.required=true;email.maxLength=254;email.placeholder='naam@voorbeeld.nl';
+  const email=document.createElement('input');email.id='wdAccountEmail';email.name='email';email.type='email';email.autocomplete='off';email.inputMode='email';email.spellcheck=false;email.required=true;email.maxLength=254;email.placeholder='naam@voorbeeld.nl';
   const passwordLabel=document.createElement('label');passwordLabel.htmlFor='wdAccountPassword';passwordLabel.textContent='Wachtwoord (alleen voor inloggen met wachtwoord)';
-  const password=document.createElement('input');password.id='wdAccountPassword';password.name='password';password.type='password';password.autocomplete='current-password';password.maxLength=256;
+  const password=document.createElement('input');password.id='wdAccountPassword';password.name='password';password.type='password';password.autocomplete='new-password';password.maxLength=256;
   const passwordToggleLabel=document.createElement('label');passwordToggleLabel.className='wd-password-toggle';
   const passwordToggle=document.createElement('input');passwordToggle.type='checkbox';passwordToggle.id='wdAccountPasswordVisible';passwordToggleLabel.append(passwordToggle,document.createTextNode(' Wachtwoord tonen'));
   const actions=document.createElement('div');actions.className='wd-account-actions';
@@ -20,6 +20,9 @@
   const register=document.createElement('button');register.type='button';register.className='outline-btn';register.id='wdAccountRegister';register.textContent='Maak een gratis buurtaccount';
   actions.append(submit,link);form.append(emailLabel,email,passwordLabel,password,passwordToggleLabel,actions,register);
   passwordToggle.addEventListener('change',()=>{password.type=passwordToggle.checked?'text':'password'});
+  // Do not let a browser password manager insert a saved Supabase URL or
+  // unrelated credentials into a fresh account form.
+  setTimeout(()=>{email.value='';password.value='';passwordToggle.checked=false;password.type='password'},250);
   const signed=document.createElement('div');signed.id='wdAccountSigned';signed.hidden=true;
   const signedText=document.createElement('p');const signOut=document.createElement('button');signOut.type='button';signOut.className='outline-btn';signOut.textContent='Uitloggen';
   signed.append(signedText,signOut);

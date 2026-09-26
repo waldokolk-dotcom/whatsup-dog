@@ -4,6 +4,8 @@
 .wd-account p{line-height:1.5}
 .wd-account label{display:block;margin-top:12px;font-size:.9rem;font-weight:700}
 .wd-account input{display:block;width:100%;min-height:48px;margin-top:6px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-control);background:var(--surface-raised);color:var(--text-primary);font-size:16px}
+.wd-account .wd-password-toggle{display:flex;align-items:center;gap:8px;margin-top:8px;font-weight:600;cursor:pointer}
+.wd-account .wd-password-toggle input{width:22px;min-height:22px;margin:0;accent-color:#176b52}
 .wd-account-actions{display:grid;gap:8px;margin-top:18px}
 .wd-account-actions button,.wd-account #wdAccountSigned button{min-height:48px}
 .wd-account [hidden]{display:none!important}
