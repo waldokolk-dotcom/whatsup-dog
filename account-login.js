@@ -12,11 +12,14 @@
   const email=document.createElement('input');email.id='wdAccountEmail';email.type='email';email.autocomplete='username';email.inputMode='email';email.required=true;email.maxLength=254;email.placeholder='naam@voorbeeld.nl';
   const passwordLabel=document.createElement('label');passwordLabel.htmlFor='wdAccountPassword';passwordLabel.textContent='Wachtwoord (alleen voor inloggen met wachtwoord)';
   const password=document.createElement('input');password.id='wdAccountPassword';password.type='password';password.autocomplete='current-password';password.maxLength=256;
+  const passwordToggleLabel=document.createElement('label');passwordToggleLabel.className='wd-password-toggle';
+  const passwordToggle=document.createElement('input');passwordToggle.type='checkbox';passwordToggle.id='wdAccountPasswordVisible';passwordToggleLabel.append(passwordToggle,document.createTextNode(' Wachtwoord tonen'));
   const actions=document.createElement('div');actions.className='wd-account-actions';
   const submit=document.createElement('button');submit.type='submit';submit.className='primary';submit.textContent='Inloggen met wachtwoord';
   const link=document.createElement('button');link.type='button';link.className='outline-btn';link.textContent='Mail mij een inloglink';
   const register=document.createElement('button');register.type='button';register.className='outline-btn';register.id='wdAccountRegister';register.textContent='Maak een gratis buurtaccount';
-  actions.append(submit,link);form.append(emailLabel,email,passwordLabel,password,actions,register);
+  actions.append(submit,link);form.append(emailLabel,email,passwordLabel,password,passwordToggleLabel,actions,register);
+  passwordToggle.addEventListener('change',()=>{password.type=passwordToggle.checked?'text':'password'});
   const signed=document.createElement('div');signed.id='wdAccountSigned';signed.hidden=true;
   const signedText=document.createElement('p');const signOut=document.createElement('button');signOut.type='button';signOut.className='outline-btn';signOut.textContent='Uitloggen';
   signed.append(signedText,signOut);
