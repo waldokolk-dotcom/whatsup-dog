@@ -22,6 +22,7 @@ const password=`Wd!${randomBytes(24).toString('base64url')}`;
 const identities=[];
 let photoPath='';
 let reportCreated=false;
+const chatRooms=[];
 let assertions=0;
 let cleanupErrors=[];
 
@@ -79,6 +80,11 @@ async function cleanup(){
   if(photoPath){
     await exact('photo',async()=>{const out=await request(`/storage/v1/object/report-photos/${photoPath}`,{method:'DELETE'});if(!out.response.ok&&out.response.status!==404)throw new Error(`${out.response.status} ${JSON.stringify(out.data)}`)});
   }
+  for(const roomId of [...chatRooms].reverse()){
+    await exact(`chat messages ${roomId}`,async()=>{const out=await request(`/rest/v1/chat_messages?room_id=eq.${roomId}`,{method:'DELETE'});if(!out.response.ok)throw new Error(`${out.response.status} ${JSON.stringify(out.data)}`)});
+    await exact(`chat members ${roomId}`,async()=>{const out=await request(`/rest/v1/chat_members?room_id=eq.${roomId}`,{method:'DELETE'});if(!out.response.ok)throw new Error(`${out.response.status} ${JSON.stringify(out.data)}`)});
+    await exact(`chat room ${roomId}`,async()=>{const out=await request(`/rest/v1/chat_rooms?id=eq.${roomId}`,{method:'DELETE'});if(!out.response.ok)throw new Error(`${out.response.status} ${JSON.stringify(out.data)}`)});
+  }
   for(const identity of [...identities].reverse()){
     await exact(`user ${identity.id}`,async()=>{const out=await request(`/auth/v1/admin/users/${identity.id}`,{method:'DELETE'});if(!out.response.ok&&out.response.status!==404)throw new Error(`${out.response.status} ${JSON.stringify(out.data)}`)});
   }
@@ -94,6 +100,23 @@ try{
 
   const hiddenProfile=await must('/rest/v1/profiles?select=id,display_name',{token:b.token,key:publishableKey});
   assert.deepEqual(hiddenProfile.map(x=>x.id),[b.id],'RLS leaked another private profile');assertions++;
+
+  await must('/rest/v1/rpc/set_profile_discoverability',{token:a.token,key:publishableKey,method:'POST',body:{enabled:true,profile_name:'Hosted E2E A',profile_avatar:'🐶',profile_place:'Testplaats',pet_breed:'Testhond'}});
+  await must('/rest/v1/rpc/set_profile_discoverability',{token:b.token,key:publishableKey,method:'POST',body:{enabled:true,profile_name:'Hosted E2E B',profile_avatar:'🐕',profile_place:'Testplaats',pet_breed:'Testhond'}});
+  const directory=await must('/rest/v1/rpc/list_discoverable_profiles',{token:a.token,key:publishableKey,method:'POST',body:{}});
+  assert.deepEqual(directory.filter(x=>x.id===b.id).map(x=>x.id),[b.id],'Opted-in second account is not discoverable');assertions++;
+
+  const privateRoom=await must('/rest/v1/rpc/start_private_chat',{token:a.token,key:publishableKey,method:'POST',body:{target:b.id}});chatRooms.push(privateRoom);
+  await must('/rest/v1/chat_messages',{token:a.token,key:publishableKey,method:'POST',body:{room_id:privateRoom,user_id:a.id,body:'Privébericht hosted E2E'}});
+  const privateReceived=await must(`/rest/v1/chat_messages?room_id=eq.${privateRoom}&select=body,user_id`,{token:b.token,key:publishableKey});
+  assert.equal(privateReceived.at(-1)?.body,'Privébericht hosted E2E','Second account did not receive the private message');assertions++;
+
+  const groupRoom=await must('/rest/v1/rpc/start_group_chat',{token:a.token,key:publishableKey,method:'POST',body:{group_name:'Hosted E2E groep',targets:[b.id]}});chatRooms.push(groupRoom);
+  await must('/rest/v1/chat_messages',{token:b.token,key:publishableKey,method:'POST',body:{room_id:groupRoom,user_id:b.id,body:'Groepsbericht hosted E2E'}});
+  const groupReceived=await must(`/rest/v1/chat_messages?room_id=eq.${groupRoom}&select=body,user_id`,{token:a.token,key:publishableKey});
+  assert.equal(groupReceived.at(-1)?.body,'Groepsbericht hosted E2E','First account did not receive the group message');assertions++;
+  const anonymousChat=await request(`/rest/v1/chat_messages?room_id=eq.${privateRoom}&select=body`,{token:'',key:publishableKey});
+  assert.ok(!anonymousChat.response.ok||anonymousChat.data?.length===0,'Signed-out visitor could read a private conversation');assertions++;
 
   await uploadJpeg(a);
   await must('/rest/v1/reports',{token:a.token,key:publishableKey,method:'POST',body:{id:reportId,user_id:a.id,author_name:'Hosted E2E A',author_avatar:'🐶',species:'cat',type:'danger',text:'Synthetic hosted E2E fixture',lat:52.2,lng:5.4,geometry_type:'point',photo_path:photoPath}});

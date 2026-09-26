@@ -75,7 +75,7 @@ async function createChat(event){
  event.preventDefault();
  if(!ready()||isPreview()){status('Deze proefversie is alleen-lezen. Chatten kan na de veilige productie-release.');return}
  const ids=[...$('wdChatContacts').querySelectorAll('input:checked')].map(x=>x.value),group=$('wdChatPicker').dataset.kind==='group';
- if(ids.length<(group?2:1)){status(group?'Kies minimaal twee deelnemers voor de groep.':'Kies één buurtgenoot.');return}
+ if(ids.length<1){status(group?'Kies minimaal één deelnemer voor de groep.':'Kies één buurtgenoot.');return}
  const button=$('wdChatStart');button.disabled=true;
  try{
   const args=group?{group_name:$('wdChatGroupName').value.trim(),targets:ids}:{target:ids[0]};

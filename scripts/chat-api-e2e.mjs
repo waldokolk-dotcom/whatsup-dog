@@ -55,6 +55,10 @@ const groupReceived=await must('/rest/v1/chat_messages?room_id=eq.'+group+'&sele
 assert.equal(groupReceived[0].body,'Groepsbericht');checks++;
 const noGroup=await must('/rest/v1/chat_messages?room_id=eq.'+group+'&select=body',outsider.token);
 assert.deepEqual(noGroup,[],'Outsider read group chat');checks++;
+const twoAccountGroup=await must('/rest/v1/rpc/start_group_chat',a.token,'POST',{group_name:'Samen wandelen',targets:[b.id]});
+await must('/rest/v1/chat_messages',b.token,'POST',{room_id:twoAccountGroup,user_id:b.id,body:'Bericht in groep van twee'});
+const twoAccountReceived=await must('/rest/v1/chat_messages?room_id=eq.'+twoAccountGroup+'&select=body',a.token);
+assert.equal(twoAccountReceived[0].body,'Bericht in groep van twee');checks++;
 const denied=await call('/rest/v1/rpc/start_private_chat',outsider.token,'POST',{target:a.id});
 assert.equal(denied.r.status,403,'Non-discoverable target should not be open for private chat');checks++;
 console.log('PASS '+checks+' verified local chat/opt-in/RLS assertions: private messages, group delivery, outsider denied');

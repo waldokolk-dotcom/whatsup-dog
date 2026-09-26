@@ -53,6 +53,8 @@ select lives_ok($pg$select public.set_profile_discoverability(true,'Bowie','🐶
 select is((select discoverable from public.profiles where id=auth.uid()),true,'Verified opt-in is stored and confirmed');
 select lives_ok($pg$select public.start_group_chat('Wandelen',array['22222222-2222-4222-8222-222222222222'::uuid,'33333333-3333-4333-8333-333333333333'::uuid])$pg$,'Verified user can create an opt-in group');
 select is((select count(*) from public.chat_members where room_id=(select id from public.chat_rooms where name='Wandelen')),3::bigint,'Created group has exactly three members');
+select lives_ok($pg$select public.start_group_chat('Samen wandelen',array['22222222-2222-4222-8222-222222222222'::uuid])$pg$,'Two verified accounts can create a named group');
+select is((select count(*) from public.chat_members where room_id=(select id from public.chat_rooms where name='Samen wandelen')),2::bigint,'Two-account group has exactly two members');
 select throws_ok($pg$select public.start_group_chat('Duplicate',array['22222222-2222-4222-8222-222222222222'::uuid,'22222222-2222-4222-8222-222222222222'::uuid])$pg$,'42501','Only distinct, discoverable members can be invited','Duplicate invitations rejected');
 select set_config('test.group_room',(select id::text from public.chat_rooms where name='Wandelen'),true);
 select set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
