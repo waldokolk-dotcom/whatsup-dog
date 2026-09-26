@@ -9,9 +9,9 @@
   const description=document.createElement('p');description.textContent=preview?'Je bekijkt de proefversie. Accountregistratie en inloggen komen beschikbaar in de definitieve app.':'Bekijk buurtmeldingen zonder account. Maak gratis een account als je zelf wilt melden, gevonden wilt worden of wilt chatten.';
   const form=document.createElement('form');form.id='wdAccountLogin';form.autocomplete='on';
   const emailLabel=document.createElement('label');emailLabel.htmlFor='wdAccountEmail';emailLabel.textContent='E-mailadres';
-  const email=document.createElement('input');email.id='wdAccountEmail';email.type='email';email.autocomplete='username';email.inputMode='email';email.required=true;email.maxLength=254;email.placeholder='naam@voorbeeld.nl';
+  const email=document.createElement('input');email.id='wdAccountEmail';email.name='email';email.type='email';email.autocomplete='username';email.inputMode='email';email.spellcheck=false;email.required=true;email.maxLength=254;email.placeholder='naam@voorbeeld.nl';
   const passwordLabel=document.createElement('label');passwordLabel.htmlFor='wdAccountPassword';passwordLabel.textContent='Wachtwoord (alleen voor inloggen met wachtwoord)';
-  const password=document.createElement('input');password.id='wdAccountPassword';password.type='password';password.autocomplete='current-password';password.maxLength=256;
+  const password=document.createElement('input');password.id='wdAccountPassword';password.name='password';password.type='password';password.autocomplete='current-password';password.maxLength=256;
   const passwordToggleLabel=document.createElement('label');passwordToggleLabel.className='wd-password-toggle';
   const passwordToggle=document.createElement('input');passwordToggle.type='checkbox';passwordToggle.id='wdAccountPasswordVisible';passwordToggleLabel.append(passwordToggle,document.createTextNode(' Wachtwoord tonen'));
   const actions=document.createElement('div');actions.className='wd-account-actions';
