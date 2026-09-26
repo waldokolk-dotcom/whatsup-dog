@@ -97,6 +97,11 @@
     finally{setBusy(false)}
   });
   document.addEventListener('wd:community-status',render);
-  document.addEventListener('wd:auth-changed',render);
+  document.addEventListener('wd:auth-changed',()=>{
+    render();
+    if(!window.WhatsupDogCommunity?.user||window.WhatsupDogCommunity.user.is_anonymous){
+      email.value='';password.value='';passwordToggle.checked=false;password.type='password';
+    }
+  });
   render();
 })();
