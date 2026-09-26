@@ -203,6 +203,10 @@
       state.client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:window.__WD_PREVIEW__?'wd-preview-supabase-auth-v1':undefined}});
       await ensureUser();if(state.user?.is_anonymous)await syncProfile();state.ready=true;
       window.WhatsupDogCommunity={configured:true,get client(){return state.client},get user(){return state.user},refresh:refreshSharedReports,processQueue};
+      // Account UI may have loaded before the backend finished restoring the
+      // session from the confirmation-link redirect. Announce the initial
+      // authenticated state as well as later auth transitions.
+      document.dispatchEvent(new CustomEvent('wd:auth-changed',{detail:{userId:state.user.id,isAnonymous:Boolean(state.user.is_anonymous)}}));
       observeAuthentication();watchLocalReports();await refreshSharedReports();subscribe();await processQueue();
       setInterval(()=>scheduleRefresh(0),15*60*1000);
     }catch(err){console.warn('Whatsup dog community backend niet actief',err);state.ready=false;window.WhatsupDogCommunity={configured:true,status:'error',error:String(err?.message||err)};setStatus('Lokaal','Communityverbinding niet beschikbaar; meldingen blijven op dit toestel werken')}
