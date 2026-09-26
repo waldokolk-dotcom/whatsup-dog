@@ -46,11 +46,16 @@
     setBusy(true);status.textContent='Je account wordt gecontroleerd…';
     try{
       const {error}=await client().auth.signInWithPassword({email:email.value.trim(),password:password.value});
-      password.value='';
       if(error)throw error;
+      password.value='';
       status.textContent='Ingelogd. Je onderhoudsrechten worden op de server gecontroleerd.';
       render();
-    }catch(err){password.value='';status.textContent='Inloggen is niet gelukt. Controleer je gegevens of gebruik de inloglink.';console.warn('Whatsup Dog accountlogin mislukt',err)}
+    }catch(err){
+      const message=String(err?.message||'').toLowerCase();
+      password.value=password.value;
+      status.textContent=message.includes('email not confirmed')||message.includes('email_not_confirmed')?'Bevestig eerst je e-mailadres via de bevestigingsmail en probeer daarna opnieuw.':message.includes('invalid login credentials')?'E-mailadres of wachtwoord klopt niet. Controleer beide velden.':'Inloggen is niet gelukt. Controleer je gegevens of gebruik de inloglink.';
+      console.warn('Whatsup Dog accountlogin mislukt',err)
+    }
     finally{setBusy(false)}
   });
   link.addEventListener('click',async()=>{
