@@ -62,6 +62,21 @@ jobs:
       - name: Refuse deployment against an outdated hosted database
         run: node scripts/verify-hosted-release.mjs
       - run: node scripts/build-site.mjs
+      - name: Checkout isolated preview snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: 9f5a9a91a00f923b7295fceef846ebe92ade12e6
+          path: .preview-source
+          persist-credentials: false
+      - name: Build read-only preview alongside unchanged production assets
+        run: |
+          cd .preview-source
+          node scripts/build-preview.mjs
+          cd ..
+          mkdir -p dist/preview
+          cp -a .preview-source/dist/. dist/preview/
+          test -f dist/preview/preview-guard.js
+          grep -q 'preview-guard.js?v=1' dist/preview/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
