@@ -166,7 +166,7 @@ assert.doesNotMatch(indexSource,/breed-catalog-expanded\.js|breed-custom\.js|bre
 assert.match(indexSource,/breed-catalog\.js\?v=2/,'Breed catalog cache-busting version missing');
 assert.match(indexSource,/breed\.css\?v=2/,'Breed styles cache-busting version missing');
 assert.match(indexSource,/smart-report\.css\?v=3/,'Enhanced report styles are not wired into frontend');
-assert.match(indexSource,/smart-report-v3\.js\?v=3/,'Enhanced report controller is not wired into frontend');
+assert.match(indexSource,/smart-report-v3\.js\?v=4/,'Enhanced report controller is not wired into frontend');
 assert.match(indexSource,/backend-config\.js\?v=4/,'Backend config is not wired into frontend');
 assert.match(indexSource,/community-backend\.js\?v=2/,'Community backend is not wired into frontend');
 
