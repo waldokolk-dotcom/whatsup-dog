@@ -8,6 +8,7 @@
   const read=()=>{try{const rows=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(rows)?rows:[]}catch{return[]}};
   const element=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!=null)node.textContent=String(text);return node};
   const speciesMode=()=>{try{const mode=JSON.parse(localStorage.getItem('wd_profile_v1')||'{}').speciesContext;return ['dog','cat','both'].includes(mode)?mode:'dog'}catch{return 'dog'}};
+  const isSynthetic=r=>/synthetic|\be2e\b|production check|hosted e2e|wd-live-e2e/i.test([r?.id,r?.author,r?.text,r?.subtype].filter(Boolean).join(' '));
   let olderRows=[],exhausted=false,loading=false;
   const more=element('button','wd-feed-more','Meer openbare meldingen laden');
   more.type='button';more.hidden=true;list.insertAdjacentElement('afterend',more);
@@ -36,7 +37,7 @@
     }
     const mode=speciesMode();
     const blocked=hiddenIds();
-    const rows=[...new Map([...read(),...olderRows].filter(r=>r&&r._remote===true&&r.id).map(r=>[r.id,r])).values()].filter(r=>!r._pending&&!r._hidden&&!blocked.has(r.id)&&(mode==='both'||r.species==='both'||(r.species||'dog')===mode))
+    const rows=[...new Map([...read(),...olderRows].filter(r=>r&&r._remote===true&&r.id).map(r=>[r.id,r])).values()].filter(r=>!isSynthetic(r)&&!r._pending&&!r._hidden&&!blocked.has(r.id)&&(mode==='both'||r.species==='both'||(r.species||'dog')===mode))
       .sort((a,b)=>Date.parse(b.createdAt||0)-Date.parse(a.createdAt||0));
     status.textContent=rows.length?`${rows.length} openbare meldingen`:'Nog geen openbare meldingen. Zodra iemand een melding deelt, verschijnt die hier.';
     more.hidden=exhausted||(!read().some(r=>r&&r._remote===true)&&olderRows.length===0);

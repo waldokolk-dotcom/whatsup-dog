@@ -13,6 +13,7 @@
   const labels={danger:'Gevaar',vegetation:'Vegetatie',lost:'Vermist / gevonden',activities:'Buurtactiviteit'};
   const node=(tag,className,value)=>{const result=document.createElement(tag);if(className)result.className=className;if(value!=null)result.textContent=String(value);return result};
   const speciesMode=()=>{const mode=safeRead('wd_profile_v1',{}).speciesContext;return ['dog','cat','both'].includes(mode)?mode:'dog'};
+  const isSynthetic=r=>/synthetic|\be2e\b|production check|hosted e2e|wd-live-e2e/i.test([r?.id,r?.author,r?.text,r?.subtype].filter(Boolean).join(' '));
   function render(){
     list.replaceChildren();
     if(document.documentElement.dataset.community!=='community-aan'){
@@ -21,7 +22,7 @@
     }
     const species=speciesMode(),hiddenStored=safeRead('wd_hidden_reports_v1',[]),hidden=new Set(Array.isArray(hiddenStored)?hiddenStored:[]);
     const storedRows=safeRead('wd_reports_v1',[]);
-    const rows=(Array.isArray(storedRows)?storedRows:[]).filter(r=>r&&r.id&&r._remote===true&&!hidden.has(r.id)&&preferences[category(r.type)]&&(species==='both'||r.species==='both'||(r.species||'dog')===species)).sort((a,b)=>Date.parse(b.createdAt||0)-Date.parse(a.createdAt||0));
+    const rows=(Array.isArray(storedRows)?storedRows:[]).filter(r=>r&&r.id&&!isSynthetic(r)&&r._remote===true&&!hidden.has(r.id)&&preferences[category(r.type)]&&(species==='both'||r.species==='both'||(r.species||'dog')===species)).sort((a,b)=>Date.parse(b.createdAt||0)-Date.parse(a.createdAt||0));
     status.textContent=rows.length?rows.length+' meldingen volgens jouw voorkeuren':'Geen meldingen binnen jouw gekozen categorieën.';
     for(const report of rows){
       const card=node('article','wd-feed-card'),head=node('div','wd-feed-card-heading');

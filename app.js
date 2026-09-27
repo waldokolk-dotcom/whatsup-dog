@@ -40,7 +40,8 @@ function initMap(){
   setupFilters();
   el('offleashToggle')?.addEventListener('change',e=>{if(e.target.checked){offleashLayer.addTo(map)}else if(map.hasLayer(offleashLayer)){map.removeLayer(offleashLayer)}});let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>map?.invalidateSize({pan:false}),120)},{passive:true});
 }
-function allReports(){return loadJSON(STORAGE.reports,[]).filter(r=>r&&((r._remote===true)||Boolean(r._accountOwner)))}
+function isSyntheticReport(r){const s=[r?.id,r?.author,r?.text,r?.subtype].filter(Boolean).join(' ').toLowerCase();return /synthetic|\be2e\b|production check|hosted e2e|wd-live-e2e/.test(s)}
+function allReports(){return loadJSON(STORAGE.reports,[]).filter(r=>r&&!isSyntheticReport(r)&&((r._remote===true)||Boolean(r._accountOwner)))}
 function matchesFilter(r){const species=profile()?.speciesContext||'dog';if(r.species&&species!=='both'&&r.species!=='both'&&r.species!==species)return false;if(activeFilter==='all')return true;if(activeFilter==='offleash')return false;return r.type===activeFilter}
 function drawReports(){if(!reportLayer)return;reportLayer.clearLayers();allReports().filter(matchesFilter).forEach(r=>{const type=reportTypes.find(t=>t.id===r.type)||reportTypes[0];const icon=L.divIcon({className:'',html:`<div class="marker-badge marker-${type.marker}">${type.icon}</div>`,iconSize:[39,39],iconAnchor:[20,20]});L.marker([r.lat,r.lng],{icon}).on('click',()=>openReportDetail(r)).addTo(reportLayer)})}
 function zoomToDogAreas(){if(!offleashLayer?.getLayers().length){toast('De losloopgebieden worden nog geladen…');return}const bounds=offleashLayer.getBounds();if(bounds.isValid())map.fitBounds(bounds,{paddingTopLeft:[28,135],paddingBottomRight:[28,210],maxZoom:15})}
