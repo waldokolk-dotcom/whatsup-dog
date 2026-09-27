@@ -38,7 +38,7 @@ assert.match(appSource,/hiddenReports:'wd_hidden_reports_v1'/,'Hidden report sto
 
 const productionFeed=read('production-feed.js');
 assert.match(indexSource,/id="view-feed"/,'Production public feed view missing');
-assert.match(indexSource,/production-feed\.js\?v=2/,'Production public feed script missing');
+assert.match(indexSource,/production-feed\.js\?v=3/,'Production public feed script missing');
 assert.match(indexSource,/production-feed\.css\?v=1/,'Production public feed stylesheet missing');
 assert.doesNotMatch(indexSource,/id="pushDemo"|Test een melding/,'Demo UI must not be shipped');
 assert.match(indexSource,/id="view-chat"/,'Real private and group chat screen must ship');
@@ -68,7 +68,7 @@ assert.match(appSource,/const canManage=!r\._remote/,'Only owner can manage poin
 assert.match(smartSource,/const canManage=!r\._remote/,'Only owner can manage area report');
 assert.match(productionFeed,/async function loadOlder\(\)/,'Public feed needs pagination beyond initial reports');
 assert.match(productionFeed,/limit\(100\)/,'Pagination must be bounded');
-assert.match(indexSource,/production-alerts\.js\?v=3/,'Production alert preferences must be functional');
+assert.match(indexSource,/production-alerts\.js\?v=4/,'Production alert preferences must be functional');
 assert.match(read('production-alerts.js'),/wd_alert_preferences_v1/,'Alert preferences must persist');
 assert.doesNotMatch(indexSource,/id="clearReports"|id="pushDemo"/,'No inert mass-clear or test notification controls');
 const loginSource=read('account-login.js');
