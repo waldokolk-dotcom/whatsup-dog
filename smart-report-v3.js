@@ -19,7 +19,6 @@
 
   function injectUI(){
     const details=$('reportDetails');if(!details||$('smartReportToolsV2'))return;details.classList.add('smart-visible');
-    const head=document.createElement('div');head.className='smart-step-head';head.innerHTML='<b>Stap 2 · Vertel wat meer</b><button id="changeReportType" type="button">← andere categorie</button>';
     const summary=document.createElement('div');summary.id='selectedReportSummary';summary.className='selected-report-summary';
     const wrap=document.createElement('div');wrap.id='smartReportToolsV2';wrap.className='smart-report-tools';wrap.innerHTML=`
       <section class="smart-block">
@@ -29,12 +28,11 @@
         <p class="photo-privacy">🔒 De foto wordt opnieuw opgebouwd voor opslag. De oorspronkelijke EXIF/GPS-metadata wordt niet bewaard.</p>
       </section>
       <section class="smart-block">
-        <div class="geometry-actions"><button id="geometryPointV2" type="button" class="geometry-btn active">📍 Eén plek</button><button id="geometryAreaV2" type="button" class="geometry-btn">✏️ Een gebied</button></div>
         <button id="pickOnMapV2" type="button" class="pick-map-btn">📍 Kies de exacte plek op de kaart</button>
         <div id="drawStatusV2" class="draw-status">Nog geen specifieke plek gekozen. Zonder keuze gebruiken we het midden van de kaart.</div>
         <p id="wdQuickDateTime" class="wd-quick-detail" hidden></p><p id="wdQuickLocation" class="wd-quick-detail" role="status" aria-live="polite" hidden></p>
       </section>`;
-    details.insertBefore(head,details.firstChild);details.insertBefore(summary,head.nextSibling);details.insertBefore(wrap,summary.nextSibling);
+    details.insertBefore(summary,details.firstChild);details.insertBefore(wrap,summary.nextSibling);
     ['reportCameraV2','reportPhotoV2'].forEach(id=>$(id)?.addEventListener('change',onPhotoPicked));
     $('removePhotoV2')?.addEventListener('click',clearPhoto);$('recognizePhotoV2')?.addEventListener('click',recognizePhoto);
     $('geometryPointV2')?.addEventListener('click',()=>setGeometryMode('point'));$('geometryAreaV2')?.addEventListener('click',()=>setGeometryMode('area'));
