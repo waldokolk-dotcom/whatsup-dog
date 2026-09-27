@@ -6,6 +6,7 @@ const paths={
  map:'<path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2V5Zm6-2v16m6-14v16"/>',
  plus:'<path d="M12 5v14M5 12h14"/>',
  chat:'<path d="M21 11a8 8 0 0 1-8 8H7l-4 3V11a9 9 0 0 1 18 0Z"/><path d="M8 10h8M8 14h5"/>',
+ bell:'<path d="M6 17h12l-1.5-2.5V10a4.5 4.5 0 0 0-9 0v4.5Z"/><path d="M10 20h4"/>',
  profile:'<circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',
  danger:'<path d="m12 3 10 18H2L12 3Zm0 6v5m0 3v1"/>',
  heart:'<path d="M12 21 3 12C-3 5 7-1 12 6c5-7 15-1 9 6Z"/>',
@@ -22,7 +23,7 @@ let focusBefore=null,dispatching=false;
 const overlay=document.createElement('dialog');overlay.id='wdQuickWheel';overlay.className='wd-quick-wheel';overlay.setAttribute('aria-labelledby','wdWheelTitle');
 overlay.innerHTML='<section class="wd-wheel-panel"><div class="wd-wheel-top"><div><small>SAMEN OP PAD</small><h2 id="wdWheelTitle">Waar wil je naartoe?</h2></div><button class="wd-wheel-close" type="button" aria-label="Sluiten"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><div class="wd-paw-orbit" role="group" aria-label="Snelle navigatie"></div><div class="wd-wheel-disc" role="group" aria-label="Meldingstype" hidden></div><div id="wdWheelSub" class="wd-wheel-sub" hidden><h3 id="wdWheelSubTitle"></h3><div id="wdWheelDangerOptions"></div></div><p class="wd-wheel-hint">Alles dichtbij. Tik om te openen.</p><button type="button" id="wdWheelBack" hidden>← Terug</button></section>';
 const orbit=overlay.querySelector('.wd-paw-orbit'),disc=overlay.querySelector('.wd-wheel-disc'),sub=overlay.querySelector('#wdWheelSub'),back=overlay.querySelector('#wdWheelBack'),title=overlay.querySelector('h2'),hint=overlay.querySelector('.wd-wheel-hint');
-for(const [view,label,glyph] of [['map','Kaart','map'],['report','Melding maken','plus'],['feed','Buurt + chat','chat'],['profile','Profiel','profile'],['alerts','Updates','paw']]){
+for(const [view,label,glyph] of [['map','Kaart','map'],['report','Melding maken','plus'],['feed','Buurt + chat','chat'],['profile','Profiel','profile'],['alerts','Updates','bell']]){
  const button=document.createElement('button');button.type='button';button.dataset.pawView=view;button.className='wd-paw-choice';button.innerHTML=icon(glyph)+'<span>'+label+'</span>';
  button.addEventListener('click',()=>{if(view==='report'){reports();return}close();document.querySelector(view==='alerts'?'#homeToAlerts':'.bottom-nav [data-view="'+view+'"]')?.click()});orbit.append(button);
 }

@@ -61,7 +61,8 @@
               if(typeof window.openReportDetail==='function')window.openReportDetail(r);
               else if(typeof openReportDetail==='function')openReportDetail(r);
             });
-      card.append(heading,description,action);
+      const account=window.WhatsupDogCommunity?.user;
+      if(account&&!account.is_anonymous&&r.userId===account.id){const remove=element('button','wd-feed-open danger-action','Melding wissen');remove.type='button';remove.addEventListener('click',()=>window.openReportDetail?.(r));card.append(heading,description,action,remove)}else card.append(heading,description,action);
       list.append(card);
     }
   }
