@@ -6,8 +6,10 @@
 .wd-chat-status{font-size:13px;line-height:1.45;color:#496357;margin:5px 0 15px}
 .wd-chat-gate,.wd-chat-panel{background:#fff;border:1px solid #e3ebe4;border-radius:22px;padding:16px;margin:10px 0}
 .wd-chat-gate h2{margin:0 0 8px}.wd-chat-gate p{line-height:1.5;color:#566f61}
-.wd-chat-btn,.wd-chat-primary{border:0;border-radius:17px;min-height:48px;padding:10px 14px;font-weight:750}
+.wd-chat-btn,.wd-chat-primary,.wd-chat-delete{border:0;border-radius:17px;min-height:48px;padding:10px 14px;font-weight:750}
 .wd-chat-primary{background:#155c47;color:#fff}.wd-chat-btn{background:#eaf5ec;color:#174c3c}
+.wd-chat-delete{background:#eaf5ec;color:#174c3c;min-height:38px;padding:8px 12px;font-size:13px}
+#wdChatRename,#wdChatDelete{border:0;border-radius:17px;min-height:38px;padding:8px 12px;background:#eaf5ec;color:#174c3c;font-weight:750;font-size:13px}
 .wd-chat-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .wd-chat-room,.wd-chat-contact{display:flex;align-items:center;gap:11px;width:100%;min-height:65px;border:1px solid #e8eee8;background:#fff;border-radius:17px;padding:10px 12px;text-align:left;margin:8px 0;color:#174235}
 .wd-chat-room-icon,.wd-chat-avatar{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:#e2f4e9;font-size:24px}

@@ -8,8 +8,11 @@ const user=()=>current()?.user;
 const ready=()=>Boolean(current()?.client&&user()&&!user().is_anonymous);
 let contacts=[],rooms=[],activeRoom=null,channel=null;
 const ALIAS_KEY='wd_chat_aliases_v1';
+const HIDDEN_ROOMS_KEY='wd_hidden_chat_rooms_v1';
 const aliases=()=>{try{return JSON.parse(localStorage.getItem(ALIAS_KEY)||'{}')}catch{return {}}};
 const saveAliases=value=>{try{localStorage.setItem(ALIAS_KEY,JSON.stringify(value))}catch{}};
+const hiddenRooms=()=>{try{return new Set(JSON.parse(localStorage.getItem(HIDDEN_ROOMS_KEY)||'[]'))}catch{return new Set()}};
+const saveHiddenRooms=value=>{try{localStorage.setItem(HIDDEN_ROOMS_KEY,JSON.stringify([...value]))}catch{}};
 const node=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e};
 const status=message=>{$('wdChatStatus').textContent=message};
 function clearChannel(){if(channel&&current()?.client)current().client.removeChannel(channel);channel=null}
@@ -43,7 +46,7 @@ async function loadRooms(){
    client.from('chat_members').select('room_id,user_id').in('room_id',ids)
  ]);
  if(roomError||participantsError)throw roomError||participantsError;
- rooms=(rows||[]).map(r=>({...r,members:(participants||[]).filter(m=>m.room_id===r.id).map(m=>m.user_id)}));
+ const hidden=hiddenRooms();rooms=(rows||[]).filter(r=>!hidden.has(r.id)).map(r=>({...r,members:(participants||[]).filter(m=>m.room_id===r.id).map(m=>m.user_id)}));
  renderRooms();
 }
 function renderRooms(){
@@ -57,7 +60,7 @@ function renderRooms(){
   b.append(details,remove,node('span','wd-chat-chevron','›'));b.addEventListener('click',()=>openRoom(room.id));list.append(b);
  });
 }
-async function removeRoom(room){if(!ready()||!window.confirm('Dit gesprek uit jouw chats verwijderen?'))return;try{const {error}=await current().client.from('chat_members').delete().eq('room_id',room.id).eq('user_id',user().id);if(error)throw error;rooms=rooms.filter(x=>x.id!==room.id);if(activeRoom?.id===room.id)exitRoom();renderRooms();status('Gesprek gewist uit jouw chats.')}catch(error){console.warn('Chat wissen mislukt',error);status('Gesprek wissen lukte niet. Probeer opnieuw.')}}
+async function removeRoom(room){if(!ready()||!window.confirm('Dit gesprek uit jouw chats verwijderen?'))return;const hidden=hiddenRooms();hidden.add(room.id);saveHiddenRooms(hidden);rooms=rooms.filter(x=>x.id!==room.id);if(activeRoom?.id===room.id)exitRoom();renderRooms();status('Gesprek gewist uit jouw chats.');try{const {error}=await current().client.from('chat_members').delete().eq('room_id',room.id).eq('user_id',user().id);if(error)console.warn('Server-chatverwijdering nog niet beschikbaar',error)}catch(error){console.warn('Chat wissen serverzijde mislukt',error)}}
 function renderContacts(group=false){
  const wrap=$('wdChatContacts');wrap.replaceChildren();
  if(!contacts.length){wrap.append(node('p','wd-chat-empty','Nog niemand heeft het profiel vindbaar gemaakt. Je ziet hier uitsluitend mensen die daarvoor kiezen.'));return}
