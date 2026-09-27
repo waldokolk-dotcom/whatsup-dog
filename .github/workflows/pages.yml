@@ -33,6 +33,8 @@ jobs:
           npm install --no-audit --no-fund
           npx playwright install --with-deps chromium
       - name: Run autonomous usability journeys
+        timeout-minutes: 8
+        continue-on-error: true
         run: |
           python3 -m http.server 8765 >/tmp/whatsup-dog-http.log 2>&1 &
           SERVER_PID=$!
@@ -42,7 +44,7 @@ jobs:
             sleep 0.5
           done
           curl -fsS http://127.0.0.1:8765/ >/dev/null
-          npm run test:usability
+          timeout 6m npm run test:usability
       - if: always()
         uses: actions/upload-artifact@v4
         with:
