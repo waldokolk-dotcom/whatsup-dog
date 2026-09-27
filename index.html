@@ -18,6 +18,7 @@
 <body>
   <svg class="icon-sprite" aria-hidden="true"><defs>
     <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 11 12 4l8.5 7v8.5a.5.5 0 0 1-.5.5h-5v-6H9v6H4a.5.5 0 0 1-.5-.5Z"/></symbol>
+    <symbol id="i-paw" viewBox="0 0 24 24"><ellipse cx="7" cy="7" rx="2" ry="3"/><ellipse cx="17" cy="7" rx="2" ry="3"/><ellipse cx="3.5" cy="12" rx="1.8" ry="2.5"/><ellipse cx="20.5" cy="12" rx="1.8" ry="2.5"/><path d="M6 19c0-3 3-7 6-7s6 4 6 7c0 3-4 1-6 1s-6 2-6-1Z"/></symbol>
     <symbol id="i-map" viewBox="0 0 24 24"><path d="m3 6 5-2 8 3 5-2v13l-5 2-8-3-5 2Z"/><path d="M8 4v13M16 7v13"/></symbol>
     <symbol id="i-community" viewBox="0 0 24 24"><path d="M7.5 17.5 3 20l1.2-4.2A7 7 0 1 1 7.5 17.5Z"/><path d="M8 10h8M8 13h5"/></symbol>
     <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17h12l-1.5-2.5V10a4.5 4.5 0 0 0-9 0v4.5Z"/><path d="M10 20h4"/></symbol>
@@ -38,7 +39,6 @@
           <div class="home-actions"><button id="homeWalk" class="home-action primary-action"><span>🗺️</span><b>Wandelen</b><small>Open de kaart</small></button><button id="homeReport" class="home-action report-action"><span>＋</span><b>Melden</b><small>Help de buurt</small></button><button id="homeOffleash" class="home-action"><span>🐕</span><b>Losloop</b><small>Vind een plek</small></button></div>
         </section>
         <section class="home-section"><div class="section-heading"><div><small>VANDAAG</small></div><button id="homeToAlerts" data-view="alerts">Alles →</button></div><div class="neighbourhood-card"><div class="neighbourhood-icon" id="homeStatusIcon">✓</div><div><b id="homeStatusTitle">Even snuffelen…</b><p id="homeStatusText">We kijken wat er rond jullie speelt.</p></div></div></section>
-        <section class="home-section"><div class="section-heading"><div><small>OFFICIËLE DATA</small><h2>Losloop in de buurt</h2></div><button id="homeAllAreas">Op kaart →</button></div><div id="homeAreas" class="home-area-list"><div class="home-loading">🐾 We halen de officiële hondenkaart op…</div></div><p class="home-source" id="homeAreaSource">Bron: officiële hondenkaart gemeente Nijkerk.</p></section>
         <section class="home-community-card" id="homeCommunity"><div class="community-copy"><small>WHATSUP DOG</small><h2>Wat speelt er in de buurt?</h2><p>Bekijk de meldingen van andere honden- en kattenbezitters in je buurt.</p><button data-view="feed">Bekijk buurtmeldingen →</button></div><div class="community-dog">🐕</div></section>
         <section class="home-tip-card"><span>🌿</span><div><small>SEIZOENSTIP</small><b>Let onderweg op grasaren</b><p>Meld irritante of gevaarlijke vegetatie direct op de kaart.</p></div><button id="homeVegetation">Melden</button></section>
       </section>
@@ -50,7 +50,7 @@
       </section>
 
       <section id="view-feed" class="view page-view wd-feed-page" aria-label="Openbare meldingen">
-        <header class="page-brand"><div class="chat-logo" aria-hidden="true">🐾</div><div><h1>Buurtmeldingen</h1><p>Echte, gedeelde meldingen van iedereen in de buurt.</p></div></header>
+        <header class="page-brand"><div class="chat-logo" aria-hidden="true">🐾</div><div><h1>Buurt + chat</h1><p>Echte, gedeelde meldingen en gesprekken in je buurt.</p></div><button class="wd-chat-primary" type="button" data-view="chat">Chats openen</button></header>
         <div id="publicFeedStatus" class="wd-feed-status" role="status" aria-live="polite">Gedeelde meldingen ophalen…</div>
         <div id="publicFeedList" class="wd-feed-list" aria-live="polite"></div>
       </section>
@@ -63,7 +63,7 @@
           <div id="wdChatContent" hidden>
             <div id="wdChatListView"><div class="wd-chat-actions"><button id="wdChatPrivate" class="wd-chat-primary" type="button">＋ Privéchat</button><button id="wdChatGroup" class="wd-chat-btn" type="button">＋ Groep maken</button></div><div id="wdChatRooms" aria-label="Mijn gesprekken"></div></div>
             <form id="wdChatPicker" class="wd-chat-panel" hidden><div class="wd-chat-picker-head"><h2 id="wdChatPickerTitle">Nieuwe privéchat</h2><button id="wdChatCancel" type="button">Sluiten</button></div><label id="wdChatGroupNameWrap" class="wd-chat-group-name" hidden>Groepsnaam<input id="wdChatGroupName" maxlength="80" placeholder="Bijvoorbeeld Wandelen Nijkerk"></label><div id="wdChatContacts" aria-label="Vindbare deelnemers"></div><button id="wdChatStart" class="wd-chat-primary" type="submit">Gesprek openen</button></form>
-            <div id="wdChatConversation" class="wd-chat-panel" hidden><div class="wd-chat-conversation-head"><button id="wdChatBack" type="button" aria-label="Terug naar mijn chats">←</button><div><h2 id="wdChatTitle">Gesprek</h2><small id="wdChatParticipants"></small></div></div><div id="wdChatMessages" class="wd-chat-messages" role="log" aria-live="polite"></div><form id="wdChatComposer" class="wd-chat-composer"><input id="wdChatInput" maxlength="2000" autocomplete="off" placeholder="Bericht… (alleen deelnemers)" aria-label="Bericht"><button id="wdChatSend" class="wd-chat-primary" type="submit">Stuur</button></form></div>
+            <div id="wdChatConversation" class="wd-chat-panel" hidden><div class="wd-chat-conversation-head"><button id="wdChatBack" type="button" aria-label="Terug naar mijn chats">←</button><div><h2 id="wdChatTitle">Gesprek</h2><small id="wdChatParticipants"></small></div><button id="wdChatRename" type="button" aria-label="Chatnaam voor mij wijzigen">Naam</button></div><div id="wdChatMessages" class="wd-chat-messages" role="log" aria-live="polite"></div><form id="wdChatComposer" class="wd-chat-composer"><input id="wdChatInput" maxlength="2000" autocomplete="off" placeholder="Bericht… (alleen deelnemers)" aria-label="Bericht"><button id="wdChatSend" class="wd-chat-primary" type="submit">Stuur</button></form></div>
           </div>
         </div>
       </section>
@@ -90,7 +90,7 @@
         <div class="settings-card compact"><div class="data-row"><span>Mijn meldingen</span><b id="myReportCount">0</b></div><div class="data-row"><span>Profielstatus</span><b id="profileStatus">Lokaal</b></div></div>
       </section>
     </main>
-    <nav class="bottom-nav five-nav" aria-label="Hoofdnavigatie"><button class="nav-item active" data-view="home"><svg><use href="#i-home"/></svg><small>Home</small></button><button class="nav-item" data-view="map"><svg><use href="#i-map"/></svg><small>Kaart</small></button><button class="nav-item" data-view="feed"><svg><use href="#i-community"/></svg><small>Buurt</small></button><button class="nav-item" data-view="chat"><svg><use href="#i-community"/></svg><small>Chats</small></button><button class="nav-item" data-view="profile"><svg><use href="#i-profile"/></svg><span id="navProfileAvatar" class="nav-avatar-data" aria-hidden="true"></span><small>Profiel</small></button></nav>
+    <nav class="bottom-nav five-nav" aria-label="Hoofdnavigatie"><button class="nav-item active" data-view="pawwheel"><svg><use href="#i-paw"/></svg><small>PawWheel</small></button><button class="nav-item" data-view="home"><svg><use href="#i-home"/></svg><small>Home</small></button><button class="nav-item" data-view="map"><svg><use href="#i-map"/></svg><small>Kaart</small></button><button class="nav-item" data-view="feed"><svg><use href="#i-community"/></svg><small>Buurt + chat</small></button><button class="nav-item" data-view="profile"><svg><use href="#i-profile"/></svg><span id="navProfileAvatar" class="nav-avatar-data" aria-hidden="true"></span><small>Profiel</small></button></nav>
   </div>
 
   <dialog id="onboardingDialog" class="full-dialog onboarding-dialog">
@@ -114,6 +114,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="./vendor/leaflet/leaflet.js" crossorigin=""></script>
   <script src="app.js?v=7"></script><script src="breed-catalog.js?v=2"></script><script src="install-guide.js?v=1.9.1"></script>
-  <script src="production-feed.js?v=1"></script><script src="production-alerts.js?v=1"></script><script src="maintenance-ui.js?v=1"></script><script src="account-login.js?v=1"></script><script src="home.js?v=5"></script><script src="smart-report-v3.js?v=3" data-wd-smart-report="1"></script><script src="backend-config.js?v=4" data-wd-backend-config="1"></script><script src="community-backend.js?v=2" data-wd-community="1"></script><script src="official-areas.js?v=10"></script><script src="account-onboarding.js?v=1"></script><script src="community-chat.js?v=1"></script><script src="quick-report-wheel.js?v=2"></script><script src="species-context.js?v=1.9.1"></script>
+  <script src="production-feed.js?v=1"></script><script src="production-alerts.js?v=1"></script><script src="maintenance-ui.js?v=1"></script><script src="account-login.js?v=1"></script><script src="home.js?v=5"></script><script src="smart-report-v3.js?v=3" data-wd-smart-report="1"></script><script src="backend-config.js?v=4" data-wd-backend-config="1"></script><script src="community-backend.js?v=2" data-wd-community="1"></script><script src="official-areas.js?v=10"></script><script src="account-onboarding.js?v=1"></script><script src="community-chat.js?v=1"></script><script src="quick-report-wheel.js?v=3"></script><script src="species-context.js?v=1.9.1"></script>
 </body>
 </html>

@@ -149,10 +149,12 @@ profile.addEventListener('submit',async event=>{
 });
 function refresh(){
  if(preview){signup.hidden=demoMode!=='signup';profile.hidden=demoMode!=='profile';recovery.hidden=true;forgot.hidden=true;return}
- if(verified()){loadProfile().catch(console.warn);signup.hidden=true}else{profile.hidden=true;profileOwner=null}
+ const recoveryLink=/(^|[?&#])type=recovery(?:&|#|$)/i.test(location.href);
+ if(recoveryLink){recovery.hidden=false;signup.hidden=true;profile.hidden=true;status('wdRecoveryStatus','Kies hieronder je nieuwe wachtwoord.');}
+ else if(verified()){loadProfile().catch(console.warn);signup.hidden=true}else{profile.hidden=true;profileOwner=null}
  if(client()&&!authListener&&typeof client().auth?.onAuthStateChange==='function'){
   authListener=true;client().auth.onAuthStateChange((event)=>{
-   if(event==='PASSWORD_RECOVERY'){recovery.hidden=false;status('wdRecoveryStatus','Kies hieronder je nieuwe wachtwoord.');}
+   if(event==='PASSWORD_RECOVERY'||/(^|[?&#])type=recovery(?:&|#|$)/i.test(location.href)){recovery.hidden=false;signup.hidden=true;profile.hidden=true;status('wdRecoveryStatus','Kies hieronder je nieuwe wachtwoord.');}
    if(event==='SIGNED_IN')setTimeout(()=>loadProfile(true).catch(console.warn),0);
   });
  }

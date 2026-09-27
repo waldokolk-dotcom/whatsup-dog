@@ -22,7 +22,7 @@ let focusBefore=null,dispatching=false;
 const overlay=document.createElement('dialog');overlay.id='wdQuickWheel';overlay.className='wd-quick-wheel';overlay.setAttribute('aria-labelledby','wdWheelTitle');
 overlay.innerHTML='<section class="wd-wheel-panel"><div class="wd-wheel-top"><div><small>SAMEN OP PAD</small><h2 id="wdWheelTitle">Waar wil je naartoe?</h2></div><button class="wd-wheel-close" type="button" aria-label="Sluiten"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><div class="wd-paw-orbit" role="group" aria-label="Snelle navigatie"></div><div class="wd-wheel-disc" role="group" aria-label="Meldingstype" hidden></div><div id="wdWheelSub" class="wd-wheel-sub" hidden><h3 id="wdWheelSubTitle"></h3><div id="wdWheelDangerOptions"></div></div><p class="wd-wheel-hint">Alles dichtbij. Tik om te openen.</p><button type="button" id="wdWheelBack" hidden>← Terug</button></section>';
 const orbit=overlay.querySelector('.wd-paw-orbit'),disc=overlay.querySelector('.wd-wheel-disc'),sub=overlay.querySelector('#wdWheelSub'),back=overlay.querySelector('#wdWheelBack'),title=overlay.querySelector('h2'),hint=overlay.querySelector('.wd-wheel-hint');
-for(const [view,label,glyph] of [['map','Kaart','map'],['report','Melden','plus'],['chat','Chats','chat'],['profile','Profiel','profile'],['alerts','Meldingen','paw']]){
+for(const [view,label,glyph] of [['map','Kaart','map'],['report','Melding maken','plus'],['feed','Buurt + chat','chat'],['profile','Profiel','profile'],['alerts','Updates','paw']]){
  const button=document.createElement('button');button.type='button';button.dataset.pawView=view;button.className='wd-paw-choice';button.innerHTML=icon(glyph)+'<span>'+label+'</span>';
  button.addEventListener('click',()=>{if(view==='report'){reports();return}close();document.querySelector(view==='alerts'?'#homeToAlerts':'.bottom-nav [data-view="'+view+'"]')?.click()});orbit.append(button);
 }
@@ -64,4 +64,5 @@ overlay.addEventListener('keydown',event=>{
 overlay.addEventListener('cancel',event=>{event.preventDefault();close()});
 overlay.addEventListener('click',event=>{if(event.target===overlay)close()});
 document.addEventListener('click',event=>{if(dispatching)return;const trigger=event.target.closest('#homeReport,#reportFab,#mapPlusBtn');if(!trigger)return;event.preventDefault();event.stopImmediatePropagation();show(true)},true);
+if(document.querySelector('.bottom-nav [data-view="pawwheel"]')?.classList.contains('active'))setTimeout(()=>show(),0);
 })();

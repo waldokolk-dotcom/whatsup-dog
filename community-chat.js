@@ -7,6 +7,9 @@ const current=()=>window.WhatsupDogCommunity;
 const user=()=>current()?.user;
 const ready=()=>Boolean(current()?.client&&user()&&!user().is_anonymous);
 let contacts=[],rooms=[],activeRoom=null,channel=null;
+const ALIAS_KEY='wd_chat_aliases_v1';
+const aliases=()=>{try{return JSON.parse(localStorage.getItem(ALIAS_KEY)||'{}')}catch{return {}}};
+const saveAliases=value=>{try{localStorage.setItem(ALIAS_KEY,JSON.stringify(value))}catch{}};
 const node=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e};
 const status=message=>{$('wdChatStatus').textContent=message};
 function clearChannel(){if(channel&&current()?.client)current().client.removeChannel(channel);channel=null}
@@ -19,6 +22,7 @@ function renderGate(){
 }
 function roomName(room){
  if(room.name!=='Privégesprek')return room.name;
+ const own=aliases()[room.id];if(own)return own;
  const ids=room.members.filter(id=>id!==user()?.id);
  const other=contacts.find(p=>p.id===ids[0]);return other?.display_name||'Privégesprek';
 }
@@ -94,6 +98,7 @@ async function openRoom(id){
  await loadMessages();
  channel=current().client.channel('wd-chat-room-'+room.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages',filter:'room_id=eq.'+room.id},()=>loadMessages().catch(console.warn)).subscribe();
 }
+function renameRoom(){if(!activeRoom)return;const currentName=roomName(activeRoom);const next=window.prompt('Naam voor deze chat op jouw toestel',currentName);if(next===null)return;const name=next.trim().slice(0,80);if(!name){status('Geef de chat een naam.');return}const all=aliases();all[activeRoom.id]=name;saveAliases(all);$('wdChatTitle').textContent=name;renderRooms();status('Chatnaam alleen voor jou gewijzigd.');}
 async function loadMessages(){
  if(!activeRoom||!ready())return;
  const room=activeRoom,client=current().client;
@@ -132,6 +137,7 @@ $('wdChatGroup').addEventListener('click',()=>showChooser(true));
 $('wdChatCancel').addEventListener('click',()=>{$('wdChatPicker').hidden=true});
 $('wdChatPicker').addEventListener('submit',createChat);
 $('wdChatBack').addEventListener('click',exitRoom);
+$('wdChatRename').addEventListener('click',renameRoom);
 $('wdChatComposer').addEventListener('submit',sendMessage);
 $('wdChatRefresh').addEventListener('click',refresh);
 $('wdChatLogin').addEventListener('click',()=>{document.querySelector('.bottom-nav [data-view="profile"]')?.click();$('wdAccount')?.scrollIntoView({block:'start',behavior:'smooth'})});
