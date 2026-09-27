@@ -38,7 +38,7 @@ assert.match(appSource,/hiddenReports:'wd_hidden_reports_v1'/,'Hidden report sto
 
 const productionFeed=read('production-feed.js');
 assert.match(indexSource,/id="view-feed"/,'Production public feed view missing');
-assert.match(indexSource,/production-feed\.js\?v=1/,'Production public feed script missing');
+assert.match(indexSource,/production-feed\.js\?v=2/,'Production public feed script missing');
 assert.match(indexSource,/production-feed\.css\?v=1/,'Production public feed stylesheet missing');
 assert.doesNotMatch(indexSource,/id="pushDemo"|Test een melding/,'Demo UI must not be shipped');
 assert.match(indexSource,/id="view-chat"/,'Real private and group chat screen must ship');
