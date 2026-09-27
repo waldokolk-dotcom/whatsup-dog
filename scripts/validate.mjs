@@ -111,7 +111,7 @@ assert.match(read('sw.js'),/quick-report-wheel\.js\?v=4/,'Offline cache must con
 
 const chatSource=read('community-chat.js');
 const groupMigration=read('supabase/migrations/20260924000300_verified_group_chat.sql');
-assert.match(indexSource,/community-chat\.js\?v=1/,'Real chat UI must ship');
+assert.match(indexSource,/community-chat\.js\?v=2/,'Real chat UI must ship');
 assert.match(indexSource,/data-view="chat"/,'Chat must be in the primary navigation');
 assert.match(chatSource,/chat_messages/,'Chat must load actual member-only messages');
 assert.match(chatSource,/start_private_chat/,'Private conversations must be backed by the server');
