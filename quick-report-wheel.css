@@ -15,7 +15,7 @@
 .wd-paw-choice span{font-size:13px;font-weight:700;line-height:1.2}
 .wd-paw-choice[data-paw-view=map]{left:50%;top:0;transform:translateX(-50%)}
 .wd-paw-choice[data-paw-view=report]{right:0;top:50%;transform:translateY(-50%);background:#edf2e9;border-color:#aebfad}
-.wd-paw-choice[data-paw-view=chat]{left:50%;bottom:0;transform:translateX(-50%)}
+.wd-paw-choice[data-paw-view=feed]{left:50%;bottom:0;transform:translateX(-50%)}
 .wd-paw-choice[data-paw-view=profile]{left:0;top:50%;transform:translateY(-50%)}
 .wd-paw-choice[data-paw-view=alerts]{left:50%;top:50%;transform:translate(-50%,-50%);width:92px;height:92px;border-radius:50%;background:#244f45;border-color:#244f45;color:#fffdf8;box-shadow:0 4px 14px #244f4526}
 .wd-paw-choice[data-paw-view=alerts] svg{width:29px;height:29px}
