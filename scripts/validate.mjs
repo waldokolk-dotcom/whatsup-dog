@@ -211,3 +211,4 @@ assert.ok(!String(config.window.WHATSUP_DOG_BACKEND.publishableKey).startsWith('
 if(config.window.WHATSUP_DOG_BACKEND.publishableKey.startsWith('eyJ'))assert.equal(JSON.parse(Buffer.from(config.window.WHATSUP_DOG_BACKEND.publishableKey.split('.')[1],'base64url')).role,'anon');
 for(const tag of indexSource.matchAll(/(?:src|href)="([^"#]+)"/g)){if(!/^https?:/.test(tag[1]))assert.ok(fs.existsSync(tag[1].split('?')[0]),'Missing HTML asset '+tag[1]);}
 console.log(`PASS: JavaScript, PWA assets, breed catalog (${breedCatalog.length}), enhanced reporting, persistent report lifecycle, production recovery migration, community wiring, cache isolation, public config, 20 Nijkerk polygons`);
+
