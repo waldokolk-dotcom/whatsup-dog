@@ -72,7 +72,7 @@ assert.match(indexSource,/production-alerts\.js\?v=3/,'Production alert preferen
 assert.match(read('production-alerts.js'),/wd_alert_preferences_v1/,'Alert preferences must persist');
 assert.doesNotMatch(indexSource,/id="clearReports"|id="pushDemo"/,'No inert mass-clear or test notification controls');
 const loginSource=read('account-login.js');
-assert.match(indexSource,/account-login\.js\?v=1/,'Accessible account login missing from profile');
+assert.match(indexSource,/account-login\.js\?v=2/,'Accessible account login missing from profile');
 assert.match(indexSource,/account-login\.css\?v=1/,'Login design stylesheet missing');
 assert.match(read('sw.js'),/account-login\.js\?v=1/,'Login must be included in the offline app shell');
 assert.match(loginSource,/signInWithPassword/,'Password sign-in missing');

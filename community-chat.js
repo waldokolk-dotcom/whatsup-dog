@@ -53,9 +53,11 @@ function renderRooms(){
   const b=node('button','wd-chat-room');b.type='button';
   b.append(node('span','wd-chat-room-icon',room.name==='Privégesprek'?'💬':'👥'));
   const details=node('span','wd-chat-room-info');details.append(node('b','',roomName(room)),node('small','',room.members.length+' deelnemers'));
-  b.append(details,node('span','wd-chat-chevron','›'));b.addEventListener('click',()=>openRoom(room.id));list.append(b);
+  const remove=node('button','wd-chat-delete','Wissen');remove.type='button';remove.addEventListener('click',event=>{event.stopPropagation();removeRoom(room)});
+  b.append(details,remove,node('span','wd-chat-chevron','›'));b.addEventListener('click',()=>openRoom(room.id));list.append(b);
  });
 }
+async function removeRoom(room){if(!ready()||!window.confirm('Dit gesprek uit jouw chats verwijderen?'))return;try{const {error}=await current().client.from('chat_members').delete().eq('room_id',room.id).eq('user_id',user().id);if(error)throw error;rooms=rooms.filter(x=>x.id!==room.id);if(activeRoom?.id===room.id)exitRoom();renderRooms();status('Gesprek gewist uit jouw chats.')}catch(error){console.warn('Chat wissen mislukt',error);status('Gesprek wissen lukte niet. Probeer opnieuw.')}}
 function renderContacts(group=false){
  const wrap=$('wdChatContacts');wrap.replaceChildren();
  if(!contacts.length){wrap.append(node('p','wd-chat-empty','Nog niemand heeft het profiel vindbaar gemaakt. Je ziet hier uitsluitend mensen die daarvoor kiezen.'));return}
@@ -138,6 +140,7 @@ $('wdChatCancel').addEventListener('click',()=>{$('wdChatPicker').hidden=true});
 $('wdChatPicker').addEventListener('submit',createChat);
 $('wdChatBack').addEventListener('click',exitRoom);
 $('wdChatRename').addEventListener('click',renameRoom);
+$('wdChatDelete').addEventListener('click',()=>activeRoom&&removeRoom(activeRoom));
 $('wdChatComposer').addEventListener('submit',sendMessage);
 $('wdChatRefresh').addEventListener('click',refresh);
 $('wdChatLogin').addEventListener('click',()=>{document.querySelector('.bottom-nav [data-view="profile"]')?.click();$('wdAccount')?.scrollIntoView({block:'start',behavior:'smooth'})});

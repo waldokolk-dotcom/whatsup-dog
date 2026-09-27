@@ -25,7 +25,8 @@
   setTimeout(()=>{email.value='';password.value='';passwordToggle.checked=false;password.type='password'},250);
   const signed=document.createElement('div');signed.id='wdAccountSigned';signed.hidden=true;
   const signedText=document.createElement('p');const signOut=document.createElement('button');signOut.type='button';signOut.className='outline-btn';signOut.textContent='Uitloggen';
-  signed.append(signedText,signOut);
+  const deleteAccount=document.createElement('button');deleteAccount.type='button';deleteAccount.className='outline-btn danger-action';deleteAccount.textContent='Account opheffen';deleteAccount.id='wdAccountDelete';
+  signed.append(signedText,signOut,deleteAccount);
   const status=document.createElement('p');status.id='wdAccountStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   const previewNotice=document.createElement('p');previewNotice.id='wdAccountPreviewNotice';previewNotice.hidden=!preview;
   previewNotice.textContent='Je bekijkt de alleen-lezen proefversie. Aanmelden en accounts aanmaken zijn hier uitgeschakeld; vul hier geen e-mailadres of wachtwoord in. De accountfunctie wordt pas beschikbaar na de beveiligde praktijktest.';
@@ -96,6 +97,7 @@
     }catch(err){status.textContent='Uitloggen lukte niet. Probeer het opnieuw.';console.warn('Whatsup Dog uitloggen mislukt',err)}
     finally{setBusy(false)}
   });
+  deleteAccount.addEventListener('click',async()=>{if(busy||!client()||!window.confirm('Account, profiel, meldingen en chats definitief opheffen? Dit kan niet ongedaan worden.'))return;setBusy(true);status.textContent='Account opheffen…';try{const {error}=await client().rpc('delete_my_account');if(error)throw error;await client().auth.signOut();localStorage.removeItem('wd_profile_v1');localStorage.removeItem('wd_reports_v1');localStorage.removeItem('wd_chat_aliases_v1');status.textContent='Account opgeheven. Je kunt dit e-mailadres opnieuw gebruiken om een account aan te maken.';render()}catch(err){console.warn('Account opheffen mislukt',err);status.textContent='Account opheffen lukte niet. Probeer opnieuw.'}finally{setBusy(false)}});
   document.addEventListener('wd:community-status',render);
   document.addEventListener('wd:auth-changed',()=>{
     render();
