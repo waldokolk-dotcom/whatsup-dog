@@ -27,6 +27,7 @@
     const [lat,lng]=homePoint();
     const nearby=allReports().filter(r=>Number.isFinite(Number(r.lat))&&Number.isFinite(Number(r.lng))&&distanceKm(lat,lng,Number(r.lat),Number(r.lng))<=5);
     const risk=nearby.filter(r=>['danger','vegetation','road','lost'].includes(r.type));
+    document.querySelector('.neighbourhood-card')?.classList.toggle('has-nearby-alerts',risk.length>0);
     if(risk.length){
       $('homeStatusIcon').textContent='!';
       $('homeStatusIcon').style.background='#fee3df';
@@ -74,6 +75,7 @@
   }
 
   $('homeWalk')?.addEventListener('click',showMapAtHome);
+  $('homeStatusIcon')?.closest('.neighbourhood-card')?.addEventListener('click',showMapAtHome);
   $('homeReport')?.addEventListener('click',()=>{showMapAtHome();setTimeout(()=>$('reportFab')?.click(),120)});
   $('homeOffleash')?.addEventListener('click',()=>{showView('map');setTimeout(()=>document.querySelector('[data-filter="offleash"]')?.click(),100)});
   $('homeAllAreas')?.addEventListener('click',()=>{showView('map');setTimeout(()=>document.querySelector('[data-filter="offleash"]')?.click(),100)});
