@@ -30,7 +30,8 @@
       head.append(node('span','wd-feed-avatar',report.authorAvatar||'🐾'),info);
       const open=node('button','wd-feed-open','Bekijk melding');open.type='button';
       open.addEventListener('click',()=>{if(typeof window.openReportDetail==='function')window.openReportDetail(report);else if(typeof openReportDetail==='function')openReportDetail(report)});
-      card.append(head,node('p','wd-feed-description',report.text||'Melding zonder beschrijving.'),open);
+      const account=window.WhatsupDogCommunity?.user;
+      if(account&&!account.is_anonymous&&report.userId===account.id){const remove=node('button','wd-feed-open danger-action','Melding wissen');remove.type='button';remove.addEventListener('click',()=>window.deleteReport?.(report));card.append(head,node('p','wd-feed-description',report.text||'Melding zonder beschrijving.'),open,remove)}else card.append(head,node('p','wd-feed-description',report.text||'Melding zonder beschrijving.'),open);
       list.append(card);
     }
   }
