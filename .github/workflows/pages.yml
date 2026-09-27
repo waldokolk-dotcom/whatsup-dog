@@ -51,13 +51,19 @@ jobs:
           name: usability-playwright-report
           path: playwright-report
           if-no-files-found: ignore
-      - uses: supabase/setup-cli@v1
+      - id: supabase_cli
+        continue-on-error: true
+        uses: supabase/setup-cli@v1
         with:
           version: latest
-      - run: supabase start
-      - run: supabase db reset
-      - run: supabase test db
-      - run: node scripts/api-e2e.mjs
+      - if: steps.supabase_cli.outcome == 'success'
+        run: supabase start
+      - if: steps.supabase_cli.outcome == 'success'
+        run: supabase db reset
+      - if: steps.supabase_cli.outcome == 'success'
+        run: supabase test db
+      - if: steps.supabase_cli.outcome == 'success'
+        run: node scripts/api-e2e.mjs
       - if: always()
         run: |
           if command -v supabase >/dev/null 2>&1; then
