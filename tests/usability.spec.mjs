@@ -350,6 +350,20 @@ test('verified login opens role-gated maintenance and logout closes it',async({p
   await expect(page.locator('#wdMaintenance')).toBeHidden();
 });
 
+test('a guest cannot publish or queue a report without a verified account',async({page})=>{
+  await installSafeRoutes(page);await seedProfile(page);await openApp(page);
+  await page.locator('#homeReport').click();
+  await page.locator('[data-quick-type="danger"]').click();
+  await page.locator('[data-danger-type="glass"]').click();
+  await expect(page.locator('#reportDialog')).toBeVisible();
+  await page.locator('#reportText').fill('Anonieme testmelding die niet gepubliceerd mag worden');
+  await page.locator('#publishReport').click();
+  await expect(page.locator('#reportDialog')).toBeVisible();
+  await expect(page.locator('#toast')).toContainText('Log eerst in');
+  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_reports_v1')||'[]'));
+  expect(stored).toHaveLength(0);
+});
+
 test('newly submitted reports explicitly opt in, legacy local reports stay unsent',async({page})=>{
   await installVerifiedReportBackend(page);await mockGps(page);await seedProfile(page);await openApp(page);
   await page.locator('.bottom-nav [data-view="map"]').click();
