@@ -33,7 +33,7 @@ async function emailToken(email,type){
  assert.ok(r.ok,'Could not retrieve local Mailpit email');
  const mail=await r.json();
  const body=[mail.Text,mail.HTML].filter(Boolean).join(' ').replaceAll('&amp;','&');
- const links=body.match(/https?:\\/\\/[^\\s"'<>]+/g)||[];
+ const links=body.match(/https?:[^\s"'<>]+/g)||[];
  const match=links.map(x=>{try{return new URL(x)}catch{return null}}).find(x=>x?.pathname.includes('/verify')&&x.searchParams.get('type')===type);
  assert.ok(match,`No ${type} verification link in local email`);checks++;
  const token=match.searchParams.get('token')||match.searchParams.get('token_hash');
