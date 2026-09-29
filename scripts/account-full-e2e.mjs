@@ -105,5 +105,7 @@ assert.deepEqual(owned,[],'Deleted account listings were not cascaded');checks++
 const failedLogin=await req('/auth/v1/token?grant_type=password',{method:'POST',body:{email:a.email,password:secondPassword}});
 assert.ok(!failedLogin.r.ok,'Deleted account can sign in');checks++;
 // All remaining test data is ephemeral and local. Remove second identity, too.
-await must('/auth/v1/admin/users/'+b.id,{method:'DELETE',token:admin,k:admin});
+await must('/rest/v1/rpc/delete_my_account',{method:'POST',token:b.token,body:{}});
+const goneB=await req('/auth/v1/admin/users/'+b.id,{method:'GET',token:admin,k:admin});
+assert.equal(goneB.r.status,404,'Second account still exists after self-deletion');checks++;
 console.log(JSON.stringify({status:'PASS',scope:'local Supabase only',checks,journeys:['signup and email confirmation for two independent users','password login and wrong-password rejection','private profile RLS','giveaway listing cross-user read and ownership','private chat between the same two verified accounts','shared report visibility and nonowner write denial','recovery email and new password','logout token revocation','account self-deletion and listing cascade','deleted account login denied']}));
