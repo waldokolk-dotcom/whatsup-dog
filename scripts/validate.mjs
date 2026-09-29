@@ -72,14 +72,14 @@ assert.match(indexSource,/production-alerts\.js\?v=4/,'Production alert preferen
 assert.match(read('production-alerts.js'),/wd_alert_preferences_v1/,'Alert preferences must persist');
 assert.doesNotMatch(indexSource,/id="clearReports"|id="pushDemo"/,'No inert mass-clear or test notification controls');
 const loginSource=read('account-login.js');
-assert.match(indexSource,/account-login\.js\?v=5/,'Accessible account login missing from profile');
+assert.match(indexSource,/account-login\.js\?v=6/,'Accessible account login missing from profile');
 assert.match(indexSource,/account-login\.css\?v=3/,'Login design stylesheet missing');
-assert.match(read('sw.js'),/account-login\.js\?v=5/,'Login must be included in the offline app shell');
+assert.match(read('sw.js'),/account-login\.js\?v=6/,'Login must be included in the offline app shell');
 assert.match(loginSource,/signInWithPassword/,'Password sign-in missing');
 assert.match(loginSource,/shouldCreateUser:false/,'Magic link must never silently create a new account');
 const signupSource=read('account-onboarding.js');
-assert.match(indexSource,/account-onboarding\.js\?v=1/,'Registration and profile editor must be included in the app');
-assert.match(read('sw.js'),/account-onboarding\.js\?v=1/,'Member account setup must ship in the offline shell');
+assert.match(indexSource,/account-onboarding\.js\?v=2/,'Registration and profile editor must be included in the app');
+assert.match(read('sw.js'),/account-onboarding\.js\?v=2/,'Member account setup must ship in the offline shell');
 assert.match(signupSource,/auth\.signUp/,'Password account creation must be backed by Supabase Auth');
 assert.match(signupSource,/shouldCreateUser:true/,'Passwordless signup must be an explicit separate option');
 assert.match(signupSource,/resetPasswordForEmail/,'Account holders need a password recovery flow');
@@ -168,7 +168,7 @@ assert.match(indexSource,/breed\.css\?v=2/,'Breed styles cache-busting version m
 assert.match(indexSource,/smart-report\.css\?v=3/,'Enhanced report styles are not wired into frontend');
 assert.match(indexSource,/smart-report-v3\.js\?v=4/,'Enhanced report controller is not wired into frontend');
 assert.match(indexSource,/backend-config\.js\?v=4/,'Backend config is not wired into frontend');
-assert.match(indexSource,/community-backend\.js\?v=2/,'Community backend is not wired into frontend');
+assert.match(indexSource,/community-backend\.js\?v=3/,'Community backend is not wired into frontend');
 
 const breedContext={window:{},document:{getElementById:()=>null}};
 vm.runInNewContext(breedSource,breedContext);
