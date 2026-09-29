@@ -24,6 +24,8 @@ jobs:
           version: latest
       - run: supabase start
       - run: supabase db reset
+      - name: Verify moderator review, audit preservation and access controls
+        run: supabase test db
       - name: Two real local accounts, recovery, deletion and giveaway ownership
         run: node scripts/account-full-e2e.mjs
       - if: always()
