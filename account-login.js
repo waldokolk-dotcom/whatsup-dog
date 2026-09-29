@@ -28,7 +28,7 @@
   clearAutofill.textContent='Verkeerde invulling wissen';
   autofillWarning.append(autofillHelp,clearAutofill);
   actions.append(submit,link);form.append(emailLabel,email,autofillWarning,passwordLabel,password,passwordToggleLabel,actions,register);
-  const wrongAutofill=()=>/^(?:https?:\\/\\/|www\\.)/i.test(email.value.trim())||/\\.supabase\\.co(?:[\\/:?#]|$)/i.test(email.value.trim());
+  const wrongAutofill=()=>/^(?:https?:\/\/|www\.)/i.test(email.value.trim())||/\.supabase\.co(?:[\/:?#]|$)/i.test(email.value.trim());
   function checkAutofill(){
     const invalid=wrongAutofill();
     autofillWarning.hidden=!invalid;
