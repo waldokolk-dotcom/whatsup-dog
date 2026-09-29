@@ -16,6 +16,9 @@ create table if not exists public.giveaway_listings (
 create index if not exists giveaway_active_recent on public.giveaway_listings (created_at desc) where status='actief';
 create index if not exists giveaway_owner_recent on public.giveaway_listings (owner_id,created_at desc);
 alter table public.giveaway_listings enable row level security;
+-- Supabase projects may grant newly created public tables to anon by default.
+-- Remove default privileges before allowing only the minimum authenticated DML.
+revoke all on public.giveaway_listings from anon,authenticated;
 grant select,insert,update,delete on public.giveaway_listings to authenticated;
 create policy giveaway_read on public.giveaway_listings for select to authenticated
  using (status='actief' or owner_id=(select auth.uid()));
