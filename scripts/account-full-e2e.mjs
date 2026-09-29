@@ -28,7 +28,7 @@ async function emailToken(email,type){
   await new Promise(resolve=>setTimeout(resolve,250));
  }
  assert.ok(messages.length,`No ${type} email in isolated Inbucket mailbox ${mailbox}`);checks++;
- const r=await fetch(new URL('/api/v1/mailbox/'+encodeURIComponent(mailbox)+'/'+encodeURIComponent(messages.at(-1).id),inbox));
+ const r=await fetch(new URL('/api/v1/mailbox/'+encodeURIComponent(mailbox)+'/'+encodeURIComponent(messages[0].id),inbox));
  assert.ok(r.ok,'Could not retrieve local confirmation email');
  const mail=await r.json();
  const body=[mail.body?.text,mail.body?.html,mail.text,mail.html].filter(Boolean).join(' ').replaceAll('&amp;','&');
