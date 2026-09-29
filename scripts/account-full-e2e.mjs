@@ -70,6 +70,19 @@ const othersWrite=await req('/rest/v1/giveaway_listings?owner_id=eq.'+a.id,{toke
 assert.ok(!othersWrite.r.ok||othersWrite.r.status===204,'Unexpected mutation response');checks++;
 const after=await must('/rest/v1/giveaway_listings?select=title&owner_id=eq.'+a.id,{token:a.token});
 assert.equal(after[0].title,'Hondenmand','B modified A listing');checks++;
+// The SAME two confirmed identities must exchange a private chat and a shared report.
+await must('/rest/v1/rpc/set_profile_discoverability',{token:b.token,method:'POST',body:{enabled:true,profile_name:'Weggeef E2E B',profile_avatar:'🐕',profile_place:'Nijkerk',pet_breed:'Friese stabij'}});
+const room=await must('/rest/v1/rpc/start_private_chat',{token:a.token,method:'POST',body:{target:b.id}});
+await must('/rest/v1/chat_messages',{token:a.token,method:'POST',body:{room_id:room,user_id:a.id,body:'Bericht over gratis hondenmand'}});
+const inboxB=await must('/rest/v1/chat_messages?room_id=eq.'+room+'&select=body',{token:b.token});
+assert.ok(inboxB.some(x=>x.body==='Bericht over gratis hondenmand'),'B did not receive A private chat');checks++;
+const reportId='wd-account-'+seed+'-report';
+await must('/rest/v1/reports',{token:a.token,method:'POST',body:{id:reportId,user_id:a.id,author_name:'Weggeef E2E A',species:'dog',type:'danger',text:'Tijdelijke testmelding',lat:52.2,lng:5.4,geometry_type:'point'}});
+const reportB=await must('/rest/v1/reports?id=eq.'+reportId+'&select=id,user_id,text',{token:b.token});
+assert.equal(reportB[0]?.user_id,a.id,'B cannot read the shared report from A');checks++;
+await req('/rest/v1/reports?id=eq.'+reportId,{token:b.token,method:'PATCH',body:{text:'Onbevoegd aangepast'}});
+const original=await must('/rest/v1/reports?id=eq.'+reportId+'&select=text',{token:a.token});
+assert.equal(original[0]?.text,'Tijdelijke testmelding','B modified A report');checks++;
 await must('/auth/v1/recover',{method:'POST',body:{email:a.email}});
 const recoveryToken=await emailToken(a.email,'recovery');
 const recovery=await must('/auth/v1/verify',{method:'POST',body:{token_hash:recoveryToken,type:'recovery'}});
@@ -93,4 +106,4 @@ const failedLogin=await req('/auth/v1/token?grant_type=password',{method:'POST',
 assert.ok(!failedLogin.r.ok,'Deleted account can sign in');checks++;
 // All remaining test data is ephemeral and local. Remove second identity, too.
 await must('/auth/v1/admin/users/'+b.id,{method:'DELETE',token:admin,k:admin});
-console.log(JSON.stringify({status:'PASS',scope:'local Supabase only',checks,journeys:['signup and email confirmation for two independent users','password login and wrong-password rejection','private profile RLS','giveaway listing cross-user read and ownership','recovery email and new password','logout token revocation','account self-deletion and listing cascade','deleted account login denied']}));
+console.log(JSON.stringify({status:'PASS',scope:'local Supabase only',checks,journeys:['signup and email confirmation for two independent users','password login and wrong-password rejection','private profile RLS','giveaway listing cross-user read and ownership','private chat between the same two verified accounts','shared report visibility and nonowner write denial','recovery email and new password','logout token revocation','account self-deletion and listing cascade','deleted account login denied']}));
