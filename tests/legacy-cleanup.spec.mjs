@@ -22,7 +22,7 @@ test('verified account can selectively remove old device reports without deletin
  await setup(page);
  await expect(page.locator('#wdLegacyCleanup')).toBeVisible();
  await expect(page.locator('#wdLegacyRows input')).toHaveCount(2);
- await page.locator('#wdLegacyRows input').check({force:true});
+ await page.locator('#wdLegacyRows input').first().check();
  await page.locator('#wdLegacyRows input').last().check();
  const dialogs=[];
  page.on('dialog',async d=>{dialogs.push(d.message());await d.accept()});
