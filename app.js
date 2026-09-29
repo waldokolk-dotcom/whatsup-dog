@@ -100,5 +100,5 @@ function setupAreaDetail(){el('areaShowMap')?.addEventListener('click',()=>{if(!
 
 function registerServiceWorker(){if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{})}
 
-setupDialogs();setupNavigation();showView('pawwheel');initMap();setupProfile();setupReports();setupAreaDetail();
+setupDialogs();setupNavigation();showView('home');initMap();setupProfile();setupReports();setupAreaDetail();
 registerServiceWorker();
