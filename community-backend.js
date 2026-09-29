@@ -218,6 +218,13 @@
       setStatus('Verbinden','Veilige communityverbinding opzetten…');
       await loadScript(SUPABASE_JS,()=>Boolean(window.supabase?.createClient));
       state.client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:window.__WD_PREVIEW__?'wd-preview-supabase-auth-v1':undefined}});
+      // Capture Supabase's one-shot recovery event before initial session load:
+      // the SDK may consume and clear the URL fragment during initialization.
+      state.client.auth.onAuthStateChange(event=>{
+        if(event!=='PASSWORD_RECOVERY')return;
+        try{sessionStorage.setItem('wd_password_recovery_pending_v1','1')}catch{}
+        document.dispatchEvent(new CustomEvent('wd:password-recovery'));
+      });
       await ensureUser();if(state.user?.is_anonymous)await syncProfile();state.ready=true;
       window.WhatsupDogCommunity={configured:true,get client(){return state.client},get user(){return state.user},refresh:refreshSharedReports,processQueue,syncAuthUser};
       // Account UI may have loaded before the backend finished restoring the
