@@ -29,7 +29,7 @@
   loadDialogUi();
   import('./version.js?v=1.9.1').catch(err=>console.warn('Versiecontroller kon niet laden',err));
   import('./mobile-ui.js?v=1.9.1').catch(err=>console.warn('Mobiele UI kon niet laden',err));
-  import('./profile-ui.js?v=1').catch(err=>console.warn('Profiel-UI kon niet laden',err));
+  import('./profile-ui.js?v=2').catch(err=>console.warn('Profiel-UI kon niet laden',err));
   loadCommunityTools();
   loadUiHotfix();
   document.addEventListener('wd:shared-reports-updated',redrawSharedShapes);
