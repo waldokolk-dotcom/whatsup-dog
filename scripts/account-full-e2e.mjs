@@ -20,19 +20,20 @@ async function must(path,options={}){
  assert.ok(out.r.ok,`${options.method||'GET'} ${path}: ${out.r.status} ${JSON.stringify(out.data)}`);checks++;return out.data;
 }
 async function emailToken(email,type){
- const mailbox=email.split('@')[0];
+ // Current Supabase CLI uses local Mailpit, not legacy Inbucket.
  let messages=[];
  for(let i=0;i<40;i++){
-  const r=await fetch(new URL('/api/v1/mailbox/'+encodeURIComponent(mailbox),inbox));
-  if(r.ok){messages=await r.json();if(messages.length)break}
+  const q=new URL('/api/v1/search',inbox);q.searchParams.set('query','to:'+email);
+  const r=await fetch(q);
+  if(r.ok){const found=await r.json();messages=found.messages||[];if(messages.length)break}
   await new Promise(resolve=>setTimeout(resolve,250));
  }
- assert.ok(messages.length,`No ${type} email in isolated Inbucket mailbox ${mailbox}`);checks++;
- const r=await fetch(new URL('/api/v1/mailbox/'+encodeURIComponent(mailbox)+'/'+encodeURIComponent(messages[0].id),inbox));
- assert.ok(r.ok,'Could not retrieve local confirmation email');
+ assert.ok(messages.length,`No ${type} email in isolated local Mailpit mailbox`);checks++;
+ const r=await fetch(new URL('/api/v1/message/'+encodeURIComponent(messages[0].ID),inbox));
+ assert.ok(r.ok,'Could not retrieve local Mailpit email');
  const mail=await r.json();
- const body=[mail.body?.text,mail.body?.html,mail.text,mail.html].filter(Boolean).join(' ').replaceAll('&amp;','&');
- const links=body.match(/https?:\/\/[^\s"'<>]+/g)||[];
+ const body=[mail.Text,mail.HTML].filter(Boolean).join(' ').replaceAll('&amp;','&');
+ const links=body.match(/https?:\\/\\/[^\\s"'<>]+/g)||[];
  const match=links.map(x=>{try{return new URL(x)}catch{return null}}).find(x=>x?.pathname.includes('/verify')&&x.searchParams.get('type')===type);
  assert.ok(match,`No ${type} verification link in local email`);checks++;
  const token=match.searchParams.get('token')||match.searchParams.get('token_hash');
@@ -44,12 +45,12 @@ const firstPassword='WD!'+randomBytes(20).toString('base64url');
 const secondPassword='WD!'+randomBytes(20).toString('base64url');
 async function signup(email,password){
  const result=await must('/auth/v1/signup',{method:'POST',body:{email,password}});
- assert.ok(result.user?.id,'Signup did not create user');checks++;
+ const created=result.user||result;assert.ok(created.id,'Signup did not create user');checks++;
  assert.ok(!result.access_token,'Unconfirmed signup unexpectedly got a session');checks++;
  const token=await emailToken(email,'signup');
  const verified=await must('/auth/v1/verify',{method:'POST',body:{token_hash:token,type:'signup'}});
  assert.ok(verified.access_token,'Confirmation did not establish a session');checks++;
- return{id:result.user.id,email,password,token:verified.access_token};
+ return{id:created.id,email,password,token:verified.access_token};
 }
 const a=await signup(emailA,firstPassword),b=await signup(emailB,secondPassword);
 const denied=await req('/auth/v1/token?grant_type=password',{method:'POST',body:{email:a.email,password:'wrong-password'}});
