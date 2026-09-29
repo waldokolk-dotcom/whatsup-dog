@@ -22,7 +22,7 @@
     const summary=document.createElement('div');summary.id='selectedReportSummary';summary.className='selected-report-summary';
     const wrap=document.createElement('div');wrap.id='smartReportToolsV2';wrap.className='smart-report-tools';wrap.innerHTML=`
       <section class="smart-block">
-        <div class="photo-actions"><label class="photo-btn">📸 Maak foto<input id="reportCameraV2" type="file" accept="image/*" capture="environment"></label></div>
+        <div class="photo-actions"><label class="photo-btn">📸 Maak foto<input id="reportCameraV2" type="file" accept="image/*" capture="environment"></label><label class="photo-btn">🖼️ Kies foto<input id="reportPhotoV2" type="file" accept="image/*"></label></div>
         <div id="photoPreviewWrapV2" class="photo-preview-wrap"><img id="photoPreviewV2" alt="Voorbeeld van de melding"><button id="removePhotoV2" class="remove-photo" type="button" aria-label="Foto verwijderen">×</button></div>
         <button id="recognizePhotoV2" class="ai-photo-btn" type="button" disabled>✨ Herken wat erop staat</button><div id="aiResultV2" class="ai-result" aria-live="polite"></div>
         <p class="photo-privacy">🔒 De foto wordt opnieuw opgebouwd voor opslag. De oorspronkelijke EXIF/GPS-metadata wordt niet bewaard.</p>
