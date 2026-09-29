@@ -18,7 +18,35 @@
   const submit=document.createElement('button');submit.type='submit';submit.className='primary';submit.textContent='Inloggen met wachtwoord';
   const link=document.createElement('button');link.type='button';link.className='outline-btn';link.textContent='Mail mij een inloglink';
   const register=document.createElement('button');register.type='button';register.className='outline-btn';register.id='wdAccountRegister';register.textContent='Maak een gratis buurtaccount';
-  actions.append(submit,link);form.append(emailLabel,email,passwordLabel,password,passwordToggleLabel,actions,register);
+  const autofillWarning=document.createElement('div');
+  autofillWarning.id='wdAutofillWarning';autofillWarning.className='wd-autofill-warning';autofillWarning.hidden=true;
+  autofillWarning.setAttribute('role','alert');
+  const autofillHelp=document.createElement('p');
+  autofillHelp.textContent='Je telefoon heeft een websiteadres ingevuld in plaats van je e-mailadres. Dit lijkt een opgeslagen Supabase-login, niet je Whatsup Dog-account. Wis deze invulling en kies je eigen e-mailadres en wachtwoord.';
+  const clearAutofill=document.createElement('button');
+  clearAutofill.id='wdClearWrongAutofill';clearAutofill.className='outline-btn';clearAutofill.type='button';
+  clearAutofill.textContent='Verkeerde invulling wissen';
+  autofillWarning.append(autofillHelp,clearAutofill);
+  actions.append(submit,link);form.append(emailLabel,email,autofillWarning,passwordLabel,password,passwordToggleLabel,actions,register);
+  const wrongAutofill=()=>/^(?:https?:\\/\\/|www\\.)/i.test(email.value.trim())||/\\.supabase\\.co(?:[\\/:?#]|$)/i.test(email.value.trim());
+  function checkAutofill(){
+    const invalid=wrongAutofill();
+    autofillWarning.hidden=!invalid;
+    if(invalid)status.textContent='Dit is een webadres, geen e-mailadres. Gebruik je Whatsup Dog-inloggegevens.';
+    return invalid;
+  }
+  clearAutofill.addEventListener('click',()=>{
+    email.value='';password.value='';password.type='password';passwordToggle.checked=false;
+    autofillWarning.hidden=true;status.textContent='Vul je eigen e-mailadres in. Kies niet de opgeslagen Supabase-login.';
+    email.focus({preventScroll:true});
+  });
+  email.addEventListener('input',checkAutofill);
+  email.addEventListener('change',checkAutofill);
+  password.addEventListener('change',checkAutofill);
+  document.addEventListener('focusin',event=>{if(event.target===email||event.target===password)checkAutofill()});
+  window.addEventListener('pageshow',()=>setTimeout(checkAutofill,250));
+  setTimeout(checkAutofill,300);
+
   passwordToggle.addEventListener('change',()=>{password.type=passwordToggle.checked?'text':'password'});
   // Allow the browser password manager on the real login form. Never store
   // credentials in localStorage or clear a password while someone is typing.
@@ -48,6 +76,7 @@
   const setBusy=value=>{busy=value;render()};
   form.addEventListener('submit',async event=>{
     event.preventDefault();
+    if(checkAutofill()){email.focus({preventScroll:true});return}
     if(preview||busy||!client()||!form.reportValidity())return;
     if(!password.value){status.textContent='Vul je wachtwoord in, of gebruik de inloglink per e-mail.';password.focus();return}
     setBusy(true);status.textContent='Je account wordt gecontroleerd…';
@@ -69,6 +98,7 @@
   });
   link.addEventListener('click',async()=>{
     if(Date.now()<linkCooldownUntil){status.textContent='Wacht nog even voordat je een nieuwe inloglink aanvraagt. Kijk eerst in je mailbox.';return}
+    if(checkAutofill()){email.focus({preventScroll:true});return}
     if(preview||busy||!client()||!email.checkValidity()){if(!preview)email.reportValidity();return}
     setBusy(true);status.textContent='Inloglink aanvragen…';
     try{
@@ -86,7 +116,7 @@
     if(!create)return;
     create.hidden=false;
     const signupEmail=document.getElementById('wdSignupEmail');
-    if(signupEmail&&email.value.trim())signupEmail.value=email.value.trim();
+    if(signupEmail&&email.checkValidity()&&email.value.trim()&&!wrongAutofill())signupEmail.value=email.value.trim();
     create.scrollIntoView({block:'start',behavior:'smooth'});
     signupEmail?.focus({preventScroll:true});
   });
