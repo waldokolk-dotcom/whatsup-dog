@@ -61,7 +61,7 @@ async function save(event){
    // merely because a *second*, read-only verification request fails.
    serverProfile={...(serverProfile||{}),display_name:p.name,avatar:p.avatar,home_place:p.homePlace,breed:p.breed,discoverable:requested};
    toggle.checked=requested;
-   status(requested?'Je profiel is vindbaar. Opgeslagen.':'Je profiel is niet vindbaar. Opgeslagen.',true);
+   status(requested?'Je profiel is vindbaar. Opgeslagen.':'Vindbaarheid is uitgeschakeld. Opgeslagen.',true);
    document.dispatchEvent(new CustomEvent('wd:directory-updated'));
    try{
      const {data:check,error:readError}=await account().client.from('profiles').select('display_name,avatar,home_place,breed,discoverable').eq('id',id).maybeSingle();
@@ -70,7 +70,7 @@ async function save(event){
      if(check){
        serverProfile=check;
        toggle.checked=Boolean(check.discoverable);
-       status(toggle.checked?'Je profiel is vindbaar. Opgeslagen.':'Je profiel is niet vindbaar. Opgeslagen.',true);
+       status(toggle.checked?'Je profiel is vindbaar. Opgeslagen.':'Vindbaarheid is uitgeschakeld. Opgeslagen.',true);
      }
    }catch(verificationError){
      console.warn('Vindbaarheid is opgeslagen; extra controle tijdelijk niet beschikbaar',verificationError);
