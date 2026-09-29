@@ -53,9 +53,19 @@ test('a successful visibility write stays checked when only the follow-up read f
  "window.WhatsupDogCommunity={configured:true,client,user:person};",
  "document.dispatchEvent(new CustomEvent('wd:auth-changed'));"
  ].join('\n');
+ const pageErrors=[];page.on('pageerror',error=>pageErrors.push(error.message));
  await setup(page,backend);
  const toggle=page.locator('#directoryOptIn'),status=page.locator('#directoryOptInStatus');
- await expect(toggle).toBeEnabled();
+ try{await expect(toggle).toBeEnabled({timeout:2500})}
+ catch{
+   const diagnostic=await page.evaluate(()=>({
+     visibilityStatus:document.getElementById('directoryOptInStatus')?.textContent,
+     connected:!!window.WhatsupDogCommunity?.client,
+     verified:!window.WhatsupDogCommunity?.user?.is_anonymous,
+     checkDisabled:document.getElementById('directoryOptIn')?.disabled
+   }));
+   throw new Error('Discoverability test fixture failed to become ready: '+JSON.stringify({diagnostic,pageErrors}));
+ }
  await toggle.check();
  await expect(toggle).toBeChecked();
  await expect(toggle).toBeEnabled();
