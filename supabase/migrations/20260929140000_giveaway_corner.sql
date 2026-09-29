@@ -31,7 +31,7 @@ insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
  on conflict (id) do nothing;
 create policy giveaway_photo_upload on storage.objects for insert to authenticated
  with check (bucket_id='giveaway-photos' and coalesce((auth.jwt()->>'is_anonymous')::boolean,true)=false
- and name ~ ('^'||(select auth.uid())::text||'/[0-9a-f-]{36}\\.jpg$'));
+ and name ~ ('^'||(select auth.uid())::text||'/[0-9a-f-]{36}\.jpg$'));
 create policy giveaway_photo_read on storage.objects for select to authenticated
  using (bucket_id='giveaway-photos' and
  ((storage.foldername(name))[1]=(select auth.uid())::text or exists
