@@ -4,7 +4,7 @@ const owner='55555555-5555-4555-8555-555555555555';
 async function setup(page,{verified=true}={}){
  await page.addInitScript(({owner})=>{
   localStorage.setItem('wd_profile_v1',JSON.stringify({name:'Bowie',avatar:'🐶',homePlace:'Nijkerk',speciesContext:'dog'}));
-  localStorage.setItem('wd_reports_v1',JSON.stringify([
+  if(!localStorage.getItem('wd_reports_v1'))localStorage.setItem('wd_reports_v1',JSON.stringify([
    {id:'old-local',text:'Oude melding zonder eigenaar',author:'Oude naam',type:'danger',lat:52.2,lng:5.4},
    {id:'other-remote',text:'Oude gedeelde melding',author:'Ander account',type:'fun',_remote:true,userId:'other-id',lat:52.2,lng:5.4},
    {id:'my-report',text:'Mijn huidige melding',author:'Bowie',type:'fun',_accountOwner:owner,lat:52.2,lng:5.4}
