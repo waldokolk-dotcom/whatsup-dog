@@ -21,8 +21,10 @@ page.innerHTML=`<header class="page-brand"><div class="chat-logo" aria-hidden="t
 <label>Foto (optioneel, maximaal 5 MB)<input name="photo" type="file" accept="image/jpeg,image/png,image/webp"></label>
 <div class="wd-giveaway-toolbar"><button type="submit" class="primary">Plaatsen</button><button type="button" id="wdGiveCancel" class="outline-btn">Annuleren</button></div></form>`;
 ROOT.append(page);
-const nav=document.querySelector('.bottom-nav [data-view="feed"]');
-if(nav){const b=document.createElement('button');b.type='button';b.className='nav-item';b.dataset.view='giveaway';b.innerHTML='<span aria-hidden="true">🎁</span><small>Weggeven</small>';nav.after(b);b.addEventListener('click',()=>{if(typeof showView==='function')showView('giveaway');load()})}
+const home=document.getElementById('homeCommunity');
+if(home){const b=document.createElement('button');b.type='button';b.className='outline-btn wd-giveaway-entry';b.textContent='🎁 Gratis weggeef- en ruilhoek';home.after(b);b.addEventListener('click',()=>{if(typeof showView==='function')showView('giveaway');load()})}
+const feed=document.querySelector('#view-feed .page-brand');
+if(feed){const b=document.createElement('button');b.type='button';b.className='outline-btn';b.textContent='🎁 Weggeefhoek';feed.after(b);b.addEventListener('click',()=>{if(typeof showView==='function')showView('giveaway');load()})}
 function status(s){$('wdGiveStatus').textContent=s}
 function card(l){const e=document.createElement('article');e.className='wd-giveaway-card';
  e.innerHTML=`<div class="wd-giveaway-photo"></div><div><small>${l.kind==='ruilen'?'Ruilen':'Gratis'} · ${escape(l.category)} · ${escape(l.town)}</small><h2>${escape(l.title)}</h2><p>${escape(l.description)}</p><div class="wd-giveaway-toolbar"></div></div>`;
