@@ -1,0 +1,38 @@
+name: Real hosted mobile account login
+on:
+  push:
+    branches:
+      - fix/real-login-recovery-20260929
+    paths:
+      - 'scripts/hosted-browser-login.mjs'
+      - '.github/workflows/hosted-browser-login.yml'
+      - 'account-login.js'
+      - 'account-onboarding.js'
+      - 'community-backend.js'
+      - 'index.html'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: real-hosted-mobile-account-login
+  cancel-in-progress: false
+jobs:
+  mobile-login:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Test real browser against live Auth and clean up disposable accounts
+        env:
+          WHATSUP_DOG_E2E_SERVICE_ROLE_KEY: ${{ secrets.WHATSUP_DOG_E2E_SERVICE_ROLE_KEY }}
+        run: |
+          python3 -m http.server 8765 >/tmp/wd-hosted-browser-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in {1..30}; do if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi; sleep 0.5; done
+          node scripts/hosted-browser-login.mjs
