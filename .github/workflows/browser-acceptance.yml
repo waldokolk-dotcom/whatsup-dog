@@ -6,6 +6,10 @@ on:
       - 'giveaway.*'
       - 'index.html'
       - 'tests/account.spec.mjs'
+      - 'tests/account-feedback.spec.mjs'
+      - 'directory-ui.js'
+      - 'profile-ui.js'
+      - 'account-login.css'
       - 'tests/giveaway.spec.mjs'
       - 'tests/legacy-cleanup.spec.mjs'
       - 'legacy-report-cleanup.js'
@@ -33,7 +37,7 @@ jobs:
           SERVER_PID=$!
           trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
           for i in {1..30}; do if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi; sleep 0.5; done
-          npx playwright test tests/account.spec.mjs tests/giveaway.spec.mjs tests/legacy-cleanup.spec.mjs --reporter=line --global-timeout=240000
+          npx playwright test tests/account.spec.mjs tests/account-feedback.spec.mjs tests/giveaway.spec.mjs tests/legacy-cleanup.spec.mjs --reporter=line --global-timeout=240000
       - if: always()
         uses: actions/upload-artifact@v4
         with:

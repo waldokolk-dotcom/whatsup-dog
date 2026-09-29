@@ -10,6 +10,7 @@
 .wd-account-actions button,.wd-account #wdAccountSigned button{min-height:48px}
 .wd-account [hidden]{display:none!important}
 #wdAccountStatus{min-height:1.5em;color:var(--text-muted);font-size:.9rem}
+#wdLoginSuccess{padding:12px 14px;border:1px solid #a6d8b6;border-radius:13px;background:#effaf1;color:#185c37;font-weight:800;font-size:1rem;line-height:1.45}
 @media(min-width:550px){.wd-account-actions{grid-template-columns:1fr 1fr}}
 
 /* Member registration and profile completion remain thumb-first and uncluttered. */
