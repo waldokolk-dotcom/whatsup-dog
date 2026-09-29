@@ -44,6 +44,14 @@ async function installDirectoryBackend(page){
   `}));
 }
 
+async function installVerifiedReportBackend(page){
+  await installSafeRoutes(page);
+  await page.route('**/community-backend.js*',route=>route.fulfill({
+    status:200,contentType:'application/javascript',
+    body:"window.WhatsupDogCommunity={configured:false,user:{id:'55555555-5555-4555-8555-555555555555',is_anonymous:false},client:null};"
+  }));
+}
+
 async function seedProfile(page){
   await page.addInitScript(profile=>localStorage.setItem('wd_profile_v1',JSON.stringify(profile)),{
     name:'Bowie',avatar:'🐶',homePlace:'Nijkerk',homeLat:52.2182,homeLng:5.4835,createdAt:'2026-09-14T00:00:00.000Z'
@@ -123,7 +131,7 @@ test('new user can complete calm onboarding without opening optional details',as
 });
 
 for(const mode of ['dog','cat','both'])test(`${mode.toUpperCase()} mode stays coherent after reload and navigation`,async({page})=>{
-  await installSafeRoutes(page);await mockGps(page);await seedSpeciesProfile(page,mode);await openApp(page);
+  await installVerifiedReportBackend(page);await mockGps(page);await seedSpeciesProfile(page,mode);await openApp(page);
   await expect(page.locator('body')).toHaveClass(new RegExp(`mode-${mode}`));
   if(mode==='cat'){
     await expect(page.locator('#homeOffleash')).toBeHidden();
@@ -174,7 +182,7 @@ test('phone install help is A2 and switches between Apple and other phones',asyn
 });
 
 test('core report journey with photo can be completed and survives reload',async({page})=>{
-  await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
+  await installVerifiedReportBackend(page);await mockGps(page);await seedProfile(page);await openApp(page);
   await page.locator('.bottom-nav [data-view="map"]').click();await expect(page.locator('#view-map')).toHaveClass(/active/);await page.locator('#wdQuickReport').click();await page.locator('[data-paw-view=report]').click();await expect(page.locator('#wdQuickWheel')).toBeVisible();await page.locator('[data-quick-type="danger"]').click();await page.locator('[data-danger-type="glass"]').click();await expect(page.locator('#reportDialog')).toBeVisible();await expect(page.locator('#reportDetails')).not.toHaveClass(/hidden/);await expect(page.locator('#reportPhotoBox')).toBeHidden();await expect(page.locator('#reportAdminMeta')).toBeHidden();
   const svg=Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30"><rect width="40" height="30" fill="orange"/></svg>');await page.locator('#reportPhotoV2').setInputFiles({name:'pad.svg',mimeType:'image/svg+xml',buffer:svg});await expect(page.locator('#photoPreviewWrapV2')).toHaveClass(/has-photo/);await page.locator('#reportText').fill('Glas op het wandelpad bij het park');await expect(page.locator('#wdQuickLocation')).toContainText('18 meter');await page.locator('#publishReport').click();
   await expect(page.locator('#reportDialog')).not.toBeVisible();await expect(page.locator('#toast')).toContainText(/melding.*kaart|dankjewel/i);const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('wd_reports_v1')||'[]'));expect(stored).toHaveLength(1);expect(stored[0].text).toContain('Glas op het wandelpad');expect(stored[0].lat).toBe(52.2182);expect(stored[0].lng).toBe(5.4835);expect(stored[0].createdAt).toBeTruthy();expect(stored[0].photoDataUrl).toMatch(/^data:image\/jpeg;base64,/);
@@ -343,7 +351,7 @@ test('verified login opens role-gated maintenance and logout closes it',async({p
 });
 
 test('newly submitted reports explicitly opt in, legacy local reports stay unsent',async({page})=>{
-  await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
+  await installVerifiedReportBackend(page);await mockGps(page);await seedProfile(page);await openApp(page);
   await page.locator('.bottom-nav [data-view="map"]').click();
   await page.locator('#wdQuickReport').click();await page.locator('[data-paw-view=report]').click();
   await page.locator('[data-quick-type="danger"]').click();
@@ -391,7 +399,7 @@ test('preview isolates browser storage and rejects writes to the hosted project'
 });
 
 test('quick wheel prefills GPS and local date with camera and gallery options',async({page})=>{
-  await installSafeRoutes(page);await mockGps(page);await seedProfile(page);await openApp(page);
+  await installVerifiedReportBackend(page);await mockGps(page);await seedProfile(page);await openApp(page);
   await page.locator('#wdQuickReport').click();await page.locator('[data-paw-view=report]').click();
   await expect(page.locator('#wdQuickWheel')).toBeVisible();
   await page.locator('[data-quick-type="danger"]').click();
