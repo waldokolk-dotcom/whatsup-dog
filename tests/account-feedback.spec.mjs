@@ -40,6 +40,49 @@ test('findability uses saved account profile and persists after reloading',async
  await expect(checkbox).not.toBeChecked();
 });
 
+test('a successful visibility write stays checked when only the follow-up read fails',async({page})=>{
+ const backend=[
+ "const person={id:'11111111-1111-4111-8111-111111111111',email:'member@example.test',is_anonymous:false};",
+ "let saved=localStorage.getItem('test-discoverable')==='yes';let failRead=false;",
+ "const profile=()=>({display_name:'Bewaarde profielnaam',avatar:'🐕',home_place:'Nijkerk',breed:'Friese stabij',discoverable:saved});",
+ "const client={auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},",
+ "from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>{if(failRead){failRead=false;return {data:null,error:{message:'Temporary profile lookup timeout'}}}return {data:profile(),error:null}}})})}),",
+ "rpc:async(name,args)=>{if(name!=='set_profile_discoverability')return {data:null,error:{message:'unexpected RPC'}};",
+ "saved=args.enabled;localStorage.setItem('test-discoverable',saved?'yes':'no');failRead=true;return {data:saved,error:null}}};",
+ "window.WhatsupDogCommunity={configured:true,client,user:person};",
+ "document.dispatchEvent(new CustomEvent('wd:auth-changed'));"
+ ].join('\\n');
+ await setup(page,backend);
+ const toggle=page.locator('#directoryOptIn'),status=page.locator('#directoryOptInStatus');
+ await expect(toggle).toBeEnabled();
+ await toggle.check();
+ await expect(toggle).toBeChecked();
+ await expect(toggle).toBeEnabled();
+ await expect(status).toContainText('opgeslagen');
+ expect(await page.evaluate(()=>localStorage.getItem('test-discoverable'))).toBe('yes');
+ await page.reload();
+ await page.locator('.bottom-nav [data-view="profile"]').click();
+ await expect(toggle).toBeChecked();
+});
+
+test('invalid saved password offers a recovery route rather than suggesting a new account',async({page})=>{
+ const backend=[
+ "const guest={id:'guest',is_anonymous:true};",
+ "const client={auth:{signInWithPassword:async()=>({data:null,error:{message:'Invalid login credentials'}}),getUser:async()=>({data:{user:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},",
+ "from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:null,error:null})})})}),rpc:async()=>({data:null,error:null})};",
+ "window.WhatsupDogCommunity={configured:true,client,user:guest};",
+ "document.dispatchEvent(new CustomEvent('wd:auth-changed'));"
+ ].join('\\n');
+ await setup(page,backend);
+ await page.locator('#wdAccountEmail').fill('member@example.test');
+ await page.locator('#wdAccountPassword').fill('outdated-device-password');
+ await page.locator('#wdAccountLogin button[type="submit"]').click();
+ await expect(page.locator('#wdAccountStatus')).toContainText('Mail mij een inloglink');
+ await expect(page.locator('#wdAccountEmail')).toHaveValue('member@example.test');
+ await expect(page.locator('#wdAccountPassword')).toHaveValue('outdated-device-password');
+ await expect(page.locator('#wdAccountLogin')).toBeVisible();
+});
+
 test('login is visibly confirmed and restored sign-in is clear',async({page})=>{
  const backend=[
  "const person={id:'22222222-2222-4222-8222-222222222222',email:'member@example.test',is_anonymous:false};",
