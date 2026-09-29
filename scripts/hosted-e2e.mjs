@@ -27,6 +27,8 @@ let assertions=0;
 let cleanupErrors=[];
 
 async function request(path,{token=serviceKey,key=serviceKey,method='GET',body,headers={}}={}){
+  // A temporary gateway error may be retried on reads, never on writes.
+  for(let attempt=0;attempt<3;attempt++){
   const response=await fetch(url+path,{
     method,
     headers:{apikey:key,Authorization:`Bearer ${token}`,...(body!==undefined?{'Content-Type':'application/json'}:{}),...headers},
@@ -34,7 +36,9 @@ async function request(path,{token=serviceKey,key=serviceKey,method='GET',body,h
   });
   const raw=await response.text();
   let data;try{data=raw?JSON.parse(raw):null}catch{data=raw}
-  return {response,data};
+  if(method!=='GET'||![502,503,504].includes(response.status)||attempt===2)return {response,data};
+  await new Promise(resolve=>setTimeout(resolve,400*(attempt+1)));
+  }
 }
 
 async function must(path,opts={}){
