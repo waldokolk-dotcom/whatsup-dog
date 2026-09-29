@@ -1,0 +1,31 @@
+name: Account and giveaway E2E
+on:
+  pull_request:
+    paths:
+      - 'scripts/account-full-e2e.mjs'
+      - 'supabase/**'
+      - 'giveaway.js'
+      - 'account-*.js'
+      - '.github/workflows/account-e2e.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  account-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase start
+      - run: supabase db reset
+      - name: Two real local accounts, recovery, deletion and giveaway ownership
+        run: node scripts/account-full-e2e.mjs
+      - if: always()
+        run: |
+          if command -v supabase >/dev/null 2>&1; then supabase stop --no-backup; fi
