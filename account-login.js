@@ -102,6 +102,8 @@
         try{
           const {data:current}=await client().auth.getUser();
           if(current?.user?.id&&!current.user.is_anonymous){
+            await window.WhatsupDogCommunity?.syncAuthUser?.(current.user);
+            lastLoginUserId=current.user.id;
             status.textContent='✓ Je bestaande sessie is actief. Je hoeft niet opnieuw in te loggen.';
             render();
             return;
