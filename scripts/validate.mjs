@@ -72,9 +72,9 @@ assert.match(indexSource,/production-alerts\.js\?v=4/,'Production alert preferen
 assert.match(read('production-alerts.js'),/wd_alert_preferences_v1/,'Alert preferences must persist');
 assert.doesNotMatch(indexSource,/id="clearReports"|id="pushDemo"/,'No inert mass-clear or test notification controls');
 const loginSource=read('account-login.js');
-assert.match(indexSource,/account-login\.js\?v=3/,'Accessible account login missing from profile');
-assert.match(indexSource,/account-login\.css\?v=2/,'Login design stylesheet missing');
-assert.match(read('sw.js'),/account-login\.js\?v=3/,'Login must be included in the offline app shell');
+assert.match(indexSource,/account-login\.js\?v=4/,'Accessible account login missing from profile');
+assert.match(indexSource,/account-login\.css\?v=3/,'Login design stylesheet missing');
+assert.match(read('sw.js'),/account-login\.js\?v=4/,'Login must be included in the offline app shell');
 assert.match(loginSource,/signInWithPassword/,'Password sign-in missing');
 assert.match(loginSource,/shouldCreateUser:false/,'Magic link must never silently create a new account');
 const signupSource=read('account-onboarding.js');

@@ -22,6 +22,23 @@ test('login supports browser password managers without wiping credentials while 
  await expect(page.locator('#wdAccountPassword')).toHaveValue('example-passphrase');
 });
 
+test('iOS password autofill URL is recognized and can be safely cleared',async({page})=>{
+ await page.addInitScript(()=>localStorage.setItem('wd_profile_v1',JSON.stringify({name:'Bowie',avatar:'🐶',homePlace:'Nijkerk',speciesContext:'dog'})));
+ await page.route('**/backend-config.js*',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.WHATSUP_DOG_BACKEND={enabled:false};'}));
+ await page.goto('/');
+ await page.locator('.bottom-nav [data-view="profile"]').click();
+ await page.locator('#wdAccountEmail').fill('https://wrong-project.supabase.co');
+ await page.locator('#wdAccountPassword').fill('not-the-whatsupdog-password');
+ await expect(page.locator('#wdAutofillWarning')).toBeVisible();
+ await expect(page.locator('#wdAutofillWarning')).toContainText('Supabase-login');
+ await page.locator('#wdClearWrongAutofill').click();
+ await expect(page.locator('#wdAccountEmail')).toHaveValue('');
+ await expect(page.locator('#wdAccountPassword')).toHaveValue('');
+ await expect(page.locator('#wdAutofillWarning')).toBeHidden();
+ await page.locator('#wdAccountEmail').fill('member@example.test');
+ await expect(page.locator('#wdAutofillWarning')).toBeHidden();
+});
+
 test('verified account creation persists the pet profile while discoverability defaults off',async({page})=>{
  await page.addInitScript(()=>localStorage.setItem('wd_profile_v1',JSON.stringify({name:'Bowie',avatar:'🐶',homePlace:'Nijkerk',homeLat:52.2182,homeLng:5.4835,speciesContext:'dog'})));
  await page.route('**/backend-config.js*',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.WHATSUP_DOG_BACKEND={enabled:false};'}));
