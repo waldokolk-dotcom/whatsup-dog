@@ -141,6 +141,17 @@ try{
   assert.deepEqual(hidden,[],'Hidden report remained visible to another user');assertions++;
   const signedAfterHide=await request(`/storage/v1/object/sign/report-photos/${photoPath}`,{token:b.token,key:publishableKey,method:'POST',body:{expiresIn:60}});
   assert.ok(!signedAfterHide.response.ok,'Hidden report photo was still signable by another user');assertions++;
+  // Exercise the real hosted Auth deletion RPC on both disposable, uniquely tagged accounts.
+  await must('/rest/v1/rpc/delete_my_account',{token:a.token,key:publishableKey,method:'POST',body:{}});
+  const aGone=await request('/auth/v1/admin/users/'+a.id);
+  assert.equal(aGone.response.status,404,'First synthetic account still exists after self-deletion');assertions++;
+  const survivor=await must('/rest/v1/profiles?select=id',{token:b.token,key:publishableKey});
+  assert.deepEqual(survivor.map(row=>row.id),[b.id],'Second account did not survive first deletion');assertions++;
+  await must('/rest/v1/rpc/delete_my_account',{token:b.token,key:publishableKey,method:'POST',body:{}});
+  const bGone=await request('/auth/v1/admin/users/'+b.id);
+  assert.equal(bGone.response.status,404,'Second synthetic account still exists after self-deletion');assertions++;
+  const deletedLogin=await request('/auth/v1/token?grant_type=password',{token:'',key:publishableKey,method:'POST',body:{email:a.email,password}});
+  assert.ok(!deletedLogin.response.ok,'Deleted hosted account could still sign in');assertions++;
 } finally {
   await cleanup();
 }
