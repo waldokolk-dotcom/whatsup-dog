@@ -3,7 +3,7 @@ import {test,expect} from '@playwright/test';
 const seed={name:'Oude lokale naam',avatar:'🐶',homePlace:'Nijkerk',speciesContext:'dog'};
 async function setup(page,backend){
  await page.addInitScript(data=>localStorage.setItem('wd_profile_v1',JSON.stringify(data)),seed);
- await page.route('**/backend-config.js*',r=>r.fulfill({status:200,contentType:'application/javascript',body:"window.WHATSUP_DOG_BACKEND={enabled:false};"}));
+ await page.route('**/backend-config.js*',r=>r.fulfill({status:200,contentType:'application/javascript',body:"window.WHATSUP_DOG_BACKEND={enabled:false};const bridge=document.createElement('script');bridge.src='./community-ui-bridge.js?v=1';bridge.dataset.wdCommunityUi='1';document.body.appendChild(bridge);"}));
  await page.route('**/community-backend.js*',r=>r.fulfill({status:200,contentType:'application/javascript',body:backend}));
  await page.goto('/');
  await page.locator('.bottom-nav [data-view="profile"]').click();
