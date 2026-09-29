@@ -58,7 +58,10 @@
   const status=document.createElement('p');status.id='wdAccountStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   const previewNotice=document.createElement('p');previewNotice.id='wdAccountPreviewNotice';previewNotice.hidden=!preview;
   previewNotice.textContent='Je bekijkt de alleen-lezen proefversie. Aanmelden en accounts aanmaken zijn hier uitgeschakeld; vul hier geen e-mailadres of wachtwoord in. De accountfunctie wordt pas beschikbaar na de beveiligde praktijktest.';
-  panel.append(heading,description,previewNotice,form,signed,status);
+  // Keep login failures and recovery instructions alongside the login button,
+  // where they remain visible on a small phone instead of below registration.
+  form.insertBefore(status,register);
+  panel.append(heading,description,previewNotice,form,signed);
   profile.append(panel);
   let busy=false,linkCooldownUntil=0,cooldownTimer=null,lastLoginUserId=null;
   function deferLink(){clearTimeout(cooldownTimer);cooldownTimer=setTimeout(()=>render(),Math.max(1000,linkCooldownUntil-Date.now()+100))}
@@ -83,7 +86,11 @@
     try{
       const {data,error}=await client().auth.signInWithPassword({email:email.value.trim(),password:password.value});
       if(error)throw error;
-      lastLoginUserId=data?.user?.id||null;
+      if(!data?.user?.id||data.user.is_anonymous||!data?.session?.access_token)throw new Error('login-missing-session');
+      // Update the visible session before showing success. Auth callbacks can
+      // otherwise lag behind a successful password response on mobile Safari.
+      await window.WhatsupDogCommunity?.syncAuthUser?.(data.user);
+      lastLoginUserId=data.user.id;
       password.value='';
       status.textContent='✓ Inloggen gelukt. Je bent ingelogd.';
       render();
@@ -101,10 +108,11 @@
           }
         }catch(sessionError){console.warn('Bestaande sessie kon niet worden bevestigd',sessionError)}
       }
+      if(message.includes('invalid login credentials')){password.value='';passwordToggle.checked=false;password.type='password'}
       status.textContent=message.includes('email not confirmed')||message.includes('email_not_confirmed')
         ?'Bevestig eerst je e-mailadres via de bevestigingsmail en probeer daarna opnieuw.'
         :message.includes('invalid login credentials')
-          ?'Dit e-mailadres en wachtwoord komen niet overeen. Controleer het door je telefoon ingevulde wachtwoord of gebruik ‘Mail mij een inloglink’ om je bestaande account te openen.'
+          ?'Dit wachtwoord hoort niet bij je account. Gebruik hieronder ‘Wachtwoord vergeten?’ voor een herstelmail, of kies ‘Mail mij een inloglink’. Maak geen nieuw account aan.'
           :'Inloggen is niet gelukt. Gebruik ‘Mail mij een inloglink’ of ‘Wachtwoord vergeten?’ om je bestaande account te openen.';
       console.warn('Whatsup Dog accountlogin mislukt',err)
     }
@@ -148,8 +156,11 @@
   document.addEventListener('wd:community-status',render);
   document.addEventListener('wd:auth-changed',()=>{
     render();
+    // A fresh anonymous session during app startup must not erase a password
+    // manager's autofill or an email the user is already entering.
     if(!window.WhatsupDogCommunity?.user||window.WhatsupDogCommunity.user.is_anonymous){
-      email.value='';password.value='';passwordToggle.checked=false;password.type='password';
+      if(form.hidden)return;
+      passwordToggle.checked=false;password.type='password';
     }
   });
   render();
