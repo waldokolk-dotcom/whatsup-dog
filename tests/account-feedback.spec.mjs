@@ -44,8 +44,8 @@ test('a successful visibility write stays checked when only the follow-up read f
  const backend=[
  "const person={id:'11111111-1111-4111-8111-111111111111',email:'member@example.test',is_anonymous:false};",
  "let saved=localStorage.getItem('test-discoverable')==='yes';let failRead=false;",
- "const profile=()=>({display_name:'Bewaarde profielnaam',avatar:'🐕',home_place:'Nijkerk',breed:'Friese stabij',discoverable:saved});",
- "const readProfile=async()=>{if(failRead){failRead=false;return {data:null,error:{message:'Temporary profile lookup timeout'}}}return {data:profile(),error:null}};",
+ "const fixtureProfile=()=>({display_name:'Bewaarde profielnaam',avatar:'🐕',home_place:'Nijkerk',breed:'Friese stabij',discoverable:saved});",
+ "const readProfile=async()=>{if(failRead){failRead=false;return {data:null,error:{message:'Temporary profile lookup timeout'}}}return {data:fixtureProfile(),error:null}};",
  "const client={auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},",
  "from:()=>({select:()=>({eq:()=>({maybeSingle:readProfile})})}),",
  "rpc:async(name,args)=>{if(name!=='set_profile_discoverability')return {data:null,error:{message:'unexpected RPC'}};",
