@@ -100,3 +100,11 @@ html,body,.app-shell,.page-view{background:var(--surface-canvas)!important;color
 
 /* Enhanced report UI is the sole photo picker, including the non-quick route. */
 #reportDialog:has(#smartReportToolsV2) #reportPhotoBox{display:none!important}
+
+/* Seven independent destinations, including Weggeefhoek, remain finger-friendly. */
+.bottom-nav.seven-nav{padding-inline:2px!important;gap:0!important}
+.bottom-nav.seven-nav .nav-item{flex:1 1 0;min-width:0;gap:2px;overflow:hidden}
+.bottom-nav.seven-nav .nav-item small{font-size:clamp(8px,2.2vw,10px);white-space:nowrap;letter-spacing:-.025em}
+.bottom-nav.seven-nav .nav-item svg{width:23px!important;height:23px!important}
+.bottom-nav.seven-nav .nav-gift-icon{display:block;font-size:22px;line-height:25px}
+@media(max-width:390px){.bottom-nav.seven-nav .nav-item small{font-size:8px;letter-spacing:-.035em}}
