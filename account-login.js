@@ -90,8 +90,22 @@
       if(typeof toast==='function')toast('✓ Je bent ingelogd bij Whatsup Dog');
     }catch(err){
       const message=String(err?.message||'').toLowerCase();
-      password.value=password.value;
-      status.textContent=message.includes('email not confirmed')||message.includes('email_not_confirmed')?'Bevestig eerst je e-mailadres via de bevestigingsmail en probeer daarna opnieuw.':message.includes('invalid login credentials')?'E-mailadres of wachtwoord klopt niet. Controleer beide velden.':'Inloggen is niet gelukt. Controleer je gegevens of gebruik de inloglink.';
+      // A valid restored session can race an extra password attempt.
+      if(message.includes('invalid login credentials')){
+        try{
+          const {data:current}=await client().auth.getUser();
+          if(current?.user?.id&&!current.user.is_anonymous){
+            status.textContent='✓ Je bestaande sessie is actief. Je hoeft niet opnieuw in te loggen.';
+            render();
+            return;
+          }
+        }catch(sessionError){console.warn('Bestaande sessie kon niet worden bevestigd',sessionError)}
+      }
+      status.textContent=message.includes('email not confirmed')||message.includes('email_not_confirmed')
+        ?'Bevestig eerst je e-mailadres via de bevestigingsmail en probeer daarna opnieuw.'
+        :message.includes('invalid login credentials')
+          ?'Dit e-mailadres en wachtwoord komen niet overeen. Controleer het door je telefoon ingevulde wachtwoord of gebruik ‘Mail mij een inloglink’ om je bestaande account te openen.'
+          :'Inloggen is niet gelukt. Gebruik ‘Mail mij een inloglink’ of ‘Wachtwoord vergeten?’ om je bestaande account te openen.';
       console.warn('Whatsup Dog accountlogin mislukt',err)
     }
     finally{setBusy(false)}
