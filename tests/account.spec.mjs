@@ -7,6 +7,21 @@ test('community backend and report modules load exactly once',async({page})=>{
   expect(counts).toEqual({'smart-report-v3.js':1,'backend-config.js':1,'community-backend.js':1});
 });
 
+test('login supports browser password managers without wiping credentials while typing',async({page})=>{
+ await page.addInitScript(()=>localStorage.setItem('wd_profile_v1',JSON.stringify({name:'Bowie',avatar:'🐶',homePlace:'Nijkerk',speciesContext:'dog'})));
+ await page.route('**/backend-config.js*',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.WHATSUP_DOG_BACKEND={enabled:false};'}));
+ await page.goto('/');
+ await page.locator('.bottom-nav [data-view="profile"]').click();
+ await expect(page.locator('#wdAccountLogin')).toHaveAttribute('autocomplete','on');
+ await expect(page.locator('#wdAccountEmail')).toHaveAttribute('autocomplete','username');
+ await expect(page.locator('#wdAccountPassword')).toHaveAttribute('autocomplete','current-password');
+ await page.locator('#wdAccountEmail').fill('example@example.test');
+ await page.locator('#wdAccountPassword').fill('example-passphrase');
+ await page.waitForTimeout(450);
+ await expect(page.locator('#wdAccountEmail')).toHaveValue('example@example.test');
+ await expect(page.locator('#wdAccountPassword')).toHaveValue('example-passphrase');
+});
+
 test('verified account creation persists the pet profile while discoverability defaults off',async({page})=>{
  await page.addInitScript(()=>localStorage.setItem('wd_profile_v1',JSON.stringify({name:'Bowie',avatar:'🐶',homePlace:'Nijkerk',homeLat:52.2182,homeLng:5.4835,speciesContext:'dog'})));
  await page.route('**/backend-config.js*',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.WHATSUP_DOG_BACKEND={enabled:false};'}));
