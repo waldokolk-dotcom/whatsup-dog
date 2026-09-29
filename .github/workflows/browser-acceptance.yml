@@ -12,6 +12,8 @@ on:
       - 'account-login.css'
       - 'tests/giveaway.spec.mjs'
       - 'tests/legacy-cleanup.spec.mjs'
+      - 'tests/login-recovery.spec.mjs'
+      - 'community-backend.js'
       - 'legacy-report-cleanup.js'
       - 'v2-layout.css'
       - '.github/workflows/browser-acceptance.yml'
