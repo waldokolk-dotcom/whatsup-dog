@@ -25,13 +25,14 @@
   const signed=document.createElement('div');signed.id='wdAccountSigned';signed.hidden=true;
   const signedText=document.createElement('p');const signOut=document.createElement('button');signOut.type='button';signOut.className='outline-btn';signOut.textContent='Uitloggen';
   const deleteAccount=document.createElement('button');deleteAccount.type='button';deleteAccount.className='outline-btn danger-action';deleteAccount.textContent='Account opheffen';deleteAccount.id='wdAccountDelete';
-  signed.append(signedText,signOut,deleteAccount);
+  const signedNotice=document.createElement('p');signedNotice.id='wdLoginSuccess';signedNotice.className='wd-login-success';signedNotice.setAttribute('role','status');signedNotice.setAttribute('aria-live','polite');
+  signed.append(signedNotice,signedText,signOut,deleteAccount);
   const status=document.createElement('p');status.id='wdAccountStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   const previewNotice=document.createElement('p');previewNotice.id='wdAccountPreviewNotice';previewNotice.hidden=!preview;
   previewNotice.textContent='Je bekijkt de alleen-lezen proefversie. Aanmelden en accounts aanmaken zijn hier uitgeschakeld; vul hier geen e-mailadres of wachtwoord in. De accountfunctie wordt pas beschikbaar na de beveiligde praktijktest.';
   panel.append(heading,description,previewNotice,form,signed,status);
   profile.append(panel);
-  let busy=false,linkCooldownUntil=0,cooldownTimer=null;
+  let busy=false,linkCooldownUntil=0,cooldownTimer=null,lastLoginUserId=null;
   function deferLink(){clearTimeout(cooldownTimer);cooldownTimer=setTimeout(()=>render(),Math.max(1000,linkCooldownUntil-Date.now()+100))}
   const client=()=>window.WhatsupDogCommunity?.client;
   function render(){
@@ -39,7 +40,7 @@
     const user=account?.user;
     const verified=Boolean(user&&!user.is_anonymous);
     form.hidden=verified||preview;signed.hidden=!verified||preview;
-    if(verified){signedText.textContent='Ingelogd als '+(user.email||'geverifieerd account');}
+    if(verified){signedText.textContent='Ingelogd als '+(user.email||'geverifieerd account');signedNotice.textContent=lastLoginUserId===user.id?'✓ Inloggen gelukt. Je bent ingelogd.':'✓ Je bent ingelogd.';}
     if(preview){status.textContent='Proefversie: aanmelden is hier uitgeschakeld.';return;}
     if(!client()&&!busy)status.textContent=account?.status==='error'?'De accountverbinding is niet beschikbaar. Probeer het later opnieuw.':'De beveiligde verbinding wordt opgezet. Inloggen is nog niet beschikbaar.';
     submit.disabled=busy||!client();link.disabled=busy||!client()||Date.now()<linkCooldownUntil;register.disabled=busy||!client()||Date.now()<linkCooldownUntil||Boolean(window.__WD_PREVIEW__);signOut.disabled=busy;
@@ -51,11 +52,13 @@
     if(!password.value){status.textContent='Vul je wachtwoord in, of gebruik de inloglink per e-mail.';password.focus();return}
     setBusy(true);status.textContent='Je account wordt gecontroleerd…';
     try{
-      const {error}=await client().auth.signInWithPassword({email:email.value.trim(),password:password.value});
+      const {data,error}=await client().auth.signInWithPassword({email:email.value.trim(),password:password.value});
       if(error)throw error;
+      lastLoginUserId=data?.user?.id||null;
       password.value='';
-      status.textContent='Ingelogd. Je onderhoudsrechten worden op de server gecontroleerd.';
+      status.textContent='✓ Inloggen gelukt. Je bent ingelogd.';
       render();
+      if(typeof toast==='function')toast('✓ Je bent ingelogd bij Whatsup Dog');
     }catch(err){
       const message=String(err?.message||'').toLowerCase();
       password.value=password.value;
@@ -92,6 +95,7 @@
     setBusy(true);status.textContent='Uitloggen…';
     try{
       const {error}=await client().auth.signOut();if(error)throw error;
+      lastLoginUserId=null;
       status.textContent='Uitgelogd. Je kunt de buurt blijven bekijken.';
     }catch(err){status.textContent='Uitloggen lukte niet. Probeer het opnieuw.';console.warn('Whatsup Dog uitloggen mislukt',err)}
     finally{setBusy(false)}
