@@ -51,7 +51,7 @@ test('a successful visibility write stays checked when only the follow-up read f
  "saved=args.enabled;localStorage.setItem('test-discoverable',saved?'yes':'no');failRead=true;return {data:saved,error:null}}};",
  "window.WhatsupDogCommunity={configured:true,client,user:person};",
  "document.dispatchEvent(new CustomEvent('wd:auth-changed'));"
- ].join('\\n');
+ ].join('\n');
  await setup(page,backend);
  const toggle=page.locator('#directoryOptIn'),status=page.locator('#directoryOptInStatus');
  await expect(toggle).toBeEnabled();
@@ -72,7 +72,7 @@ test('invalid saved password offers a recovery route rather than suggesting a ne
  "from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:null,error:null})})})}),rpc:async()=>({data:null,error:null})};",
  "window.WhatsupDogCommunity={configured:true,client,user:guest};",
  "document.dispatchEvent(new CustomEvent('wd:auth-changed'));"
- ].join('\\n');
+ ].join('\n');
  await setup(page,backend);
  await page.locator('#wdAccountEmail').fill('member@example.test');
  await page.locator('#wdAccountPassword').fill('outdated-device-password');
