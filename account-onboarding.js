@@ -40,8 +40,8 @@ profile.innerHTML=`
 <p id="wdMemberStatus" role="status" aria-live="polite"></p>`;
 const recovery=document.createElement('form');recovery.id='wdPasswordRecovery';recovery.className='wd-account-create';recovery.hidden=true;
 recovery.innerHTML=`<h3>Nieuw wachtwoord instellen</h3><label for="wdRecoveryPassword">Nieuw wachtwoord (minimaal 12 tekens)</label><input id="wdRecoveryPassword" type="password" minlength="12" maxlength="256" autocomplete="new-password" required><label for="wdRecoveryRepeat">Herhaal wachtwoord</label><input id="wdRecoveryRepeat" type="password" minlength="12" maxlength="256" autocomplete="new-password" required><button class="primary" type="submit">Wachtwoord opslaan</button><p id="wdRecoveryStatus" role="status" aria-live="polite"></p>`;
-const forgot=document.createElement('button');forgot.id='wdAccountForgot';forgot.type='button';forgot.className='wd-account-quiet';forgot.textContent='Wachtwoord vergeten?';
-$('wdAccountLogin')?.append(forgot);
+const forgot=document.createElement('button');forgot.id='wdAccountForgot';forgot.type='button';forgot.className='wd-account-quiet';forgot.textContent='Wachtwoord vergeten? Ontvang herstelmail';
+$('wdAccountLogin')?.insertBefore(forgot,$('wdAccountRegister'));
 panel.append(signup,profile,recovery);
 let demoMode='none';
 if(preview){
@@ -88,7 +88,7 @@ forgot.addEventListener('click',async()=>{
  setBusy(true);
  try{
   const {error}=await client().auth.resetPasswordForEmail(mail.value.trim(),{redirectTo:redirect()});
-  if(error)throw error;lastMail=Date.now();status('wdAccountStatus','Als dit account bestaat, ontvang je een link om een nieuw wachtwoord te kiezen. Kijk ook in de spammap.');
+  if(error)throw error;lastMail=Date.now();status('wdAccountStatus','Als dit account bestaat, ontvang je een herstelmail. Open de link, kies een nieuw wachtwoord en ga daarna terug naar Whatsup Dog. Kijk ook in je spammap.');
  }catch(error){console.warn('Wachtwoordreset mislukt',error);status('wdAccountStatus',errorMessage(error))}
  finally{setBusy(false)}
 });
@@ -97,7 +97,7 @@ recovery.addEventListener('submit',async event=>{
  const a=$('wdRecoveryPassword'),b=$('wdRecoveryRepeat');
  if(a.value!==b.value){status('wdRecoveryStatus','De wachtwoorden komen niet overeen.');return}
  const password=a.value;a.value='';b.value='';setBusy(true);
- try{const {error}=await client().auth.updateUser({password});if(error)throw error;recovery.hidden=true;status('wdAccountStatus','Je nieuwe wachtwoord is opgeslagen.')}
+ try{const {error}=await client().auth.updateUser({password});if(error)throw error;sessionStorage.removeItem('wd_password_recovery_pending_v1');recovery.hidden=true;status('wdAccountStatus','Je nieuwe wachtwoord is opgeslagen. Je kunt nu met dit wachtwoord inloggen op dit apparaat.');}
  catch(error){console.warn('Wachtwoord opslaan mislukt',error);status('wdRecoveryStatus','Wachtwoord opslaan is mislukt. Vraag eventueel een nieuwe resetlink aan.')}
  finally{setBusy(false)}
 });
@@ -149,7 +149,7 @@ profile.addEventListener('submit',async event=>{
 });
 function refresh(){
  if(preview){signup.hidden=demoMode!=='signup';profile.hidden=demoMode!=='profile';recovery.hidden=true;forgot.hidden=true;return}
- const recoveryLink=/(^|[?&#])type=recovery(?:&|#|$)/i.test(location.href);
+ const recoveryLink=/(^|[?&#])type=recovery(?:&|#|$)/i.test(location.href)||sessionStorage.getItem('wd_password_recovery_pending_v1')==='1';
  if(recoveryLink){recovery.hidden=false;signup.hidden=true;profile.hidden=true;status('wdRecoveryStatus','Kies hieronder je nieuwe wachtwoord.');}
  else if(verified()){loadProfile().catch(console.warn);signup.hidden=true}else{profile.hidden=true;profileOwner=null}
  if(client()&&!authListener&&typeof client().auth?.onAuthStateChange==='function'){
@@ -159,6 +159,7 @@ function refresh(){
   });
  }
 }
+document.addEventListener('wd:password-recovery',()=>{recovery.hidden=false;signup.hidden=true;profile.hidden=true;status('wdRecoveryStatus','Kies hieronder een nieuw wachtwoord voor je bestaande account.');});
 document.addEventListener('wd:auth-changed',refresh);
 document.addEventListener('wd:community-status',()=>{if(!authListener)refresh()});
 refresh();

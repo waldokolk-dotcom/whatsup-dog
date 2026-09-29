@@ -90,7 +90,8 @@ test('invalid saved password offers a recovery route rather than suggesting a ne
  await page.locator('#wdAccountLogin button[type="submit"]').click();
  await expect(page.locator('#wdAccountStatus')).toContainText('Mail mij een inloglink');
  await expect(page.locator('#wdAccountEmail')).toHaveValue('member@example.test');
- await expect(page.locator('#wdAccountPassword')).toHaveValue('outdated-device-password');
+ await expect(page.locator('#wdAccountPassword')).toHaveValue('');
+ await expect(page.locator('#wdAccountForgot')).toBeVisible();
  await expect(page.locator('#wdAccountLogin')).toBeVisible();
 });
 
@@ -101,7 +102,7 @@ test('login is visibly confirmed and restored sign-in is clear',async({page})=>{
  "const client={auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),",
  "signInWithPassword:async({email,password})=>{if(email!==person.email||password!=='correct-password')return {data:null,error:{message:'Invalid login credentials'}};",
  "localStorage.setItem('test-signed','yes');setTimeout(()=>{current=person;document.dispatchEvent(new CustomEvent('wd:auth-changed'))},120);",
- "return {data:{user:person,session:{user:person}},error:null}},",
+ "return {data:{user:person,session:{user:person,access_token:'synthetic-browser-session'}},error:null}},",
  "signOut:async()=>{current=guest;localStorage.removeItem('test-signed');document.dispatchEvent(new CustomEvent('wd:auth-changed'));return {error:null}}},",
  "from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:null,error:null})})})}),rpc:async()=>({data:null,error:null})};",
  "window.WhatsupDogCommunity={configured:true,client,get user(){return current}};",

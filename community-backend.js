@@ -172,6 +172,23 @@
     document.getElementById('onboardingDialog')?.addEventListener('close',()=>syncProfile().catch(console.warn));
   }
 
+  // A valid Supabase password response must immediately update the UI; relying
+  // solely on a deferred auth event created a race on iOS after sign-in.
+  async function syncAuthUser(user){
+    if(!user?.id||user.is_anonymous)throw new Error('verified-auth-session-required');
+    const {data,error}=await state.client.auth.getSession();
+    if(error||!data?.session?.access_token||data.session.user?.id!==user.id){
+      throw error||new Error('authenticated-session-not-persisted');
+    }
+    if(state.user?.id!==user.id||state.user?.is_anonymous){
+      state.user=data.session.user;
+      state.ready=true;
+      document.dispatchEvent(new CustomEvent('wd:auth-changed',{detail:{userId:user.id,isAnonymous:false}}));
+      scheduleRefresh(0);
+    }
+    return state.user;
+  }
+
   let authTransition=Promise.resolve();
   function observeAuthentication(){
     state.client.auth.onAuthStateChange((event,session)=>{
@@ -201,8 +218,15 @@
       setStatus('Verbinden','Veilige communityverbinding opzetten…');
       await loadScript(SUPABASE_JS,()=>Boolean(window.supabase?.createClient));
       state.client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:window.__WD_PREVIEW__?'wd-preview-supabase-auth-v1':undefined}});
+      // Capture Supabase's one-shot recovery event before initial session load:
+      // the SDK may consume and clear the URL fragment during initialization.
+      state.client.auth.onAuthStateChange(event=>{
+        if(event!=='PASSWORD_RECOVERY')return;
+        try{sessionStorage.setItem('wd_password_recovery_pending_v1','1')}catch{}
+        document.dispatchEvent(new CustomEvent('wd:password-recovery'));
+      });
       await ensureUser();if(state.user?.is_anonymous)await syncProfile();state.ready=true;
-      window.WhatsupDogCommunity={configured:true,get client(){return state.client},get user(){return state.user},refresh:refreshSharedReports,processQueue};
+      window.WhatsupDogCommunity={configured:true,get client(){return state.client},get user(){return state.user},refresh:refreshSharedReports,processQueue,syncAuthUser};
       // Account UI may have loaded before the backend finished restoring the
       // session from the confirmation-link redirect. Announce the initial
       // authenticated state as well as later auth transitions.
