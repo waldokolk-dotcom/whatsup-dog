@@ -18,6 +18,7 @@ async function load(){
  if(window.__WD_PREVIEW__){toggle.checked=false;status('Proefversie is alleen-lezen. In de live-app kun je dit na inloggen aanzetten.',false);return}
  if(!verified()){
    serverProfile=null;
+   toggle.indeterminate=false;
    toggle.checked=false;
    status(account()?.user?.is_anonymous?'Log eerst in met een geverifieerd account om vindbaar te worden.':'Meld je aan om vindbaar te worden.',false);
    return;
@@ -26,9 +27,10 @@ async function load(){
    const {data,error}=await account().client.from('profiles').select('display_name,avatar,home_place,breed,discoverable').eq('id',account().user.id).maybeSingle();
    if(error)throw error;if(seq!==revision)return;
    serverProfile=data||null;
+   toggle.indeterminate=false;
    toggle.checked=Boolean(data?.discoverable);toggle.disabled=false;
    status(toggle.checked?'Vindbaar: anderen kunnen je vinden en een gesprek beginnen.':'Niet vindbaar: alleen jij ziet je profiel.',true);
- }catch(err){if(seq!==revision)return;console.warn('Vindbaarheid ophalen mislukt',err);status('Profiel ophalen lukt nu niet. Probeer opnieuw door je profiel opnieuw te openen.',false)}
+ }catch(err){if(seq!==revision)return;console.warn('Vindbaarheid ophalen mislukt',err);toggle.indeterminate=true;toggle.disabled=true;status('De opgeslagen stand is nu niet op te halen. Je vorige keuze is niet veranderd; open je profiel opnieuw om opnieuw te proberen.',false)}
 }
 async function save(event){
  const toggle=event.target,requested=toggle.checked,previous=!requested;
@@ -53,12 +55,27 @@ async function save(event){
    });
    if(error)throw error;
    if(account()?.user?.id!==id)throw new Error('Account changed while saving visibility');
-   const {data:check,error:readError}=await account().client.from('profiles').select('display_name,avatar,home_place,breed,discoverable').eq('id',id).maybeSingle();
-   if(readError||!check||Boolean(check.discoverable)!==requested)throw readError||new Error('Server did not confirm opt-in');
+   if(data!==requested)throw new Error('The server did not acknowledge the requested visibility');
    if(seq!==revision)return;
-   serverProfile=check;
-   toggle.checked=requested;status(requested?'Je profiel is vindbaar. Je kunt nu chats ontvangen.':'Vindbaarheid is uitgeschakeld.',true);
+   // The RPC has already committed the change. Never roll back the checkbox
+   // merely because a *second*, read-only verification request fails.
+   serverProfile={...(serverProfile||{}),display_name:p.name,avatar:p.avatar,home_place:p.homePlace,breed:p.breed,discoverable:requested};
+   toggle.checked=requested;
+   status(requested?'Je profiel is vindbaar. Opgeslagen.':'Je profiel is niet vindbaar. Opgeslagen.',true);
    document.dispatchEvent(new CustomEvent('wd:directory-updated'));
+   try{
+     const {data:check,error:readError}=await account().client.from('profiles').select('display_name,avatar,home_place,breed,discoverable').eq('id',id).maybeSingle();
+     if(readError)throw readError;
+     if(seq!==revision||account()?.user?.id!==id)return;
+     if(check){
+       serverProfile=check;
+       toggle.checked=Boolean(check.discoverable);
+       status(toggle.checked?'Je profiel is vindbaar. Opgeslagen.':'Je profiel is niet vindbaar. Opgeslagen.',true);
+     }
+   }catch(verificationError){
+     console.warn('Vindbaarheid is opgeslagen; extra controle tijdelijk niet beschikbaar',verificationError);
+     if(seq===revision)status('Je keuze is opgeslagen. De extra controle lukte niet; open je profiel opnieuw om de stand op te halen.',true);
+   }
  }catch(err){
    console.warn('Vindbaarheid opslaan mislukt',err);if(seq!==revision)return;
    toggle.checked=previous;
