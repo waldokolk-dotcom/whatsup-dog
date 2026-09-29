@@ -23,3 +23,9 @@
 .wd-account-create [role=status],.wd-account-profile [role=status]{min-height:1.5em;color:#375e4c;font-size:.88rem;overflow-wrap:anywhere}
 #wdAccountPreviewNotice{border:1px solid #d6e6d6;border-radius:15px;background:#f0f7f0;color:#24523d;padding:12px;font-weight:600}
 .wd-account-create[hidden],.wd-account-profile[hidden],#wdPasswordRecovery[hidden]{display:none!important}
+
+/* iOS Passwords may suggest a saved Supabase URL as the username. */
+.wd-autofill-warning{background:#fff8df;border:1px solid #d2a650;border-radius:14px;padding:12px;margin-top:10px;color:#493b1e}
+.wd-autofill-warning p{margin:0 0 9px;line-height:1.5}
+.wd-autofill-warning button{min-height:48px;width:100%;white-space:normal}
+.wd-autofill-warning[hidden]{display:none!important}
