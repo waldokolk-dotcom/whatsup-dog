@@ -51,7 +51,7 @@ revoke all on function public.request_my_account_deletion() from public,anon;
 grant execute on function public.request_my_account_deletion() to authenticated;
 -- This procedure is deliberately private: no browser/user can approve its own erasure.
 -- Authorized administrator must review retention duties and provide a case-specific reason.
-create or replace function private.approve_moderator_account_deletion(case_id uuid, approval_reason text) returns void
+create or replace function private.approve_moderator_account_deletion(p_case_id uuid, approval_reason text) returns void
  language plpgsql security definer set search_path=''
 as $$
 declare target uuid;
@@ -60,21 +60,21 @@ begin
   raise exception 'Document a specific retention and privacy review reason' using errcode='22023';
  end if;
  select requester_id into target from private.account_deletion_requests
- where id=case_id and status='pending' for update;
+ where id=p_case_id and status='pending' for update;
  if target is null then raise exception 'Pending deletion request not found' using errcode='22023'; end if;
  if not exists(select 1 from auth.users u where u.id=target) then
   raise exception 'Account not found' using errcode='22023';
  end if;
  insert into private.moderation_audit_archive
   (case_id,action_id,report_id,previous_status,new_status,reason,action_at)
- select case_id,a.id,a.report_id,a.previous_status,a.new_status,a.reason,a.created_at
+ select p_case_id,a.id,a.report_id,a.previous_status,a.new_status,a.reason,a.created_at
  from public.moderation_actions a where a.moderator_id=target
  on conflict(case_id,action_id) do nothing;
  -- The original moderation events remain until their report is deleted;
  -- surviving rows retain their reason/status/timestamps, actor becomes NULL via FK.
  update private.account_deletion_requests
  set status='approved',reviewed_at=now(),review_reason=trim(approval_reason)
- where id=case_id;
+ where id=p_case_id;
  update public.chat_rooms r set created_by=(
   select m.user_id from public.chat_members m
   where m.room_id=r.id and m.user_id<>target order by m.user_id limit 1
