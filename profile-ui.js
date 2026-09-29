@@ -83,7 +83,7 @@
 
   function loadDirectoryUi(){
     if(document.querySelector('script[data-wd-directory-ui]'))return;
-    const s=document.createElement('script');s.src='./directory-ui.js?v=1.9.1';s.async=false;s.dataset.wdDirectoryUi='1';document.body.appendChild(s);
+    const s=document.createElement('script');s.src='./directory-ui.js?v=2';s.async=false;s.dataset.wdDirectoryUi='1';document.body.appendChild(s);
   }
 
   function injectFeedback(){
