@@ -64,6 +64,7 @@ test('Meldingen contains area radius filters and push controls',async({page})=>{
   await expect(page.locator('#radius')).toHaveValue('2000');
   await expect(page.locator('.push-cat[value="danger"]')).toBeChecked();
   await expect(page.locator('.category-grid')).toBeVisible();
+  await expect(page.locator('#pushStatus')).toBeVisible();
 });
 
 test('primary navigation uses five modern app tabs',async({page})=>{
@@ -86,4 +87,15 @@ test('info tab explains install and safety',async({page})=>{
   await expect(page.locator('#view-info')).toContainText('Gebruik & veiligheid');
   await expect(page.locator('#view-info')).toContainText('iPhone / iPad');
   await expect(page.locator('#view-info')).toContainText('Geen account en geen wachtwoord');
+});
+
+test('mobile sheets stay within viewport width and use consistent rounded corners',async({page})=>{
+  await page.locator('#areaPill').click();
+  await expect(page.locator('#areaDialog')).toBeVisible();
+  const sheet=page.locator('#areaDialog .sheet');
+  const box=await sheet.boundingBox();
+  const vp=page.viewportSize();
+  expect(box.width).toBeLessThanOrEqual(vp.width-4);
+  const radius=await sheet.evaluate(el=>getComputedStyle(el).borderTopLeftRadius);
+  expect(parseFloat(radius)).toBeGreaterThanOrEqual(20);
 });
