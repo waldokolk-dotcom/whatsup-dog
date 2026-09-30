@@ -643,3 +643,19 @@ dialog[open]{
 .wd-report-marker-icon .marker span{
   font-size:18px;
 }
+
+
+/* V4.3 optical centering for giveaway e-mail icon */
+.contact-icon{
+  position:relative;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+.contact-icon-svg{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  margin:0 !important;
+}

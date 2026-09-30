@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings";
-const APP_VERSION="4.2", APP_VERSION_DATE="30-09-2026";
+const APP_VERSION="4.3", APP_VERSION_DATE="30-09-2026";
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -124,7 +124,7 @@ async function refreshReports(){
  const {data,error}=await client.from("reports").select("id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,photo_path,status,created_at,species,expires_at").eq("status","active").gt("expires_at",new Date().toISOString()).order("created_at",{ascending:false}).limit(200);
  if(error){console.warn(error);return}
  markers.clearLayers();
- for(const r of data||[]){if(!Number.isFinite(Number(r.lat))||!Number.isFinite(Number(r.lng)))continue;L.marker([Number(r.lat),Number(r.lng)],{icon:markerIcon(r),pane:"reportMarkersPane",zIndexOffset:1000}).addTo(markers).on("click",()=>openReportDetail(r))}
+ for(const r of data||[]){if(!Number.isFinite(Number(r.lat))||!Number.isFinite(Number(r.lng)))continue;L.marker([Number(r.lat),Number(r.lng)],{icon:markerIcon(r),pane:"reportMarkersPane",zIndexOffset:1000,reportId:r.id}).addTo(markers).on("click",()=>openReportDetail(r))}
  renderAlerts(data||[]);
 }
 function iconForReport(r){
@@ -170,6 +170,22 @@ function renderAlerts(rows){
    if(data)openReportDetail(data);
  });
 }
+function removeReportMarker(id){
+ if(!markers||!id)return;
+ markers.eachLayer(layer=>{if(layer?.options?.reportId===id)markers.removeLayer(layer)});
+}
+async function deleteOwnReport(id){
+ const {error}=await client.rpc("delete_own_report",{target:id});
+ if(error)throw error;
+ removeReportMarker(id);
+ await Promise.allSettled([refreshMine(),refreshReports()]);
+}
+async function resolveOwnReport(id){
+ const {error}=await client.rpc("resolve_own_report",{target:id});
+ if(error)throw error;
+ removeReportMarker(id);
+ await Promise.allSettled([refreshMine(),refreshReports()]);
+}
 async function openReportById(id){return client.from("reports").select("*").eq("id",id).maybeSingle().then(({data})=>{if(data){showView("map");map.setView([data.lat,data.lng],16);openReportDetail(data)}})}
 async function openReportDetail(r){
  $("#detailTitle").textContent=r.subtype||labelType(r.type);
@@ -183,17 +199,19 @@ async function openReportDetail(r){
  resolve.hidden=!own||r.status!=="active";
  resolve.onclick=async()=>{
    if(!confirm("Is dit opgelost? De melding verdwijnt direct van de kaart."))return;
-   const {error}=await client.rpc("resolve_own_report",{target:r.id});
-   if(error)return toast("Als opgelost markeren lukt niet");
-   $("#detailDialog").close();
-   await refreshReports();await refreshMine();
-   toast("Opgelost — melding is van de kaart");
+   try{
+     await resolveOwnReport(r.id);
+     $("#detailDialog").close();
+     toast("Opgelost — melding is van de kaart");
+   }catch(err){console.warn(err);toast("Als opgelost markeren lukt niet")}
  };
  del.onclick=async()=>{
    if(!confirm("Deze melding definitief verwijderen?"))return;
-   const {error}=await client.from("reports").delete().eq("id",r.id).eq("user_id",user.id);
-   if(error)return toast("Verwijderen mislukt");
-   $("#detailDialog").close();await refreshReports();await refreshMine();toast("Melding verwijderd");
+   try{
+     await deleteOwnReport(r.id);
+     $("#detailDialog").close();
+     toast("Melding verwijderd");
+   }catch(err){console.warn(err);toast("Verwijderen mislukt")}
  };
  $("#detailDialog").showModal()
 }
@@ -261,7 +279,7 @@ async function submitReport(e){
  showView("map");
  map.setView([loc.lat,loc.lng],17);
  const optimistic={...row,status:"active",created_at:new Date().toISOString(),expires_at:new Date(Date.now()+7*24*60*60*1000).toISOString()};
- L.marker([loc.lat,loc.lng],{icon:markerIcon(optimistic),pane:"reportMarkersPane",zIndexOffset:1200}).addTo(markers).on("click",()=>openReportDetail(optimistic));
+ L.marker([loc.lat,loc.lng],{icon:markerIcon(optimistic),pane:"reportMarkersPane",zIndexOffset:1200,reportId:id}).addTo(markers).on("click",()=>openReportDetail(optimistic));
  setTimeout(()=>map?.invalidateSize(),50);
  await Promise.allSettled([refreshReports(),refreshMine()]);
  map.setView([loc.lat,loc.lng],17);
@@ -319,8 +337,8 @@ async function refreshMine(){
    return '<div class="my-item"><b>'+esc(x.text)+'</b><div class="row report-status-row"><small class="status-'+esc(x.status)+'">'+label+'</small><span class="report-own-actions">'+resolve+del+'</span></div></div>'
  }).join("")||'<div class="empty">Nog geen meldingen.</div>';
  $("#myGive").innerHTML=gives.map(x=>'<div class="my-item"><b>'+esc(x.title)+'</b><div class="row"><small>'+esc(x.status)+'</small><button class="secondary small" data-done-give="'+x.id+'">Afgehandeld</button></div></div>').join("")||'<div class="empty">Nog geen weggeefitems.</div>';
- $$("[data-resolve-report]").forEach(b=>b.onclick=async()=>{const {error}=await client.rpc("resolve_own_report",{target:b.dataset.resolveReport});if(error)return toast("Bijwerken mislukt");toast("Melding opgelost en van de kaart");await Promise.allSettled([refreshMine(),refreshReports()])});
- $$("[data-del-report]").forEach(b=>b.onclick=async()=>{if(!confirm("Deze melding definitief verwijderen? Dit kan niet ongedaan worden gemaakt."))return;const {error}=await client.from("reports").delete().eq("id",b.dataset.delReport).eq("user_id",user.id);if(error)return toast("Verwijderen mislukt");toast("Melding verwijderd");await Promise.allSettled([refreshMine(),refreshReports()])});
+ $$("[data-resolve-report]").forEach(b=>b.onclick=async()=>{try{await resolveOwnReport(b.dataset.resolveReport);toast("Melding opgelost en van de kaart")}catch(err){console.warn(err);toast("Bijwerken mislukt")}});
+ $$("[data-del-report]").forEach(b=>b.onclick=async()=>{if(!confirm("Deze melding definitief verwijderen? Dit kan niet ongedaan worden gemaakt."))return;try{await deleteOwnReport(b.dataset.delReport);toast("Melding verwijderd")}catch(err){console.warn(err);toast("Verwijderen mislukt")}});
  $$("[data-done-give]").forEach(b=>b.onclick=async()=>{await client.from("giveaway_listings").update({status:"afgerond",updated_at:new Date().toISOString()}).eq("id",b.dataset.doneGive).eq("owner_id",user.id);refreshMine();refreshGiveaways()})
 }
 function saveProfile(e){e.preventDefault();const p={name:$("#profileName").value.trim(),petName:$("#petName").value.trim(),breed:$("#breed").value.trim(),avatar:$("#avatar").value,species:$("#species").value};write(PKEY,p);applyProfile();toast("Opgeslagen")}
