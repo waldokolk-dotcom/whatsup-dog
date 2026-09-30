@@ -106,3 +106,12 @@ test('own reports can be marked resolved and removed from the live map',async({p
   await expect(page.locator('#myReportsCard')).toContainText('Mijn meldingen');
   await expect(page.locator('#detailResolve')).toHaveText(/Opgelost/);
 });
+
+test('Info explains creation, resolution and expiry rules for reports',async({page})=>{
+  await page.locator('[data-view="info"]').click();
+  await expect(page.locator('#view-info')).toContainText('Spelregels voor meldingen');
+  await expect(page.locator('#view-info')).toContainText('Gewone meldingen: 7 dagen');
+  await expect(page.locator('#view-info')).toContainText('Leuke plekken en activiteiten: 14 dagen');
+  await expect(page.locator('#view-info')).toContainText('Vermist of gevonden: 30 dagen');
+  await expect(page.locator('#view-info')).toContainText('Zelf opgelost? Haal hem van de kaart');
+});
