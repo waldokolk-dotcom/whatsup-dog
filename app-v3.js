@@ -37,7 +37,7 @@ function bind(){
  $("#giveForm").addEventListener("submit",submitGiveaway);
  $("#profileForm").addEventListener("submit",saveProfile);
  $("#pushToggle").addEventListener("change",togglePush);
- $("#radius").addEventListener("input",e=>{$("#radiusVal").textContent=(e.target.value/1000).toFixed(e.target.value<1000?1:0)+" km"});
+ $("#radius").addEventListener("input",e=>{$("#radiusVal").textContent=(e.target.value/1000).toFixed(e.target.value<1000?1:0)+" km"});$("#radius").addEventListener("change",savePushPrefs);
  $$(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
  $("#installButton").addEventListener("click",installApp);
  $("#onboardForm").addEventListener("submit",finishOnboarding);
@@ -54,10 +54,10 @@ function initMap(){
 function markerIcon(r){const c=["danger","vegetation","dirty","road"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"?"#28a17a":"#5178db";const e=r.type==="lost"?"!":r.type==="fun"?"♥":r.type==="spotted"?"🐾":"!";return L.divIcon({className:"",html:'<div class="marker" style="background:'+c+'"><span>'+e+'</span></div>',iconSize:[38,38],iconAnchor:[19,34]})}
 async function refreshReports(){
  if(!client||!user)return;const {data,error}=await client.from("reports").select("id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,photo_path,status,created_at,species").eq("status","active").order("created_at",{ascending:false}).limit(200);
- if(error){console.warn(error);return}markers.clearLayers();for(const r of data||[]){L.marker([r.lat,r.lng],{icon:markerIcon(r)}).addTo(markers).on("click",()=>openReport(r))}
+ if(error){console.warn(error);return}markers.clearLayers();for(const r of data||[]){L.marker([r.lat,r.lng],{icon:markerIcon(r)}).addTo(markers).on("click",()=>openReportDetail(r))}
 }
-async function openReportById(id){const {data}=await client.from("reports").select("*").eq("id",id).maybeSingle();if(data){showView("map");map.setView([data.lat,data.lng],16);openReport(data)}}
-async function openReport(r){$("#detailTitle").textContent=r.subtype||labelType(r.type);$("#detailText").textContent=r.text||"Melding";$("#detailMeta").textContent=(r.author_name||"Buurtgenoot")+" · "+new Date(r.created_at||Date.now()).toLocaleString("nl-NL",{dateStyle:"short",timeStyle:"short"});const del=$("#detailDelete");del.hidden=r.user_id!==user?.id;del.onclick=async()=>{if(!confirm("Deze melding verwijderen?"))return;const {error}=await client.from("reports").delete().eq("id",r.id).eq("user_id",user.id);if(error)return toast("Verwijderen mislukt");$("#detailDialog").close();await refreshReports();await refreshMine();toast("Melding verwijderd")};$("#detailDialog").showModal()}
+async function openReportById(id){return client.from("reports").select("*").eq("id",id).maybeSingle().then(({data})=>{if(data){showView("map");map.setView([data.lat,data.lng],16);openReportDetail(data)}})}
+async function openReportDetail(r){$("#detailTitle").textContent=r.subtype||labelType(r.type);$("#detailText").textContent=r.text||"Melding";$("#detailMeta").textContent=(r.author_name||"Buurtgenoot")+" · "+new Date(r.created_at||Date.now()).toLocaleString("nl-NL",{dateStyle:"short",timeStyle:"short"});const del=$("#detailDelete");del.hidden=r.user_id!==user?.id;del.onclick=async()=>{if(!confirm("Deze melding verwijderen?"))return;const {error}=await client.from("reports").delete().eq("id",r.id).eq("user_id",user.id);if(error)return toast("Verwijderen mislukt");$("#detailDialog").close();await refreshReports();await refreshMine();toast("Melding verwijderd")};$("#detailDialog").showModal()}
 function labelType(t){return ({danger:"Gevaar",vegetation:"Vegetatie",road:"Handig",fun:"Leuk",spotted:"Dier",lost:"Vermist / gevonden"})[t]||"Melding"}
 function openReport(){reportState={category:null,type:null,subtype:null};$("#reportStep1").hidden=false;$("#reportStep2").hidden=true;$("#reportText").value="";$("#reportPhoto").value="";$("#reportDialog").showModal()}
 function chooseReport(cat,type,sub){reportState={category:cat,type,subtype:sub};$("#reportStep1").hidden=true;$("#reportStep2").hidden=false;$("#reportChosen").textContent=({danger:"Gevaar",animal:"Dier",handy:"Handig",fun:"Leuk"})[cat]||"Melding";renderSubChoices(cat)}
