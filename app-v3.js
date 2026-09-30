@@ -337,8 +337,8 @@ async function refreshMine(){
    return '<div class="my-item"><b>'+esc(x.text)+'</b><div class="row report-status-row"><small class="status-'+esc(x.status)+'">'+label+'</small><span class="report-own-actions">'+resolve+del+'</span></div></div>'
  }).join("")||'<div class="empty">Nog geen meldingen.</div>';
  $("#myGive").innerHTML=gives.map(x=>'<div class="my-item"><b>'+esc(x.title)+'</b><div class="row"><small>'+esc(x.status)+'</small><button class="secondary small" data-done-give="'+x.id+'">Afgehandeld</button></div></div>').join("")||'<div class="empty">Nog geen weggeefitems.</div>';
- $("[data-resolve-report]").forEach(b=>b.onclick=async()=>{try{await resolveOwnReport(b.dataset.resolveReport);toast("Melding opgelost en van de kaart")}catch(err){console.warn(err);toast("Bijwerken mislukt")}});
- $("[data-del-report]").forEach(b=>b.onclick=async()=>{if(!confirm("Deze melding definitief verwijderen? Dit kan niet ongedaan worden gemaakt."))return;try{await deleteOwnReport(b.dataset.delReport);toast("Melding verwijderd")}catch(err){console.warn(err);toast("Verwijderen mislukt")}});
+ $$("[data-resolve-report]").forEach(b=>b.onclick=async()=>{try{await resolveOwnReport(b.dataset.resolveReport);toast("Melding opgelost en van de kaart")}catch(err){console.warn(err);toast("Bijwerken mislukt")}});
+ $$("[data-del-report]").forEach(b=>b.onclick=async()=>{if(!confirm("Deze melding definitief verwijderen? Dit kan niet ongedaan worden gemaakt."))return;try{await deleteOwnReport(b.dataset.delReport);toast("Melding verwijderd")}catch(err){console.warn(err);toast("Verwijderen mislukt")}});
  $$("[data-done-give]").forEach(b=>b.onclick=async()=>{await client.from("giveaway_listings").update({status:"afgerond",updated_at:new Date().toISOString()}).eq("id",b.dataset.doneGive).eq("owner_id",user.id);refreshMine();refreshGiveaways()})
 }
 function saveProfile(e){e.preventDefault();const p={name:$("#profileName").value.trim(),petName:$("#petName").value.trim(),breed:$("#breed").value.trim(),avatar:$("#avatar").value,species:$("#species").value};write(PKEY,p);applyProfile();toast("Opgeslagen")}
