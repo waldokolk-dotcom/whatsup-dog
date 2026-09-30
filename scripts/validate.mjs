@@ -95,7 +95,6 @@ assert.match(css,/\.contact-banner/,'Modern giveaway contact banner missing');
 assert.match(css,/\.contact-icon-svg/,'Fixed SVG giveaway contact icon styling missing');
 assert.match(html,/class="contact-icon-svg"/,'Fixed SVG giveaway contact icon missing');
 assert.match(css,/\.give-card-media/,'Giveaway listing media design missing');
-assert.match(html,/class="contact-icon">📧/,'Visible mail icon missing');
 assert.match(html,/IN JOUW BUURT/,'Giveaway listing section heading missing');
 assert.match(css,/--radius-ui:20px/,'Unified corner radius tokens missing');
 assert.match(css,/dialog\[open\]/,'Responsive dialog layout missing');
