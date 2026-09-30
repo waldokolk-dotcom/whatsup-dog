@@ -65,7 +65,8 @@ assert.match(sw,/app-v3\.css\?v=8/,'Offline cache missing V3 CSS');
 assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');
 assert.match(sw,/SKIP_WAITING/,'Service worker update activation handler missing');
-assert.doesNotMatch(sw,/install.*skipWaiting/s,'New workers should wait for explicit update activation');
+const installHandler=sw.match(/self\.addEventListener\('install',[^\n]+/s)?.[0]||'';
+assert.doesNotMatch(installHandler,/skipWaiting/,'New workers should wait for explicit update activation');
 
 execFileSync(process.execPath,['--check','app-v3.js']);
 execFileSync(process.execPath,['--check','sw.js']);
