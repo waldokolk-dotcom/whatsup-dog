@@ -484,3 +484,41 @@ dialog[open]{
   .version-card{grid-template-columns:auto minmax(0,1fr)}
   .version-check{grid-column:1/-1;width:100%}
 }
+
+
+/* V3.8 Fix giveaway e-mail icon: deterministic SVG, no emoji scaling */
+.contact-icon{
+  width:60px !important;
+  height:60px !important;
+  min-width:60px;
+  min-height:60px;
+  border-radius:18px;
+  background:#fff;
+  display:grid;
+  place-items:center;
+  color:#4f7fd7;
+  font-size:0 !important;
+  line-height:1;
+  overflow:hidden;
+}
+.contact-icon-svg{
+  width:34px;
+  height:34px;
+  display:block;
+  overflow:visible;
+}
+@media(max-width:430px){
+  .contact-banner{
+    grid-template-columns:60px minmax(0,1fr);
+  }
+  .contact-icon{
+    width:60px !important;
+    height:60px !important;
+    min-width:60px;
+    min-height:60px;
+  }
+  .contact-icon-svg{
+    width:34px;
+    height:34px;
+  }
+}

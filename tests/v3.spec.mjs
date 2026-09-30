@@ -122,7 +122,6 @@ test('giveaway hero and email banner form one visual series',async({page})=>{
   const banner=page.locator('.contact-banner');
   await expect(hero).toBeVisible();
   await expect(banner).toBeVisible();
-  await expect(page.locator('.contact-icon')).toContainText('📧');
   const heroIcon=await page.locator('.give-hero-icon').boundingBox();
   const mailIcon=await page.locator('.contact-icon').boundingBox();
   expect(Math.abs(heroIcon.width-mailIcon.width)).toBeLessThanOrEqual(4);
@@ -170,4 +169,18 @@ test('update button dismisses banner immediately before worker activation',async
     btn.click();
   });
   await expect(page.locator('#updateBanner')).toHaveClass(/hidden/);
+});
+
+test('giveaway contact banner uses a fixed SVG mail icon at full size',async({page})=>{
+  await page.locator('[data-view="giveaway"]').click();
+  const icon=page.locator('.contact-icon');
+  const svg=page.locator('.contact-icon-svg');
+  await expect(icon).toBeVisible();
+  await expect(svg).toBeVisible();
+  const iconBox=await icon.boundingBox();
+  const svgBox=await svg.boundingBox();
+  expect(iconBox.width).toBeGreaterThanOrEqual(56);
+  expect(iconBox.height).toBeGreaterThanOrEqual(56);
+  expect(svgBox.width).toBeGreaterThanOrEqual(32);
+  expect(svgBox.height).toBeGreaterThanOrEqual(32);
 });

@@ -28,7 +28,7 @@ assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
 assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
 assert.match(html,/app-v3\.js\?v=8/,'V3 app controller not wired');
-assert.match(html,/app-v3\.css\?v=8/,'V3 visual system not wired');
+assert.match(html,/app-v3\.css\?v=9/,'V3 visual system not wired');
 
 assert.match(app,/signInAnonymously/,'Invisible device auth missing');
 assert.match(app,/from\("reports"\)\.insert/,'Shared report persistence missing');
@@ -64,7 +64,7 @@ assert.match(css,/\.offleash-control/,'Losloopgebieden control styling missing')
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
 assert.match(sw,/app-v3\.js\?v=8/,'Offline cache missing V3 app');
-assert.match(sw,/app-v3\.css\?v=8/,'Offline cache missing V3 CSS');
+assert.match(sw,/app-v3\.css\?v=9/,'Offline cache missing V3 CSS');
 assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');
 assert.match(sw,/SKIP_WAITING/,'Service worker update activation handler missing');
@@ -92,8 +92,9 @@ for(const tag of html.matchAll(/(?:src|href)="([^"#]+)"/g)){
 assert.match(css,/\.nav-icon/,'Colorful primary navigation icons missing');
 assert.match(css,/\.activity-summary/,'Modern activity cards missing');
 assert.match(css,/\.contact-banner/,'Modern giveaway contact banner missing');
+assert.match(css,/\.contact-icon-svg/,'Fixed SVG giveaway contact icon styling missing');
+assert.match(html,/class="contact-icon-svg"/,'Fixed SVG giveaway contact icon missing');
 assert.match(css,/\.give-card-media/,'Giveaway listing media design missing');
-assert.match(html,/class="contact-icon">📧/,'Visible mail icon missing');
 assert.match(html,/IN JOUW BUURT/,'Giveaway listing section heading missing');
 assert.match(css,/--radius-ui:20px/,'Unified corner radius tokens missing');
 assert.match(css,/dialog\[open\]/,'Responsive dialog layout missing');
