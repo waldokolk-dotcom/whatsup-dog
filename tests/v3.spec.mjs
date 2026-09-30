@@ -131,3 +131,21 @@ test('giveaway hero and email banner form one visual series',async({page})=>{
   const bannerRadius=parseFloat(await banner.evaluate(el=>getComputedStyle(el).borderTopLeftRadius));
   expect(Math.abs(heroRadius-bannerRadius)).toBeLessThanOrEqual(1);
 });
+
+test('map restores Nijkerk losloopgebieden layer with persistent switch',async({page})=>{
+  await page.route('**/data/nijkerk-losloopgebieden.geojson*',route=>route.fulfill({
+    status:200,contentType:'application/geo+json',
+    body:JSON.stringify({type:'FeatureCollection',features:[{
+      type:'Feature',
+      properties:{id:'test-area',name:'Test losloopgebied'},
+      geometry:{type:'Polygon',coordinates:[[[5.48,52.21],[5.481,52.21],[5.481,52.211],[5.48,52.211],[5.48,52.21]]]}
+    }]})
+  }));
+  await page.reload();
+  await expect(page.locator('#offleashControl')).toBeVisible();
+  await expect(page.locator('#offleashToggle')).toBeChecked();
+  await page.locator('#offleashToggle').uncheck();
+  await expect.poll(async()=>page.evaluate(()=>localStorage.getItem('wd_v3_offleash'))).toBe('0');
+  await page.reload();
+  await expect(page.locator('#offleashToggle')).not.toBeChecked();
+});

@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8f6f1"><meta name="description" content="Whatsup Dog — meld wat er in jouw buurt speelt.">
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="./vendor/leaflet/leaflet.css"><link rel="stylesheet" href="app-v3.css?v=6">
+<link rel="stylesheet" href="./vendor/leaflet/leaflet.css"><link rel="stylesheet" href="app-v3.css?v=7">
 <title>Whatsup Dog</title>
 </head>
 <body>
@@ -13,6 +13,11 @@
     <div class="map-brand"><span class="brand-word">Whatsup</span><span class="brand-dog">D🐾g</span></div>
     <button id="areaPill" class="top-pill">Nijkerk ▾</button>
     <button id="mapAlerts" class="header-icon" aria-label="Meldingen">🔔<span class="notify-dot"></span></button>
+    <div class="offleash-control" id="offleashControl">
+      <span class="offleash-icon">🐕</span>
+      <span class="offleash-copy"><b>Losloopgebieden</b><small>Nijkerk 2026</small></span>
+      <input id="offleashToggle" type="checkbox" class="toggle" aria-label="Losloopgebieden tonen">
+    </div>
     <div id="map" class="map"></div>
     <div id="mapCard" class="map-card hidden"></div>
     <button id="locateBtn" class="map-locate" aria-label="Mijn locatie">◎</button>
@@ -181,5 +186,5 @@
 <dialog id="onboarding"><form id="onboardForm" class="onboard"><div class="onboard-mark">Whatsup <b>D🐾g</b></div><div class="onboard-visual"><span>🐕</span><span class="bubble b1">🐾</span><span class="bubble b2">📍</span><span class="bubble b3">💚</span></div><h1>Je buurt. Je wandeling. Samen opletten.</h1><p class="muted">Geen account en geen wachtwoord. Kies alleen je standaardgebied en waarvoor je Whatsup Dog gebruikt.</p><label>Ik gebruik Whatsup Dog voor</label><div class="species-choice"><label><input type="radio" name="onSpecies" value="dog" checked><span>🐶</span><b>Hond</b></label><label><input type="radio" name="onSpecies" value="cat"><span>🐱</span><b>Kat</b></label><label><input type="radio" name="onSpecies" value="both"><span>🐾</span><b>Beide</b></label></div><label>Mijn standaardplaats of wijk</label><input id="onboardPlace" required placeholder="Bijv. Corlaer, Nijkerk"><button id="onboardLocate" type="button" class="secondary wide" style="margin-top:10px">📍 Gebruik mijn locatie</button><button class="primary wide" style="margin-top:10px">Start Whatsup Dog</button><p class="security-note"><span>🛡️</span> Op de achtergrond gebruiken we alleen een technische toestelsessie om jouw eigen items te herkennen.</p></form></dialog>
 
 <div id="toast" class="toast"></div>
-<script src="./vendor/leaflet/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script><script src="backend-config.js?v=4"></script><script src="app-v3.js?v=5"></script>
+<script src="./vendor/leaflet/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script><script src="backend-config.js?v=4"></script><script src="app-v3.js?v=6"></script>
 </body></html>

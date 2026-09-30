@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings";
-let client,user,map,markers,reportState={category:null,type:null,subtype:null},deferredInstall=null;
+let client,user,map,markers,offleashLayer,reportState={category:null,type:null,subtype:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
 const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2400)};
@@ -43,6 +43,7 @@ function bind(){
  $$("[data-close]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog")?.close()));
  $("#areaPill").addEventListener("click",()=>$("#areaDialog").showModal());
  $("#locateBtn").addEventListener("click",locate);
+ $("#offleashToggle")?.addEventListener("change",toggleOffleashLayer);
  $("#areaForm").addEventListener("submit",saveArea);
  $("#reportForm").addEventListener("submit",submitReport);
  $$(".report-type").forEach(b=>b.addEventListener("click",()=>chooseReport(b.dataset.cat,b.dataset.type,b.dataset.subtype||"")));
@@ -66,7 +67,47 @@ function showView(v){
  if(v==="my")refreshMine();
 }
 function initMap(){
- const s=settings();map=L.map("map",{zoomControl:false,attributionControl:true}).setView([s.lat,s.lng],14);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);markers=L.layerGroup().addTo(map);$("#areaPill").textContent=s.areaLabel+" ▾";
+ const s=settings();
+ map=L.map("map",{zoomControl:false,attributionControl:true}).setView([s.lat,s.lng],14);
+ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+ offleashLayer=L.layerGroup();
+ markers=L.layerGroup().addTo(map);
+ $("#areaPill").textContent=s.areaLabel+" ▾";
+ const enabled=localStorage.getItem("wd_v3_offleash")!=="0";
+ const toggle=$("#offleashToggle");if(toggle)toggle.checked=enabled;
+ loadOffleashAreas(enabled);
+}
+async function loadOffleashAreas(enabled=true){
+ if(!offleashLayer||!map)return;
+ try{
+   const res=await fetch("./data/nijkerk-losloopgebieden.geojson?v=20260930",{cache:"no-store"});
+   if(!res.ok)throw new Error("GeoJSON "+res.status);
+   const data=await res.json();
+   offleashLayer.clearLayers();
+   const geo=L.geoJSON(data,{
+     style:{color:"#0879e6",weight:3,fillColor:"#47b9f4",fillOpacity:.32},
+     onEachFeature:(feature,layer)=>{
+       const p=feature.properties||{};
+       const name=p.name||"Losloopgebied";
+       layer.bindTooltip("🐕 "+name,{sticky:true,direction:"top"});
+       layer.bindPopup('<div class="offleash-popup"><b>🐕 '+esc(name)+'</b><small>Losloopgebied · Gemeente Nijkerk · kaart 2026</small></div>');
+       layer.on("mouseover",()=>layer.setStyle?.({fillOpacity:.5,weight:4}));
+       layer.on("mouseout",()=>layer.setStyle?.({fillOpacity:.32,weight:3}));
+     }
+   });
+   geo.eachLayer(layer=>layer.addTo(offleashLayer));
+   if(enabled&&!map.hasLayer(offleashLayer))offleashLayer.addTo(map);
+ }catch(err){
+   console.warn("Losloopgebieden laden mislukt",err);
+   $("#offleashControl")?.classList.add("hidden");
+ }
+}
+function toggleOffleashLayer(e){
+ const on=!!e.target.checked;
+ localStorage.setItem("wd_v3_offleash",on?"1":"0");
+ if(!offleashLayer)return;
+ if(on){if(!map.hasLayer(offleashLayer))offleashLayer.addTo(map);toast("Losloopgebieden zichtbaar")}
+ else{if(map.hasLayer(offleashLayer))map.removeLayer(offleashLayer);toast("Losloopgebieden verborgen")}
 }
 function markerIcon(r){const c=["danger","vegetation","dirty","road"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"?"#28a17a":"#5178db";const e=r.type==="lost"?"!":r.type==="fun"?"♥":r.type==="spotted"?"🐾":"!";return L.divIcon({className:"",html:'<div class="marker" style="background:'+c+'"><span>'+e+'</span></div>',iconSize:[38,38],iconAnchor:[19,34]})}
 async function refreshReports(){
