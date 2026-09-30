@@ -60,7 +60,7 @@ function bind(){
 function showView(v){
  $$(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
  if(v==="map")setTimeout(()=>map?.invalidateSize(),50);
- if(v==="alerts")refreshReports();
+ if(v==="alerts"){syncPushUi();refreshReports();}
  if(v==="giveaway")refreshGiveaways();
  if(v==="my")refreshMine();
 }
