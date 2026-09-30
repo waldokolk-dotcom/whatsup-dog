@@ -151,7 +151,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
-  await expect(page.locator('#appVersion')).toContainText('3.8');
+  await expect(page.locator('#appVersion')).toContainText('3.9');
   await expect(page.locator('#versionDate')).toContainText('30-09-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
@@ -183,4 +183,12 @@ test('giveaway contact banner uses a fixed SVG mail icon at full size',async({pa
   expect(iconBox.height).toBeGreaterThanOrEqual(56);
   expect(svgBox.width).toBeGreaterThanOrEqual(32);
   expect(svgBox.height).toBeGreaterThanOrEqual(32);
+});
+
+test('desktop push repair code is present and test button can re-register',async({page})=>{
+  await page.locator('[data-view="alerts"]').click();
+  await expect(page.locator('#pushToggle')).toBeVisible();
+  await expect(page.locator('#pushStatus')).toBeVisible();
+  const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
+  expect(app).toContain('v=9');
 });
