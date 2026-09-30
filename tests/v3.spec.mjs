@@ -115,3 +115,19 @@ test('Info explains creation, resolution and expiry rules for reports',async({pa
   await expect(page.locator('#view-info')).toContainText('Vermist of gevonden: 30 dagen');
   await expect(page.locator('#view-info')).toContainText('Zelf opgelost? Haal hem van de kaart');
 });
+
+test('giveaway hero and email banner form one visual series',async({page})=>{
+  await page.locator('[data-view="giveaway"]').click();
+  const hero=page.locator('.give-hero');
+  const banner=page.locator('.contact-banner');
+  await expect(hero).toBeVisible();
+  await expect(banner).toBeVisible();
+  await expect(page.locator('.contact-icon')).toContainText('📧');
+  const heroIcon=await page.locator('.give-hero-icon').boundingBox();
+  const mailIcon=await page.locator('.contact-icon').boundingBox();
+  expect(Math.abs(heroIcon.width-mailIcon.width)).toBeLessThanOrEqual(4);
+  expect(Math.abs(heroIcon.height-mailIcon.height)).toBeLessThanOrEqual(4);
+  const heroRadius=parseFloat(await hero.evaluate(el=>getComputedStyle(el).borderTopLeftRadius));
+  const bannerRadius=parseFloat(await banner.evaluate(el=>getComputedStyle(el).borderTopLeftRadius));
+  expect(Math.abs(heroRadius-bannerRadius)).toBeLessThanOrEqual(1);
+});
