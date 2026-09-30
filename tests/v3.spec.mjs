@@ -268,3 +268,11 @@ test('resolve and delete remove markers from map immediately',async({page})=>{
   expect(source).toContain('delete_own_report');
   expect(source).toContain('reportId:r.id');
 });
+
+test('email icon is centered inside its square',async({page})=>{
+  await page.locator('[data-view="giveaway"]').click();
+  const outer=await page.locator('.contact-icon').boundingBox();
+  const inner=await page.locator('.contact-icon-svg').boundingBox();
+  expect(Math.abs((outer.x+outer.width/2)-(inner.x+inner.width/2))).toBeLessThanOrEqual(1.5);
+  expect(Math.abs((outer.y+outer.height/2)-(inner.y+inner.height/2))).toBeLessThanOrEqual(1.5);
+});
