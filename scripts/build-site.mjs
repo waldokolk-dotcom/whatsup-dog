@@ -15,5 +15,7 @@ for(const name of ['leaflet.js','leaflet.css']){
   fs.copyFileSync('vendor/leaflet/'+name,'dist/vendor/leaflet/'+name);
 }
 fs.cpSync('vendor/leaflet/images','dist/vendor/leaflet/images',{recursive:true});
+fs.mkdirSync('dist/data',{recursive:true});
+fs.copyFileSync('data/nijkerk-losloopgebieden.geojson','dist/data/nijkerk-losloopgebieden.geojson');
 fs.writeFileSync('dist/.nojekyll','');
 console.log('Accountless V3 production bundle only: no retired login/chat assets and no server secrets');
