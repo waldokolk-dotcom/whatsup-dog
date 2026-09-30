@@ -9,8 +9,10 @@ const app=read('app-v3.js');
 const css=read('app-v3.css');
 const sw=read('sw.js');
 const backend=read('backend-config.js');
+assert.ok(fs.existsSync('data/nijkerk-losloopgebieden.geojson'),'Nijkerk losloopgebieden GeoJSON missing');
 
 assert.match(html,/id="view-map"/,'Map view missing');
+assert.match(html,/id="offleashToggle"/,'Losloopgebieden switch missing');
 assert.match(html,/id="pawFab"/,'Thumb-sized PawWheel launcher missing');
 assert.match(html,/id="view-alerts"/,'Notifications tab missing');
 assert.match(html,/id="view-giveaway"/,'Giveaway tab missing');
@@ -22,8 +24,8 @@ assert.match(html,/id="radius"/,'Push radius control missing');
 assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
 assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
-assert.match(html,/app-v3\.js\?v=5/,'V3 app controller not wired');
-assert.match(html,/app-v3\.css\?v=6/,'V3 visual system not wired');
+assert.match(html,/app-v3\.js\?v=6/,'V3 app controller not wired');
+assert.match(html,/app-v3\.css\?v=7/,'V3 visual system not wired');
 
 assert.match(app,/signInAnonymously/,'Invisible device auth missing');
 assert.match(app,/from\("reports"\)\.insert/,'Shared report persistence missing');
@@ -38,6 +40,8 @@ assert.match(html,/id="pushStatus"/,'Push status UI missing');
 assert.match(app,/radius_m/,'Radius must persist server-side');
 assert.match(app,/categories:s\.categories/,'Push category preferences missing');
 assert.match(app,/navigator\.geolocation/,'Device location flow missing');
+assert.match(app,/nijkerk-losloopgebieden\.geojson/,'Official Nijkerk losloopgebieden layer missing');
+assert.match(app,/wd_v3_offleash/,'Losloop layer preference persistence missing');
 assert.match(app,/openReportDetail/,'Report detail flow missing');
 assert.match(app,/resolve_own_report/,'Owner resolve flow missing');
 assert.match(app,/archive_expired_reports/,'Automatic report expiry cleanup missing');
@@ -46,10 +50,11 @@ assert.doesNotMatch(app,/signInWithPassword|signUp\(|resetPasswordForEmail/,'Pas
 
 assert.match(css,/--green:#0f7a67/,'Approved premium visual tokens missing');
 assert.match(css,/\.paw-fab/,'One-hand PawWheel styling missing');
+assert.match(css,/\.offleash-control/,'Losloopgebieden control styling missing');
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
-assert.match(sw,/app-v3\.js\?v=5/,'Offline cache missing V3 app');
-assert.match(sw,/app-v3\.css\?v=6/,'Offline cache missing V3 CSS');
+assert.match(sw,/app-v3\.js\?v=6/,'Offline cache missing V3 app');
+assert.match(sw,/app-v3\.css\?v=7/,'Offline cache missing V3 CSS');
 assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');
 
