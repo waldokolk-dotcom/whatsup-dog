@@ -412,3 +412,75 @@ dialog[open]{
   .offleash-copy b{font-size:11px}
   .offleash-copy small{font-size:8px}
 }
+
+
+/* V3.7 PWA update experience */
+.version-card{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  margin-top:14px;
+}
+.version-icon{
+  width:46px;height:46px;border-radius:15px;
+  display:grid;place-items:center;
+  background:var(--green-soft);
+  font-size:22px;
+}
+.version-copy{display:grid;gap:2px}
+.version-copy b{font-size:14px;color:var(--ink)}
+.version-copy small{font-size:11px;color:var(--muted)}
+.version-check{margin:0;white-space:nowrap}
+
+.update-banner{
+  position:fixed;
+  left:50%;
+  bottom:calc(98px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  z-index:2600;
+  width:min(680px,calc(100vw - 24px));
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  padding:13px;
+  background:rgba(255,255,255,.98);
+  border:1px solid #dbe7e1;
+  border-radius:20px;
+  box-shadow:0 18px 46px rgba(19,55,46,.20);
+  backdrop-filter:blur(18px);
+}
+.update-banner.hidden{display:none}
+.update-mark{
+  width:44px;height:44px;border-radius:14px;
+  display:grid;place-items:center;
+  background:linear-gradient(135deg,#e8f6ef,#fff2df);
+  font-size:22px;
+}
+.update-copy b,.update-copy span{display:block}
+.update-copy b{font-size:13px;color:var(--ink)}
+.update-copy span{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.35}
+.update-banner button{
+  border:0;
+  border-radius:14px;
+  background:var(--green);
+  color:#fff;
+  min-height:42px;
+  padding:0 14px;
+  font-weight:850;
+  white-space:nowrap;
+}
+
+@media(max-width:520px){
+  .update-banner{
+    grid-template-columns:auto minmax(0,1fr);
+    bottom:calc(94px + env(safe-area-inset-bottom));
+  }
+  .update-banner button{
+    grid-column:1/-1;
+    width:100%;
+  }
+  .version-card{grid-template-columns:auto minmax(0,1fr)}
+  .version-check{grid-column:1/-1;width:100%}
+}
