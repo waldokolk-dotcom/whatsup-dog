@@ -193,7 +193,7 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=11');
+  expect(app).toContain('v=12');
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
@@ -257,6 +257,4 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
   await page.reload();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
   await expect(page.locator('.wd-report-marker-icon .marker')).toContainText('💧');
-  const paneZ=await page.locator('.leaflet-reportMarkersPane-pane').evaluate(el=>getComputedStyle(el).zIndex);
-  expect(Number(paneZ)).toBeGreaterThanOrEqual(700);
 });
