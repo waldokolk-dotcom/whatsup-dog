@@ -22,8 +22,8 @@ assert.match(html,/id="radius"/,'Push radius control missing');
 assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
 assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
-assert.match(html,/app-v3\.js\?v=4/,'V3 app controller not wired');
-assert.match(html,/app-v3\.css\?v=5/,'V3 visual system not wired');
+assert.match(html,/app-v3\.js\?v=5/,'V3 app controller not wired');
+assert.match(html,/app-v3\.css\?v=6/,'V3 visual system not wired');
 
 assert.match(app,/signInAnonymously/,'Invisible device auth missing');
 assert.match(app,/from\("reports"\)\.insert/,'Shared report persistence missing');
@@ -48,8 +48,8 @@ assert.match(css,/--green:#0f7a67/,'Approved premium visual tokens missing');
 assert.match(css,/\.paw-fab/,'One-hand PawWheel styling missing');
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
-assert.match(sw,/app-v3\.js\?v=4/,'Offline cache missing V3 app');
-assert.match(sw,/app-v3\.css\?v=5/,'Offline cache missing V3 CSS');
+assert.match(sw,/app-v3\.js\?v=5/,'Offline cache missing V3 app');
+assert.match(sw,/app-v3\.css\?v=6/,'Offline cache missing V3 CSS');
 assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');
 
@@ -74,6 +74,9 @@ for(const tag of html.matchAll(/(?:src|href)="([^"#]+)"/g)){
 assert.match(css,/\.nav-icon/,'Colorful primary navigation icons missing');
 assert.match(css,/\.activity-summary/,'Modern activity cards missing');
 assert.match(css,/\.contact-banner/,'Modern giveaway contact banner missing');
+assert.match(css,/\.give-card-media/,'Giveaway listing media design missing');
+assert.match(html,/class="contact-icon">📧/,'Visible mail icon missing');
+assert.match(html,/IN JOUW BUURT/,'Giveaway listing section heading missing');
 assert.match(css,/--radius-ui:20px/,'Unified corner radius tokens missing');
 assert.match(css,/dialog\[open\]/,'Responsive dialog layout missing');
 console.log('PASS: accountless V3.1 design, five-tab navigation, PawWheel, nearby Web Push, giveaway privacy and PWA security');
