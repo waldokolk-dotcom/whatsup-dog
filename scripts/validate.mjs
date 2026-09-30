@@ -12,16 +12,17 @@ const backend=read('backend-config.js');
 
 assert.match(html,/id="view-map"/,'Map view missing');
 assert.match(html,/id="pawFab"/,'Thumb-sized PawWheel launcher missing');
+assert.match(html,/id="view-alerts"/,'Notifications tab missing');
 assert.match(html,/id="view-giveaway"/,'Giveaway tab missing');
 assert.match(html,/id="view-my"/,'Mijn Whatsup tab missing');
 assert.match(html,/id="view-info"/,'Use/install/safety tab missing');
 assert.match(html,/id="pushToggle"/,'Nearby push settings missing');
 assert.match(html,/id="radius"/,'Push radius control missing');
 assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
-assert.match(html,/Geen account\. Geen wachtwoord\./,'Accountless onboarding copy missing');
+assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
-assert.match(html,/app-v3\.js\?v=1/,'V3 app controller not wired');
-assert.match(html,/app-v3\.css\?v=1/,'V3 visual system not wired');
+assert.match(html,/app-v3\.js\?v=2/,'V3 app controller not wired');
+assert.match(html,/app-v3\.css\?v=2/,'V3 visual system not wired');
 
 assert.match(app,/signInAnonymously/,'Invisible device auth missing');
 assert.match(app,/from\("reports"\)\.insert/,'Shared report persistence missing');
@@ -36,12 +37,12 @@ assert.match(app,/navigator\.geolocation/,'Device location flow missing');
 assert.match(app,/openReportDetail/,'Report detail flow missing');
 assert.doesNotMatch(app,/signInWithPassword|signUp\(|resetPasswordForEmail/,'Password/account flows must not ship');
 
-assert.match(css,/--green:#0f4b42/,'Approved premium visual tokens missing');
+assert.match(css,/--green:#0f7a67/,'Approved premium visual tokens missing');
 assert.match(css,/\.paw-fab/,'One-hand PawWheel styling missing');
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
-assert.match(sw,/app-v3\.js\?v=1/,'Offline cache missing V3 app');
-assert.match(sw,/app-v3\.css\?v=1/,'Offline cache missing V3 CSS');
+assert.match(sw,/app-v3\.js\?v=2/,'Offline cache missing V3 app');
+assert.match(sw,/app-v3\.css\?v=2/,'Offline cache missing V3 CSS');
 assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');
 
@@ -63,4 +64,7 @@ for(const tag of html.matchAll(/(?:src|href)="([^"#]+)"/g)){
  const target=tag[1].split('?')[0];
  if(!/^https?:/.test(target)&&!target.startsWith('data:'))assert.ok(fs.existsSync(target),'Missing HTML asset '+tag[1]);
 }
-console.log('PASS: accountless V3 shell, one-hand PawWheel, giveaway email contact, nearby Web Push, PWA assets and public-key security');
+assert.match(css,/\.nav-icon/,'Colorful primary navigation icons missing');
+assert.match(css,/\.activity-summary/,'Modern activity cards missing');
+assert.match(css,/\.contact-banner/,'Modern giveaway contact banner missing');
+console.log('PASS: accountless V3.1 design, five-tab navigation, PawWheel, nearby Web Push, giveaway privacy and PWA security');

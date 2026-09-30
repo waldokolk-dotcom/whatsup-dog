@@ -57,17 +57,33 @@ test('giveaway is accountless and uses private mail contact',async({page})=>{
   await expect(page.locator('#giveDialog')).toContainText('Niet zichtbaar in de openbare advertentielijst');
 });
 
-test('Mijn Whatsup contains local push area radius and categories',async({page})=>{
-  await page.locator('[data-view="my"]').click();
-  await expect(page.locator('#view-my')).toHaveClass(/active/);
+test('Meldingen contains area radius filters and push controls',async({page})=>{
+  await page.locator('[data-view="alerts"]').click();
+  await expect(page.locator('#view-alerts')).toHaveClass(/active/);
   await expect(page.locator('#pushArea')).toContainText('Corlaer');
   await expect(page.locator('#radius')).toHaveValue('2000');
   await expect(page.locator('.push-cat[value="danger"]')).toBeChecked();
+  await expect(page.locator('.category-grid')).toBeVisible();
+});
+
+test('primary navigation uses five modern app tabs',async({page})=>{
+  await expect(page.locator('.nav button')).toHaveCount(5);
+  await expect(page.locator('.nav .nav-icon')).toHaveCount(5);
+  await expect(page.locator('[data-view="alerts"]')).toContainText('Meldingen');
+  await expect(page.locator('[data-view="giveaway"]')).toContainText('Weggeefhoek');
+});
+
+test('Mijn Whatsup uses structured activity cards instead of empty bars',async({page})=>{
+  await page.locator('[data-view="my"]').click();
+  await expect(page.locator('#view-my')).toHaveClass(/active/);
+  await expect(page.locator('#myReportsCard')).toContainText('Mijn meldingen');
+  await expect(page.locator('#myGiveCard')).toContainText('Mijn weggeefitems');
+  await expect(page.locator('#myAreaLabel')).toContainText('Corlaer');
 });
 
 test('info tab explains install and safety',async({page})=>{
   await page.locator('[data-view="info"]').click();
   await expect(page.locator('#view-info')).toContainText('Gebruik & veiligheid');
-  await expect(page.locator('#view-info')).toContainText('iPhone/iPad');
-  await expect(page.locator('#view-info')).toContainText('geen account, gebruikersnaam of wachtwoord');
+  await expect(page.locator('#view-info')).toContainText('iPhone / iPad');
+  await expect(page.locator('#view-info')).toContainText('Geen account en geen wachtwoord');
 });
