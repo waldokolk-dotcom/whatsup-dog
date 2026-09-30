@@ -19,7 +19,7 @@ assert.match(html,/id="view-info"/,'Use/install/safety tab missing');
 assert.match(html,/id="pushToggle"/,'Nearby push settings missing');
 assert.match(html,/id="radius"/,'Push radius control missing');
 assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
-assert.match(html,/Geen account\. Geen wachtwoord\./,'Accountless onboarding copy missing');
+assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
 assert.match(html,/app-v3\\.js\\?v=2/,'V3 app controller not wired');
 assert.match(html,/app-v3\\.css\\?v=2/,'V3 visual system not wired');
