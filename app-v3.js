@@ -157,7 +157,20 @@ async function submitReport(e){
 }
 async function refreshGiveaways(){
  const list=$("#giveList");if(!list||!client)return;list.innerHTML='<div class="empty">Laden…</div>';const {data,error}=await client.from("giveaway_listings").select("id,owner_id,title,description,category,kind,town,image_path,status,created_at").eq("status","actief").order("created_at",{ascending:false}).limit(80);if(error){list.innerHTML='<div class="empty">Ophalen lukt nu niet.</div>';return}
- if(!data?.length){list.innerHTML='<div class="empty">Nog niets aangeboden. Jij kunt de eerste zijn.</div>';return}list.innerHTML="";for(const x of data){const a=document.createElement("article");a.className="give-card";let img='<div style="height:140px;background:#e7e2d9"></div>';if(x.image_path){const {data:s}=await client.storage.from("giveaway-photos").createSignedUrl(x.image_path,900);if(s?.signedUrl)img='<img src="'+s.signedUrl+'" alt="">'}a.innerHTML=img+'<div class="give-body"><span class="badge">'+(x.kind==="ruilen"?"Ruilen":"Gratis")+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><p class="muted small">📍 '+esc(x.town)+'</p><button class="primary wide contact">✉️ Neem contact op</button></div>';a.querySelector(".contact").onclick=()=>contactGiveaway(x);list.append(a)}}
+ if(!data?.length){list.innerHTML='<div class="empty">Nog niets aangeboden. Jij kunt de eerste zijn.</div>';return}
+ list.innerHTML="";
+ for(const x of data){
+   const a=document.createElement("article");a.className="give-card";
+   const fallback=x.category==="kat"?"🐱":x.category==="hond"?"🐶":"🐾";
+   let img='<div class="give-card-media">'+fallback+'</div>';
+   if(x.image_path){
+     const {data:s}=await client.storage.from("giveaway-photos").createSignedUrl(x.image_path,900);
+     if(s?.signedUrl)img='<img class="give-card-media" src="'+s.signedUrl+'" alt="">'
+   }
+   a.innerHTML=img+'<div class="give-body"><span class="badge">'+(x.kind==="ruilen"?"Ruilen":"Gratis")+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><p class="muted small location">📍 '+esc(x.town)+'</p><button class="primary wide contact">✉️ Neem contact op</button></div>';
+   a.querySelector(".contact").onclick=()=>contactGiveaway(x);
+   list.append(a)
+ }}
 async function contactGiveaway(x){if(x.owner_id===user.id)return toast("Dit is jouw eigen item");const {data,error}=await client.rpc("get_giveaway_contact",{target:x.id});if(error||!data)return toast("Contactadres niet beschikbaar");location.href="mailto:"+encodeURIComponent(data)+"?subject="+encodeURIComponent("Reactie via Whatsup Dog – "+x.title)+"&body="+encodeURIComponent("Hallo,\n\nIk zag via Whatsup Dog dat je '"+x.title+"' aanbiedt. Is dit nog beschikbaar?\n\nGroet,")}
 async function submitGiveaway(e){
  e.preventDefault();const f=e.currentTarget,b=$("#giveSubmit");b.disabled=true;let path=null;
