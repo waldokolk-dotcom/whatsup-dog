@@ -50,6 +50,7 @@ function bind(){
  $("#giveForm").addEventListener("submit",submitGiveaway);
  $("#profileForm").addEventListener("submit",saveProfile);
  $("#pushToggle").addEventListener("change",togglePush);
+ $("#pushTestButton")?.addEventListener("click",testPushNotification);
  $("#radius").addEventListener("input",e=>{$("#radiusVal").textContent=(e.target.value/1000).toFixed(e.target.value<1000?1:0)+" km"});$("#radius").addEventListener("change",savePushPrefs);
  $$$(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
  $("#installButton").addEventListener("click",installApp);
@@ -174,9 +175,123 @@ function applyProfile(){
 async function saveArea(e){e.preventDefault();const q=$("#areaSearch").value.trim();if(!q)return;try{const res=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(q));const arr=await res.json();if(!arr[0])return toast("Gebied niet gevonden");const s=settings();s.areaLabel=arr[0].display_name.split(",")[0];s.lat=Number(arr[0].lat);s.lng=Number(arr[0].lon);write(SKEY,s);$("#areaPill").textContent=s.areaLabel+" ▾";map.setView([s.lat,s.lng],14);$("#areaDialog").close();syncPushUi();applyProfile();toast("Gebied aangepast")}catch{toast("Zoeken lukt nu niet")}}
 function locate(){navigator.geolocation?.getCurrentPosition(p=>{map.setView([p.coords.latitude,p.coords.longitude],16);L.circleMarker([p.coords.latitude,p.coords.longitude],{radius:8,color:"#176fa8",fillColor:"#7dc4ff",fillOpacity:1,weight:3}).addTo(map)},()=>toast("Locatie niet gedeeld"),{timeout:6000,maximumAge:30000})}
 function urlB64(s){const pad="=".repeat((4-s.length%4)%4),b=(s+pad).replace(/-/g,"+").replace(/_/g,"/"),raw=atob(b);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
-async function togglePush(e){if(e.target.checked){try{if(!("serviceWorker"in navigator)||!("PushManager"in window))throw new Error("unsupported");const perm=await Notification.requestPermission();if(perm!=="granted")throw new Error("denied");const reg=await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64(VAPID_PUBLIC)});await saveSubscription(sub);const s=settings();s.push=true;write(SKEY,s);toast("Pushmeldingen staan aan")}catch(err){console.warn(err);e.target.checked=false;toast("Pushmeldingen konden niet worden ingeschakeld")}}else{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();if(sub){await client.from("push_subscriptions").delete().eq("endpoint",sub.endpoint).eq("user_id",user.id);await sub.unsubscribe()}const s=settings();s.push=false;write(SKEY,s);toast("Pushmeldingen staan uit")}}
-async function saveSubscription(sub){const s=settings(),j=sub.toJSON();const row={user_id:user.id,endpoint:sub.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,area_label:s.areaLabel,center_lat:s.lat,center_lng:s.lng,radius_m:s.radius,categories:s.categories,enabled:true,updated_at:new Date().toISOString()};const {error}=await client.from("push_subscriptions").upsert(row,{onConflict:"endpoint"});if(error)throw error}
-async function savePushPrefs(){const s=settings();s.radius=Number($("#radius").value);s.categories=$$(".push-cat:checked").map(x=>x.value);write(SKEY,s);$("#radiusVal").textContent=(s.radius/1000).toFixed(s.radius<1000?1:0)+" km";try{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();if(sub)await saveSubscription(sub)}catch{}}
+function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)}
+function isStandalone(){return window.matchMedia?.("(display-mode: standalone)")?.matches||window.navigator.standalone===true}
+function setPushStatus(text,type=""){
+ const el=$("#pushStatus"),help=$("#pushHelp"),test=$("#pushTestButton");
+ if(el){el.textContent=text;el.className="push-status"+(type?" "+type:"")}
+ if(test)test.classList.toggle("hidden",type!=="on");
+ if(help&&type==="on"){help.classList.add("hidden");help.textContent=""}
+}
+function showPushHelp(message){
+ const help=$("#pushHelp");
+ if(!help)return;
+ help.textContent=message;
+ help.classList.remove("hidden");
+}
+async function getReadyRegistration(){
+ if(!("serviceWorker" in navigator))throw new Error("service-worker-unsupported");
+ let reg=await navigator.serviceWorker.getRegistration("./");
+ if(!reg)reg=await navigator.serviceWorker.register("./sw.js");
+ const ready=await Promise.race([
+   navigator.serviceWorker.ready,
+   new Promise((_,reject)=>setTimeout(()=>reject(new Error("service-worker-timeout")),8000))
+ ]);
+ return ready;
+}
+async function ensurePushSubscription(){
+ if(!("Notification" in window))throw new Error("notifications-unsupported");
+ if(!("PushManager" in window))throw new Error("push-unsupported");
+ if(isIOS()&&!isStandalone())throw new Error("ios-install-required");
+ if(Notification.permission==="denied")throw new Error("permission-denied");
+ const permission=Notification.permission==="granted"?"granted":await Notification.requestPermission();
+ if(permission!=="granted")throw new Error(permission==="denied"?"permission-denied":"permission-dismissed");
+ const reg=await getReadyRegistration();
+ let sub=await reg.pushManager.getSubscription();
+ if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64(VAPID_PUBLIC)});
+ await saveSubscription(sub);
+ return sub;
+}
+function pushErrorMessage(err){
+ const code=String(err?.message||err||"");
+ if(code.includes("ios-install-required"))return "Op iPhone/iPad werkt push nadat je Whatsup Dog via Safari op je beginscherm hebt gezet en vanaf daar opent.";
+ if(code.includes("permission-denied"))return "Meldingen zijn in je browser geblokkeerd. Zet meldingen voor deze site aan in de browser- of telefooninstellingen en probeer opnieuw.";
+ if(code.includes("permission-dismissed"))return "Je hebt de toestemmingsvraag gesloten. Tik opnieuw op de schakelaar om het nogmaals te proberen.";
+ if(code.includes("notifications-unsupported")||code.includes("push-unsupported"))return "Deze browser ondersteunt geen web-push. Gebruik een recente versie van Chrome, Edge, Safari of de geïnstalleerde app.";
+ if(code.includes("service-worker"))return "De app-service kon niet starten. Sluit Whatsup Dog volledig, open opnieuw en probeer nogmaals.";
+ return "Push kon niet worden geactiveerd. Probeer de app opnieuw te openen; als het blijft gebeuren, controleer de meldingsrechten van Whatsup Dog.";
+}
+async function togglePush(e){
+ const toggle=e.target;
+ toggle.disabled=true;
+ if(toggle.checked){
+   setPushStatus("Push wordt ingeschakeld…");
+   try{
+     await ensurePushSubscription();
+     const s=settings();s.push=true;write(SKEY,s);
+     setPushStatus("Pushmeldingen staan aan","on");
+     toast("Pushmeldingen staan aan");
+   }catch(err){
+     console.warn("Push enable failed",err);
+     toggle.checked=false;
+     const s=settings();s.push=false;write(SKEY,s);
+     setPushStatus("Pushmeldingen staan uit","error");
+     showPushHelp(pushErrorMessage(err));
+     toast("Pushmeldingen niet ingeschakeld");
+   }finally{toggle.disabled=false}
+ }else{
+   try{
+     const reg=await navigator.serviceWorker.getRegistration("./");
+     const sub=reg?await reg.pushManager.getSubscription():null;
+     if(sub){
+       await client.rpc("unregister_push_subscription",{p_endpoint:sub.endpoint}).catch(()=>{});
+       await sub.unsubscribe().catch(()=>{});
+     }
+   }catch(err){console.warn("Push disable failed",err)}
+   const s=settings();s.push=false;write(SKEY,s);
+   setPushStatus("Pushmeldingen staan uit");
+   toggle.disabled=false;
+   toast("Pushmeldingen staan uit");
+ }
+}
+async function saveSubscription(sub){
+ const s=settings(),j=sub.toJSON();
+ const {error}=await client.rpc("register_push_subscription",{
+   p_endpoint:sub.endpoint,
+   p_p256dh:j.keys?.p256dh,
+   p_auth:j.keys?.auth,
+   p_area_label:s.areaLabel||"",
+   p_center_lat:Number(s.lat),
+   p_center_lng:Number(s.lng),
+   p_radius_m:Number(s.radius||2000),
+   p_categories:s.categories||[]
+ });
+ if(error)throw error;
+}
+async function savePushPrefs(){
+ const s=settings();
+ s.radius=Number($("#radius").value);
+ s.categories=$$(".push-cat:checked").map(x=>x.value);
+ write(SKEY,s);
+ $("#radiusVal").textContent=(s.radius/1000).toFixed(s.radius<1000?1:0)+" km";
+ try{
+   const reg=await navigator.serviceWorker.getRegistration("./"),sub=reg?await reg.pushManager.getSubscription():null;
+   if(sub)await saveSubscription(sub);
+ }catch(err){console.warn("Push preferences sync failed",err)}
+}
+async function testPushNotification(){
+ try{
+   if(Notification.permission!=="granted")throw new Error("permission-denied");
+   const reg=await getReadyRegistration();
+   await reg.showNotification("Whatsup Dog",{
+     body:"Test geslaagd — pushmeldingen kunnen op dit apparaat worden getoond.",
+     icon:"./icon-192.png",badge:"./icon-192.png",tag:"whatsup-dog-test"
+   });
+   toast("Testmelding verstuurd");
+ }catch(err){
+   showPushHelp(pushErrorMessage(err));
+ }
+}
 function syncPushUi(){
  const s=settings();
  const area=document.querySelector("#pushArea");
@@ -187,6 +302,9 @@ function syncPushUi(){
  if(area)area.textContent=s.areaLabel||"Mijn gebied";
  if(myArea)myArea.textContent=s.areaLabel||"Mijn gebied";
  if(toggle)toggle.checked=!!s.push;
+ if(s.push)setPushStatus("Pushmeldingen staan aan","on");
+ else if("Notification" in window&&Notification.permission==="denied"){setPushStatus("Geblokkeerd door browser","error");showPushHelp(pushErrorMessage(new Error("permission-denied")))}
+ else setPushStatus("Niet ingeschakeld");
  if(radius)radius.value=String(s.radius||2000);
  if(radiusVal)radiusVal.textContent=((s.radius||2000)/1000)+" km";
  document.querySelectorAll(".push-cat").forEach(x=>x.checked=(s.categories||[]).includes(x.value));

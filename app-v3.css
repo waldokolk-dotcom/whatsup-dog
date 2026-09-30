@@ -44,3 +44,143 @@ dialog{border:0;padding:0;background:transparent}.sheet{width:min(620px,100vw);m
 .leaflet-control-attribution{font-size:8px}.marker{width:37px;height:37px;border-radius:50% 50% 50% 10%;transform:rotate(-45deg);display:grid;place-items:center;color:white;border:3px solid white;box-shadow:0 6px 12px rgba(0,0,0,.16)}.marker span{transform:rotate(45deg);font-size:16px}
 @media(max-width:430px){.app-header h1{font-size:29px}.view{padding-left:14px;padding-right:14px}.info-tiles{grid-template-columns:1fr}.give-list.modern-grid{gap:8px}.give-card img,.give-card>div:first-child{height:125px}.nav button b{font-size:9px}.paw-fab{width:76px;height:76px}.category-card{padding-left:5px;padding-right:5px}.category-card b{font-size:11px}}
 @media(min-width:680px){.app{border-left:1px solid #ddd;border-right:1px solid #ddd}.give-list.modern-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.view{padding-left:24px;padding-right:24px}}
+
+
+/* V3.2 consistency + mobile sheet fixes */
+:root{
+  --radius-ui:20px;
+  --radius-control:16px;
+  --radius-sheet:22px;
+}
+
+.card,.modern-card,.feature-card,.profile-card,.activity-summary,.menu-card,.give-hero,
+.contact-banner,.give-card,.info-tile,.safety-callout,.setting-link,.alert-item,.my-item,
+.form-note,.security-note,.category-card,.report-type,.detail-copy{
+  border-radius:var(--radius-ui);
+}
+
+button,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select,
+.primary,.secondary,.danger,.soft-button,.header-add,.chevron-btn,.mini-close,.close{
+  border-radius:var(--radius-control);
+}
+
+.contact-banner{
+  padding:15px 16px;
+  grid-template-columns:58px minmax(0,1fr);
+  gap:13px;
+  min-height:84px;
+}
+.contact-icon{
+  width:58px;
+  height:58px;
+  border-radius:18px;
+  background:linear-gradient(145deg,#fff,#f4f8ff);
+  display:grid;
+  place-items:center;
+  font-size:30px;
+  line-height:1;
+  box-shadow:0 5px 16px rgba(31,72,130,.08);
+}
+.contact-banner b{font-size:15px;line-height:1.25}
+.contact-banner span{font-size:12px;line-height:1.35}
+
+.feature-icon{
+  width:56px;
+  height:56px;
+  border-radius:18px;
+  font-size:27px;
+}
+.push-status{
+  display:block;
+  margin-top:7px;
+  font-size:11px;
+  font-weight:850;
+  color:var(--muted);
+}
+.push-status.on{color:var(--green-dark)}
+.push-status.warn{color:#b26b00}
+.push-status.error{color:#b8404d}
+.push-help{
+  margin:-3px 0 13px;
+  padding:12px 14px;
+  background:#fff7e8;
+  border:1px solid #f0dfb8;
+  border-radius:var(--radius-ui);
+  color:#6b5b33;
+  font-size:12px;
+  line-height:1.45;
+}
+.push-test{
+  width:100%;
+  margin:-3px 0 13px;
+  min-height:44px;
+}
+
+dialog{
+  width:100vw;
+  max-width:none;
+  height:100dvh;
+  max-height:none;
+  margin:0;
+  padding:0;
+  background:transparent;
+  overflow:hidden;
+}
+dialog[open]{
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+}
+.sheet{
+  width:min(620px,calc(100vw - 16px));
+  max-width:calc(100vw - 16px);
+  max-height:calc(100dvh - 16px);
+  margin:0 8px 8px;
+  border-radius:var(--radius-sheet);
+  padding:20px 17px calc(24px + env(safe-area-inset-bottom));
+  overflow:auto;
+  overscroll-behavior:contain;
+}
+.onboard{
+  width:min(620px,calc(100vw - 16px));
+  max-width:calc(100vw - 16px);
+  min-height:0;
+  max-height:calc(100dvh - 16px);
+  margin:0 8px 8px;
+  border-radius:var(--radius-sheet);
+  padding:20px 17px calc(24px + env(safe-area-inset-bottom));
+  overflow:auto;
+}
+.close{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  line-height:1;
+  flex:none;
+}
+
+@media(max-width:430px){
+  .sheet,.onboard{
+    width:calc(100vw - 12px);
+    max-width:calc(100vw - 12px);
+    max-height:calc(100dvh - 12px);
+    margin:0 6px 6px;
+    padding:18px 14px calc(22px + env(safe-area-inset-bottom));
+  }
+  .sheet h2{font-size:24px}
+  .contact-banner{
+    grid-template-columns:54px minmax(0,1fr);
+    padding:13px;
+  }
+  .contact-icon{
+    width:54px;
+    height:54px;
+    font-size:28px;
+  }
+  .feature-icon{
+    width:52px;
+    height:52px;
+    font-size:25px;
+  }
+}
