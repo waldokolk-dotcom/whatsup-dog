@@ -226,8 +226,8 @@ test('all report categories expose distinct subtype icons',async({page})=>{
 
 test('active own reports distinguish status from actions',async({page})=>{
   const script=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(script).toContain('v=12');
-  const response=await page.request.get('/app-v3.js?v=11');
+  expect(script).toContain('v=13');
+  const response=await page.request.get('/app-v3.js?v=13');
   const source=await response.text();
   expect(source).toContain('Markeer als opgelost');
   expect(source).toContain('Verwijder melding');
