@@ -22,7 +22,7 @@ async function stubBackend(page){
     };
     window.__wdTestClient=client;
   });
-  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>window.__wdTestClient};'}));
+  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>window.__wdTestClient};'}));
 }
 test.beforeEach(async({page})=>{await stubBackend(page);await page.goto('/');await page.waitForLoadState('domcontentloaded')});
 
