@@ -5,6 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings";
+const APP_VERSION="3.7", APP_VERSION_DATE="30-09-2026";
 let client,user,map,markers,offleashLayer,reportState={category:null,type:null,subtype:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -53,8 +54,10 @@ function bind(){
  $("#pushToggle").addEventListener("change",togglePush);
  $("#pushTestButton")?.addEventListener("click",testPushNotification);
  $("#radius").addEventListener("input",e=>{$("#radiusVal").textContent=(e.target.value/1000).toFixed(e.target.value<1000?1:0)+" km"});$("#radius").addEventListener("change",savePushPrefs);
- $$$(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
+ $(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
  $("#installButton").addEventListener("click",installApp);
+ $("#checkUpdateButton")?.addEventListener("click",()=>checkForAppUpdate(true));
+ $("#applyUpdateButton")?.addEventListener("click",applyAppUpdate);
  $("#onboardForm").addEventListener("submit",finishOnboarding);
  $("#onboardLocate").addEventListener("click",()=>navigator.geolocation?.getCurrentPosition(async p=>{const s=settings();s.lat=p.coords.latitude;s.lng=p.coords.longitude;s.areaLabel="Mijn locatie";write(SKEY,s);$("#onboardPlace").value="Mijn locatie";toast("Locatie gekozen")},()=>toast("Locatie niet gedeeld")));
  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
@@ -398,6 +401,84 @@ function syncPushUi(){
 async function finishOnboarding(e){e.preventDefault();const place=$("#onboardPlace").value.trim(),p={species:$("input[name=onSpecies]:checked")?.value||"both",avatar:"🐾",name:"",petName:"",breed:""};write(PKEY,p);if(place&&place!=="Mijn locatie"){try{const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(place)),a=await r.json();if(a[0]){const s=settings();s.areaLabel=a[0].display_name.split(",")[0];s.lat=+a[0].lat;s.lng=+a[0].lon;write(SKEY,s)}}catch{}}localStorage.setItem("wd_v3_onboarded","1");$("#onboarding").close();location.reload()}
 async function installApp(){if(deferredInstall){deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;return}toast(/iphone|ipad|ipod/i.test(navigator.userAgent)?"Tik Deel en kies ‘Zet op beginscherm’":"Open het browsermenu en kies ‘App installeren’")}
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
-if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(console.warn);
+
+let updateRegistration=null, updateWorker=null, updateReloading=false;
+
+function syncVersionUi(){
+ const v=$("#appVersion"),d=$("#versionDate");
+ if(v)v.textContent="Whatsup Dog "+APP_VERSION;
+ if(d)d.textContent="Bijgewerkt "+APP_VERSION_DATE;
+}
+
+function showUpdateBanner(worker,registration){
+ updateWorker=worker||registration?.waiting||null;
+ updateRegistration=registration||updateRegistration;
+ const banner=$("#updateBanner");
+ if(banner)banner.classList.remove("hidden");
+}
+
+async function registerUpdateSystem(){
+ syncVersionUi();
+ if(!("serviceWorker" in navigator))return;
+ try{
+   const reg=await navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"});
+   updateRegistration=reg;
+
+   if(reg.waiting&&navigator.serviceWorker.controller)showUpdateBanner(reg.waiting,reg);
+
+   reg.addEventListener("updatefound",()=>{
+     const worker=reg.installing;
+     if(!worker)return;
+     worker.addEventListener("statechange",()=>{
+       if(worker.state==="installed"&&navigator.serviceWorker.controller){
+         showUpdateBanner(worker,reg);
+       }
+     });
+   });
+
+   navigator.serviceWorker.addEventListener("controllerchange",()=>{
+     if(updateReloading)return;
+     updateReloading=true;
+     location.reload();
+   });
+
+   const ask=()=>checkForAppUpdate(false);
+   window.addEventListener("focus",ask);
+   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")ask()});
+   setInterval(ask,60*60*1000);
+ }catch(err){console.warn("Updatecontrole kon niet starten",err)}
+}
+
+async function checkForAppUpdate(userRequested=false){
+ if(!("serviceWorker" in navigator))return;
+ try{
+   const reg=updateRegistration||await navigator.serviceWorker.getRegistration("./")||await navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"});
+   updateRegistration=reg;
+   await reg.update();
+   if(reg.waiting&&navigator.serviceWorker.controller){
+     showUpdateBanner(reg.waiting,reg);
+     if(userRequested)toast("Nieuwe versie is klaar");
+   }else if(userRequested){
+     toast("Je gebruikt de nieuwste versie");
+   }
+ }catch(err){
+   console.warn("Updatecontrole mislukt",err);
+   if(userRequested)toast("Updatecontrole lukt nu niet");
+ }
+}
+
+function applyAppUpdate(){
+ const worker=updateWorker||updateRegistration?.waiting;
+ if(!worker){
+   checkForAppUpdate(true);
+   return;
+ }
+ const btn=$("#applyUpdateButton");
+ if(btn){btn.disabled=true;btn.textContent="Bijwerken…"}
+ updateReloading=false;
+ worker.postMessage({type:"SKIP_WAITING"});
+}
+
+registerUpdateSystem();
 boot().catch(e=>{console.error(e);toast("Whatsup Dog kon niet volledig starten")});
 })();
