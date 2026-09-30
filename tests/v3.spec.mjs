@@ -6,7 +6,7 @@ async function stubBackend(page){
     localStorage.setItem('wd_v3_profile',JSON.stringify({name:'Waldo',petName:'Bowie',breed:'Friese stabij',avatar:'🐶',species:'dog'}));
     localStorage.setItem('wd_v3_settings',JSON.stringify({areaLabel:'Corlaer',lat:52.21,lng:5.48,radius:2000,categories:['danger','lost','animal'],push:false}));
     const chain=(data=[])=>({
-      select(){return this},eq(){return this},order(){return this},
+      select(){return this},eq(){return this},gt(){return this},order(){return this},
       limit(){return Promise.resolve({data,error:null})},
       maybeSingle(){return Promise.resolve({data:null,error:null})},
       insert(){return Promise.resolve({data:null,error:null})},
@@ -98,4 +98,11 @@ test('mobile sheets stay within viewport width and use consistent rounded corner
   expect(box.width).toBeLessThanOrEqual(vp.width-4);
   const radius=await sheet.evaluate(el=>getComputedStyle(el).borderTopLeftRadius);
   expect(parseFloat(radius)).toBeGreaterThanOrEqual(20);
+});
+
+test('own reports can be marked resolved and removed from the live map',async({page})=>{
+  await page.locator('[data-view="my"]').click();
+  await expect(page.locator('#view-my')).toHaveClass(/active/);
+  await expect(page.locator('#myReportsCard')).toContainText('Mijn meldingen');
+  await expect(page.locator('#detailResolve')).toHaveText(/Opgelost/);
 });
