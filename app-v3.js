@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings";
-const APP_VERSION="4.1", APP_VERSION_DATE="30-09-2026";
+const APP_VERSION="4.2", APP_VERSION_DATE="30-09-2026";
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -75,6 +75,9 @@ function initMap(){
  const s=settings();
  map=L.map("map",{zoomControl:false,attributionControl:true}).setView([s.lat,s.lng],14);
  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+ const reportPane=map.createPane("reportMarkersPane");
+ reportPane.style.zIndex="720";
+ reportPane.style.pointerEvents="auto";
  offleashLayer=L.layerGroup();
  markers=L.layerGroup().addTo(map);
  $("#areaPill").textContent=s.areaLabel+" ▾";
@@ -114,14 +117,14 @@ function toggleOffleashLayer(e){
  if(on){if(!map.hasLayer(offleashLayer))offleashLayer.addTo(map);toast("Losloopgebieden zichtbaar")}
  else{if(map.hasLayer(offleashLayer))map.removeLayer(offleashLayer);toast("Losloopgebieden verborgen")}
 }
-function markerIcon(r){const c=["danger","vegetation","dirty"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"||r.type==="walk"?"#28a17a":r.type==="road"?"#4f7fd7":"#5178db";const e=iconForReport(r);return L.divIcon({className:"",html:'<div class="marker" style="background:'+c+'"><span>'+e+'</span></div>',iconSize:[38,38],iconAnchor:[19,34]})}
+function markerIcon(r){const c=["danger","vegetation","dirty"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"||r.type==="walk"?"#28a17a":r.type==="road"?"#4f7fd7":"#5178db";const e=iconForReport(r);return L.divIcon({className:"wd-report-marker-icon",html:'<div class="marker" style="background:'+c+'"><span>'+e+'</span></div>',iconSize:[42,42],iconAnchor:[21,38]})}
 async function refreshReports(){
  if(!client||!user)return;
  await client.rpc("archive_expired_reports").catch(()=>{});
  const {data,error}=await client.from("reports").select("id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,photo_path,status,created_at,species,expires_at").eq("status","active").gt("expires_at",new Date().toISOString()).order("created_at",{ascending:false}).limit(200);
  if(error){console.warn(error);return}
  markers.clearLayers();
- for(const r of data||[]){L.marker([r.lat,r.lng],{icon:markerIcon(r)}).addTo(markers).on("click",()=>openReportDetail(r))}
+ for(const r of data||[]){if(!Number.isFinite(Number(r.lat))||!Number.isFinite(Number(r.lng)))continue;L.marker([Number(r.lat),Number(r.lng)],{icon:markerIcon(r),pane:"reportMarkersPane",zIndexOffset:1000}).addTo(markers).on("click",()=>openReportDetail(r))}
  renderAlerts(data||[]);
 }
 function iconForReport(r){
@@ -256,9 +259,12 @@ async function submitReport(e){
  const {error}=await client.from("reports").insert(row);if(error)throw error;
  $("#reportDialog").close();
  showView("map");
- map.setView([loc.lat,loc.lng],16);
+ map.setView([loc.lat,loc.lng],17);
+ const optimistic={...row,status:"active",created_at:new Date().toISOString(),expires_at:new Date(Date.now()+7*24*60*60*1000).toISOString()};
+ L.marker([loc.lat,loc.lng],{icon:markerIcon(optimistic),pane:"reportMarkersPane",zIndexOffset:1200}).addTo(markers).on("click",()=>openReportDetail(optimistic));
  setTimeout(()=>map?.invalidateSize(),50);
  await Promise.allSettled([refreshReports(),refreshMine()]);
+ map.setView([loc.lat,loc.lng],17);
  client.functions.invoke("dispatch-nearby-push",{body:{reportId:id}}).catch(()=>{});
  toast("Melding staat op de kaart")}
  catch(err){console.warn(err);toast("Plaatsen lukt nu niet")}finally{btn.disabled=false}
