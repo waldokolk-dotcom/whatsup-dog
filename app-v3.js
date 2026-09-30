@@ -1,0 +1,107 @@
+
+(()=>{
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const CFG=window.WHATSUP_DOG_BACKEND||{};
+const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
+const PKEY="wd_v3_profile", SKEY="wd_v3_settings";
+let client,user,map,markers,reportState={category:null,type:null,subtype:null},deferredInstall=null;
+const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
+const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2400)};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+async function boot(){
+ if(!window.supabase||!CFG.url||!CFG.publishableKey){toast("Backend niet beschikbaar");return}
+ client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
+ const {data}=await client.auth.getSession(); if(data.session) user=data.session.user;
+ if(!user){const r=await client.auth.signInAnonymously();if(r.error){console.warn(r.error);toast("Veilige toestelsessie kon niet starten");return}user=r.data.user}
+ initMap(); bind(); applyProfile(); await refreshReports(); await refreshGiveaways(); await refreshMine(); syncPushUi();
+ if(!localStorage.getItem("wd_v3_onboarded")) $("#onboarding").showModal();
+ const qp=new URLSearchParams(location.search).get("report");if(qp)setTimeout(()=>openReportById(qp),700);
+}
+function bind(){
+ $$("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
+ $("#pawFab").addEventListener("click",()=>$("#pawDialog").showModal());
+ $("#pawReport").addEventListener("click",()=>{$("#pawDialog").close();openReport()});
+ $("#pawGive").addEventListener("click",()=>{$("#pawDialog").close();showView("giveaway")});
+ $("#pawArea").addEventListener("click",()=>{$("#pawDialog").close();$("#areaDialog").showModal()});
+ $("#pawMine").addEventListener("click",()=>{$("#pawDialog").close();showView("my")});
+ $("#pawInfo").addEventListener("click",()=>{$("#pawDialog").close();showView("info")});
+ $$("[data-close]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog")?.close()));
+ $("#areaPill").addEventListener("click",()=>$("#areaDialog").showModal());
+ $("#locateBtn").addEventListener("click",locate);
+ $("#areaForm").addEventListener("submit",saveArea);
+ $("#reportForm").addEventListener("submit",submitReport);
+ $$(".report-type").forEach(b=>b.addEventListener("click",()=>chooseReport(b.dataset.cat,b.dataset.type,b.dataset.subtype||"")));
+ $("#giveCreate").addEventListener("click",()=>$("#giveDialog").showModal());
+ $("#giveForm").addEventListener("submit",submitGiveaway);
+ $("#profileForm").addEventListener("submit",saveProfile);
+ $("#pushToggle").addEventListener("change",togglePush);
+ $("#radius").addEventListener("input",e=>{$("#radiusVal").textContent=(e.target.value/1000).toFixed(e.target.value<1000?1:0)+" km"});
+ $$(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
+ $("#installButton").addEventListener("click",installApp);
+ $("#onboardForm").addEventListener("submit",finishOnboarding);
+ $("#onboardLocate").addEventListener("click",()=>navigator.geolocation?.getCurrentPosition(async p=>{const s=settings();s.lat=p.coords.latitude;s.lng=p.coords.longitude;s.areaLabel="Mijn locatie";write(SKEY,s);$("#onboardPlace").value="Mijn locatie";toast("Locatie gekozen")},()=>toast("Locatie niet gedeeld")));
+ window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
+}
+function showView(v){
+ $$(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
+ if(v==="map")setTimeout(()=>map?.invalidateSize(),50); if(v==="giveaway")refreshGiveaways();if(v==="my")refreshMine();
+}
+function initMap(){
+ const s=settings();map=L.map("map",{zoomControl:false,attributionControl:true}).setView([s.lat,s.lng],14);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);markers=L.layerGroup().addTo(map);$("#areaPill").textContent=s.areaLabel+" ▾";
+}
+function markerIcon(r){const c=["danger","vegetation","dirty","road"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"?"#28a17a":"#5178db";const e=r.type==="lost"?"!":r.type==="fun"?"♥":r.type==="spotted"?"🐾":"!";return L.divIcon({className:"",html:'<div class="marker" style="background:'+c+'"><span>'+e+'</span></div>',iconSize:[38,38],iconAnchor:[19,34]})}
+async function refreshReports(){
+ if(!client||!user)return;const {data,error}=await client.from("reports").select("id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,photo_path,status,created_at,species").eq("status","active").order("created_at",{ascending:false}).limit(200);
+ if(error){console.warn(error);return}markers.clearLayers();for(const r of data||[]){L.marker([r.lat,r.lng],{icon:markerIcon(r)}).addTo(markers).on("click",()=>openReport(r))}
+}
+async function openReportById(id){const {data}=await client.from("reports").select("*").eq("id",id).maybeSingle();if(data){showView("map");map.setView([data.lat,data.lng],16);openReport(data)}}
+async function openReport(r){$("#detailTitle").textContent=r.subtype||labelType(r.type);$("#detailText").textContent=r.text||"Melding";$("#detailMeta").textContent=(r.author_name||"Buurtgenoot")+" · "+new Date(r.created_at||Date.now()).toLocaleString("nl-NL",{dateStyle:"short",timeStyle:"short"});const del=$("#detailDelete");del.hidden=r.user_id!==user?.id;del.onclick=async()=>{if(!confirm("Deze melding verwijderen?"))return;const {error}=await client.from("reports").delete().eq("id",r.id).eq("user_id",user.id);if(error)return toast("Verwijderen mislukt");$("#detailDialog").close();await refreshReports();await refreshMine();toast("Melding verwijderd")};$("#detailDialog").showModal()}
+function labelType(t){return ({danger:"Gevaar",vegetation:"Vegetatie",road:"Handig",fun:"Leuk",spotted:"Dier",lost:"Vermist / gevonden"})[t]||"Melding"}
+function openReport(){reportState={category:null,type:null,subtype:null};$("#reportStep1").hidden=false;$("#reportStep2").hidden=true;$("#reportText").value="";$("#reportPhoto").value="";$("#reportDialog").showModal()}
+function chooseReport(cat,type,sub){reportState={category:cat,type,subtype:sub};$("#reportStep1").hidden=true;$("#reportStep2").hidden=false;$("#reportChosen").textContent=({danger:"Gevaar",animal:"Dier",handy:"Handig",fun:"Leuk"})[cat]||"Melding";renderSubChoices(cat)}
+function renderSubChoices(cat){
+ const box=$("#reportSubs");const opts=cat==="danger"?[["danger","Glas"],["vegetation","Giftige planten"],["danger","Vervuild water"],["danger","Gevaarlijk object"],["danger","Agressief dier"]]:cat==="animal"?[["spotted","Dier gezien"],["lost","Vermist dier"],["lost","Gevonden dier"]]:cat==="handy"?[["road","Afsluiting"],["road","Drukte"],["other","Tip"]]:[["fun","Leuke plek"],["walk","Ontmoeting"],["fun","Activiteit"]];
+ box.innerHTML=opts.map((o,i)=>'<button type="button" class="chip '+(i===0?"active":"")+'" data-t="'+o[0]+'" data-s="'+esc(o[1])+'">'+esc(o[1])+'</button>').join("");reportState.type=opts[0][0];reportState.subtype=opts[0][1];
+ box.querySelectorAll("button").forEach(b=>b.onclick=()=>{box.querySelectorAll("button").forEach(x=>x.classList.remove("active"));b.classList.add("active");reportState.type=b.dataset.t;reportState.subtype=b.dataset.s})
+}
+async function compress(file){if(!file)return null;if(file.size>7*1024*1024)throw new Error("Foto te groot");const bmp=await createImageBitmap(file),scale=Math.min(1,1400/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);bmp.close?.();return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("foto")),"image/jpeg",.82))}
+async function submitReport(e){
+ e.preventDefault();if(!user||!reportState.type)return;const btn=$("#reportSubmit");btn.disabled=true;
+ try{let loc=map.getCenter();if($("#useGps").checked&&navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{timeout:6000,maximumAge:30000}))}
+ const id=crypto.randomUUID(),p=profile();let photo_path=null,file=$("#reportPhoto").files[0];
+ if(file){const blob=await compress(file);photo_path=user.id+"/"+id+".jpg";const up=await client.storage.from("report-photos").upload(photo_path,blob,{contentType:"image/jpeg",upsert:false});if(up.error)throw up.error}
+ const row={id,user_id:user.id,author_name:(p.name||"Buurtgenoot").slice(0,40),author_avatar:p.avatar||"🐾",type:reportState.type,subtype:reportState.subtype||null,text:($("#reportText").value.trim()||reportState.subtype||"Nieuwe melding").slice(0,220),lat:loc.lat,lng:loc.lng,photo_path,species:p.species||"both"};
+ const {error}=await client.from("reports").insert(row);if(error)throw error;$("#reportDialog").close();await refreshReports();await refreshMine();client.functions.invoke("dispatch-nearby-push",{body:{reportId:id}}).catch(()=>{});map.setView([loc.lat,loc.lng],16);toast("Melding staat op de kaart")}
+ catch(err){console.warn(err);toast("Plaatsen lukt nu niet")}finally{btn.disabled=false}
+}
+async function refreshGiveaways(){
+ const list=$("#giveList");if(!list||!client)return;list.innerHTML='<div class="empty">Laden…</div>';const {data,error}=await client.from("giveaway_listings").select("id,owner_id,title,description,category,kind,town,image_path,status,created_at").eq("status","actief").order("created_at",{ascending:false}).limit(80);if(error){list.innerHTML='<div class="empty">Ophalen lukt nu niet.</div>';return}
+ if(!data?.length){list.innerHTML='<div class="empty">Nog niets aangeboden. Jij kunt de eerste zijn.</div>';return}list.innerHTML="";for(const x of data){const a=document.createElement("article");a.className="give-card";let img='<div style="height:140px;background:#e7e2d9"></div>';if(x.image_path){const {data:s}=await client.storage.from("giveaway-photos").createSignedUrl(x.image_path,900);if(s?.signedUrl)img='<img src="'+s.signedUrl+'" alt="">'}a.innerHTML=img+'<div class="give-body"><span class="badge">'+(x.kind==="ruilen"?"Ruilen":"Gratis")+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><p class="muted small">📍 '+esc(x.town)+'</p><button class="primary wide contact">✉️ Neem contact op</button></div>';a.querySelector(".contact").onclick=()=>contactGiveaway(x);list.append(a)}}
+async function contactGiveaway(x){if(x.owner_id===user.id)return toast("Dit is jouw eigen item");const {data,error}=await client.rpc("get_giveaway_contact",{target:x.id});if(error||!data)return toast("Contactadres niet beschikbaar");location.href="mailto:"+encodeURIComponent(data)+"?subject="+encodeURIComponent("Reactie via Whatsup Dog – "+x.title)+"&body="+encodeURIComponent("Hallo,\n\nIk zag via Whatsup Dog dat je '"+x.title+"' aanbiedt. Is dit nog beschikbaar?\n\nGroet,")}
+async function submitGiveaway(e){
+ e.preventDefault();const f=e.currentTarget,b=$("#giveSubmit");b.disabled=true;let path=null;
+ try{const id=crypto.randomUUID(),file=f.photo.files[0];if(file){const blob=await compress(file);path=user.id+"/"+id+".jpg";const up=await client.storage.from("giveaway-photos").upload(path,blob,{contentType:"image/jpeg",upsert:false});if(up.error)throw up.error}
+ const args={listing_id:id,listing_title:f.title.value.trim(),listing_description:f.description.value.trim(),listing_category:f.category.value,listing_kind:f.kind.value,listing_town:f.town.value.trim(),listing_image_path:path,listing_contact_email:f.email.value.trim()};const {error}=await client.rpc("create_giveaway_listing",args);if(error)throw error;f.reset();$("#giveDialog").close();await refreshGiveaways();await refreshMine();toast("Item geplaatst")}
+ catch(err){console.warn(err);toast("Plaatsen lukt nu niet")}finally{b.disabled=false}
+}
+async function refreshMine(){
+ const p=profile(),s=settings();$("#myName").textContent=p.name||"Mijn Whatsup";$("#myMeta").textContent=[p.petName,p.breed,s.areaLabel].filter(Boolean).join(" · ")||"Persoonlijke instellingen";$("#myAvatar").textContent=p.avatar||"🐾";$("#profileName").value=p.name||"";$("#petName").value=p.petName||"";$("#breed").value=p.breed||"";$("#avatar").value=p.avatar||"🐾";$("#species").value=p.species||"both";
+ if(!client||!user)return;const [r,g]=await Promise.all([client.from("reports").select("id,text,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30),client.from("giveaway_listings").select("id,title,status,created_at").eq("owner_id",user.id).order("created_at",{ascending:false}).limit(30)]);$("#myReports").innerHTML=(r.data||[]).map(x=>'<div class="my-item"><b>'+esc(x.text)+'</b><div class="row"><small>'+esc(x.status)+'</small><button class="danger small" data-del-report="'+x.id+'">Verwijder</button></div></div>').join("")||'<div class="empty">Nog geen meldingen.</div>';$("#myGive").innerHTML=(g.data||[]).map(x=>'<div class="my-item"><b>'+esc(x.title)+'</b><div class="row"><small>'+esc(x.status)+'</small><button class="secondary small" data-done-give="'+x.id+'">Afgehandeld</button></div></div>').join("")||'<div class="empty">Nog geen weggeefitems.</div>';$$("[data-del-report]").forEach(b=>b.onclick=async()=>{await client.from("reports").delete().eq("id",b.dataset.delReport).eq("user_id",user.id);refreshMine();refreshReports()});$$("[data-done-give]").forEach(b=>b.onclick=async()=>{await client.from("giveaway_listings").update({status:"afgerond",updated_at:new Date().toISOString()}).eq("id",b.dataset.doneGive).eq("owner_id",user.id);refreshMine();refreshGiveaways()})
+}
+function saveProfile(e){e.preventDefault();const p={name:$("#profileName").value.trim(),petName:$("#petName").value.trim(),breed:$("#breed").value.trim(),avatar:$("#avatar").value,species:$("#species").value};write(PKEY,p);applyProfile();toast("Opgeslagen")}
+function applyProfile(){const p=profile();$("#myAvatar").textContent=p.avatar||"🐾";$("#giveForm").town.value=settings().areaLabel||""}
+async function saveArea(e){e.preventDefault();const q=$("#areaSearch").value.trim();if(!q)return;try{const res=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(q));const arr=await res.json();if(!arr[0])return toast("Gebied niet gevonden");const s=settings();s.areaLabel=arr[0].display_name.split(",")[0];s.lat=Number(arr[0].lat);s.lng=Number(arr[0].lon);write(SKEY,s);$("#areaPill").textContent=s.areaLabel+" ▾";map.setView([s.lat,s.lng],14);$("#areaDialog").close();syncPushUi();toast("Gebied aangepast")}catch{toast("Zoeken lukt nu niet")}}
+function locate(){navigator.geolocation?.getCurrentPosition(p=>{map.setView([p.coords.latitude,p.coords.longitude],16);L.circleMarker([p.coords.latitude,p.coords.longitude],{radius:8,color:"#176fa8",fillColor:"#7dc4ff",fillOpacity:1,weight:3}).addTo(map)},()=>toast("Locatie niet gedeeld"),{timeout:6000,maximumAge:30000})}
+function urlB64(s){const pad="=".repeat((4-s.length%4)%4),b=(s+pad).replace(/-/g,"+").replace(/_/g,"/"),raw=atob(b);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
+async function togglePush(e){if(e.target.checked){try{if(!("serviceWorker"in navigator)||!("PushManager"in window))throw new Error("unsupported");const perm=await Notification.requestPermission();if(perm!=="granted")throw new Error("denied");const reg=await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64(VAPID_PUBLIC)});await saveSubscription(sub);const s=settings();s.push=true;write(SKEY,s);toast("Pushmeldingen staan aan")}catch(err){console.warn(err);e.target.checked=false;toast("Pushmeldingen konden niet worden ingeschakeld")}}else{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();if(sub){await client.from("push_subscriptions").delete().eq("endpoint",sub.endpoint).eq("user_id",user.id);await sub.unsubscribe()}const s=settings();s.push=false;write(SKEY,s);toast("Pushmeldingen staan uit")}}
+async function saveSubscription(sub){const s=settings(),j=sub.toJSON();const row={user_id:user.id,endpoint:sub.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,area_label:s.areaLabel,center_lat:s.lat,center_lng:s.lng,radius_m:s.radius,categories:s.categories,enabled:true,updated_at:new Date().toISOString()};const {error}=await client.from("push_subscriptions").upsert(row,{onConflict:"endpoint"});if(error)throw error}
+async function savePushPrefs(){const s=settings();s.radius=Number($("#radius").value);s.categories=$$(".push-cat:checked").map(x=>x.value);write(SKEY,s);$("#radiusVal").textContent=(s.radius/1000).toFixed(s.radius<1000?1:0)+" km";try{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();if(sub)await saveSubscription(sub)}catch{}}
+function syncPushUi(){const s=settings();$("#pushToggle").checked=!!s.push;$("#radius").value=s.radius||2000;$("#radiusVal").textContent=((s.radius||2000)/1000)+" km";$$(".push-cat").forEach(x=>x.checked=(s.categories||[]).includes(x.value));$("#pushArea").textContent=s.areaLabel||"Mijn gebied"}
+async function finishOnboarding(e){e.preventDefault();const place=$("#onboardPlace").value.trim(),p={species:$("input[name=onSpecies]:checked")?.value||"both",avatar:"🐾",name:"",petName:"",breed:""};write(PKEY,p);if(place&&place!=="Mijn locatie"){try{const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(place)),a=await r.json();if(a[0]){const s=settings();s.areaLabel=a[0].display_name.split(",")[0];s.lat=+a[0].lat;s.lng=+a[0].lon;write(SKEY,s)}}catch{}}localStorage.setItem("wd_v3_onboarded","1");$("#onboarding").close();location.reload()}
+async function installApp(){if(deferredInstall){deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;return}toast(/iphone|ipad|ipod/i.test(navigator.userAgent)?"Tik Deel en kies ‘Zet op beginscherm’":"Open het browsermenu en kies ‘App installeren’")}
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
+if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(console.warn);
+boot().catch(e=>{console.error(e);toast("Whatsup Dog kon niet volledig starten")});
+})();
