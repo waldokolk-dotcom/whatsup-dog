@@ -184,3 +184,10 @@ dialog[open]{
     font-size:25px;
   }
 }
+
+.owner-actions{display:grid;gap:9px;margin-top:12px}
+.cleanup-note{margin:10px 4px 0;color:var(--muted);font-size:11px;line-height:1.45}
+.status-active{color:var(--green-dark);font-weight:850}
+.status-resolved{color:#426b5f;font-weight:850}
+.status-expired{color:#8a8178;font-weight:850}
+.status-hidden{color:#8a8178;font-weight:850}
