@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8f6f1"><meta name="description" content="Whatsup Dog — meld wat er in jouw buurt speelt.">
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="./vendor/leaflet/leaflet.css"><link rel="stylesheet" href="app-v3.css?v=3">
+<link rel="stylesheet" href="./vendor/leaflet/leaflet.css"><link rel="stylesheet" href="app-v3.css?v=4">
 <title>Whatsup Dog</title>
 </head>
 <body>
@@ -54,7 +54,7 @@
     </article>
 
     <div class="section-title"><div><span class="section-kicker">ACTUEEL</span><h2>Recente meldingen</h2></div></div>
-    <div id="alertsList" class="activity-list"><div class="empty">Nog geen meldingen in beeld.</div></div>
+    <div id="alertsList" class="activity-list"><div class="empty">Nog geen meldingen in beeld.</div></div><p class="cleanup-note">Meldingen verdwijnen automatisch wanneer ze verlopen. De maker kan een melding ook direct als opgelost markeren.</p>
   </section>
 
   <section id="view-giveaway" class="view">
@@ -160,7 +160,7 @@
 
 <dialog id="reportDialog"><form id="reportForm" class="sheet"><div class="handle"></div><button type="button" data-close class="close">×</button><div id="reportStep1"><span class="section-kicker">NIEUWE MELDING</span><h2>Wat wil je melden?</h2><p class="muted">Kies één van de vier soorten. Daarna hoef je alleen nog de kern toe te voegen.</p><div class="report-types"><button type="button" class="report-type type-danger" data-cat="danger" data-type="danger"><i>⚠️</i><span><b>Gevaar</b><small>Glas, gif, gevaarlijke situatie</small></span><em>›</em></button><button type="button" class="report-type type-animal" data-cat="animal" data-type="spotted"><i>🐾</i><span><b>Dier</b><small>Gezien, vermist of gevonden</small></span><em>›</em></button><button type="button" class="report-type type-handy" data-cat="handy" data-type="road"><i>💡</i><span><b>Handig</b><small>Afsluiting, drukte of tip</small></span><em>›</em></button><button type="button" class="report-type type-fun" data-cat="fun" data-type="fun"><i>💚</i><span><b>Leuk</b><small>Fijne plek of activiteit</small></span><em>›</em></button></div></div><div id="reportStep2" hidden><span class="section-kicker">NIEUWE MELDING</span><h2 id="reportChosen">Melding</h2><div id="reportSubs" class="chipset"></div><label>Korte omschrijving</label><textarea id="reportText" maxlength="220" rows="3" placeholder="Wat moeten mensen weten?"></textarea><label>Foto <span class="optional">optioneel</span></label><input id="reportPhoto" type="file" accept="image/jpeg,image/png,image/webp"><label class="check-row"><input id="useGps" type="checkbox" checked><span>Gebruik mijn huidige locatie</span></label><button id="reportSubmit" class="primary wide">Melding plaatsen</button></div></form></dialog>
 
-<dialog id="detailDialog"><div class="sheet"><div class="handle"></div><button data-close class="close">×</button><span class="section-kicker">MELDING</span><h2 id="detailTitle">Melding</h2><p id="detailMeta" class="muted"></p><div id="detailText" class="detail-copy"></div><button id="detailDelete" class="danger wide" hidden>Verwijderen</button></div></dialog>
+<dialog id="detailDialog"><div class="sheet"><div class="handle"></div><button data-close class="close">×</button><span class="section-kicker">MELDING</span><h2 id="detailTitle">Melding</h2><p id="detailMeta" class="muted"></p><div id="detailText" class="detail-copy"></div><div id="detailOwnerActions" class="owner-actions hidden"><button id="detailResolve" class="primary wide">✓ Opgelost – van kaart halen</button><button id="detailDelete" class="danger wide">Definitief verwijderen</button></div></div></dialog>
 
 <dialog id="areaDialog"><form id="areaForm" class="sheet"><div class="handle"></div><button type="button" data-close class="close">×</button><span class="section-kicker">JOUW OMGEVING</span><h2>Mijn buurt</h2><p class="muted">Kies een plaats, wijk of postcode. Pushmeldingen gebruiken daarnaast je ingestelde straal, dus een relevante melding net over de wijkgrens kan gewoon meekomen.</p><label>Plaats, wijk of postcode</label><input id="areaSearch" placeholder="Bijv. Corlaer, Nijkerk"><button class="primary wide" style="margin-top:12px">Gebruik dit gebied</button></form></dialog>
 
@@ -169,5 +169,5 @@
 <dialog id="onboarding"><form id="onboardForm" class="onboard"><div class="onboard-mark">Whatsup <b>D🐾g</b></div><div class="onboard-visual"><span>🐕</span><span class="bubble b1">🐾</span><span class="bubble b2">📍</span><span class="bubble b3">💚</span></div><h1>Je buurt. Je wandeling. Samen opletten.</h1><p class="muted">Geen account en geen wachtwoord. Kies alleen je standaardgebied en waarvoor je Whatsup Dog gebruikt.</p><label>Ik gebruik Whatsup Dog voor</label><div class="species-choice"><label><input type="radio" name="onSpecies" value="dog" checked><span>🐶</span><b>Hond</b></label><label><input type="radio" name="onSpecies" value="cat"><span>🐱</span><b>Kat</b></label><label><input type="radio" name="onSpecies" value="both"><span>🐾</span><b>Beide</b></label></div><label>Mijn standaardplaats of wijk</label><input id="onboardPlace" required placeholder="Bijv. Corlaer, Nijkerk"><button id="onboardLocate" type="button" class="secondary wide" style="margin-top:10px">📍 Gebruik mijn locatie</button><button class="primary wide" style="margin-top:10px">Start Whatsup Dog</button><p class="security-note"><span>🛡️</span> Op de achtergrond gebruiken we alleen een technische toestelsessie om jouw eigen items te herkennen.</p></form></dialog>
 
 <div id="toast" class="toast"></div>
-<script src="./vendor/leaflet/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script><script src="backend-config.js?v=4"></script><script src="app-v3.js?v=3"></script>
+<script src="./vendor/leaflet/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script><script src="backend-config.js?v=4"></script><script src="app-v3.js?v=4"></script>
 </body></html>
