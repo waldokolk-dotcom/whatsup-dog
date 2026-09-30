@@ -1,3 +1,4 @@
+// V4.1 report regression coverage
 import {test,expect} from '@playwright/test';
 
 async function stubBackend(page){
@@ -151,7 +152,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
-  await expect(page.locator('#appVersion')).toContainText('4.0');
+  await expect(page.locator('#appVersion')).toContainText('4.1');
   await expect(page.locator('#versionDate')).toContainText('30-09-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
@@ -190,7 +191,7 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=10');
+  expect(app).toContain('v=11');
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
@@ -219,4 +220,13 @@ test('all report categories expose distinct subtype icons',async({page})=>{
     const texts=await page.locator('#reportSubs .chip-icon').allTextContents();
     expect(texts).toEqual(icons);
   }
+});
+
+test('active own reports distinguish status from actions',async({page})=>{
+  const script=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
+  expect(script).toContain('v=11');
+  const response=await page.request.get('/app-v3.js?v=11');
+  const source=await response.text();
+  expect(source).toContain('Markeer als opgelost');
+  expect(source).toContain('Verwijder melding');
 });

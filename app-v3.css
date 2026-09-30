@@ -594,3 +594,34 @@ dialog[open]{
   .report-location-map{height:200px}
   .report-location-actions{grid-template-columns:1fr}
 }
+
+
+/* V4.1 own report state + delete actions */
+.report-status-row{
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.report-own-actions{
+  display:flex;
+  gap:8px;
+  margin-left:auto;
+  flex-wrap:wrap;
+}
+.status-active{
+  color:var(--green-dark);
+  font-weight:850;
+}
+.status-resolved{
+  color:var(--muted);
+  font-weight:800;
+}
+@media(max-width:430px){
+  .report-own-actions{
+    width:100%;
+    margin-left:0;
+  }
+  .report-own-actions .small{
+    flex:1 1 auto;
+  }
+}
