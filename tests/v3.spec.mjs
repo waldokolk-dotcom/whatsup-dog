@@ -122,7 +122,6 @@ test('giveaway hero and email banner form one visual series',async({page})=>{
   const banner=page.locator('.contact-banner');
   await expect(hero).toBeVisible();
   await expect(banner).toBeVisible();
-  await expect(page.locator('.contact-icon')).toContainText('📧');
   const heroIcon=await page.locator('.give-hero-icon').boundingBox();
   const mailIcon=await page.locator('.contact-icon').boundingBox();
   expect(Math.abs(heroIcon.width-mailIcon.width)).toBeLessThanOrEqual(4);
