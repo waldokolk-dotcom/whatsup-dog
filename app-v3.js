@@ -51,7 +51,7 @@ function bind(){
  $("#profileForm").addEventListener("submit",saveProfile);
  $("#pushToggle").addEventListener("change",togglePush);
  $("#radius").addEventListener("input",e=>{$("#radiusVal").textContent=(e.target.value/1000).toFixed(e.target.value<1000?1:0)+" km"});$("#radius").addEventListener("change",savePushPrefs);
- $$(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
+ $$$(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
  $("#installButton").addEventListener("click",installApp);
  $("#onboardForm").addEventListener("submit",finishOnboarding);
  $("#onboardLocate").addEventListener("click",()=>navigator.geolocation?.getCurrentPosition(async p=>{const s=settings();s.lat=p.coords.latitude;s.lng=p.coords.longitude;s.areaLabel="Mijn locatie";write(SKEY,s);$("#onboardPlace").value="Mijn locatie";toast("Locatie gekozen")},()=>toast("Locatie niet gedeeld")));
@@ -159,8 +159,8 @@ async function refreshMine(){
  $("#myGiveCount").textContent=gives.length;
  $("#myReports").innerHTML=reports.map(x=>'<div class="my-item"><b>'+esc(x.text)+'</b><div class="row"><small>'+esc(x.status)+'</small><button class="danger small" data-del-report="'+x.id+'">Verwijder</button></div></div>').join("")||'<div class="empty">Nog geen meldingen.</div>';
  $("#myGive").innerHTML=gives.map(x=>'<div class="my-item"><b>'+esc(x.title)+'</b><div class="row"><small>'+esc(x.status)+'</small><button class="secondary small" data-done-give="'+x.id+'">Afgehandeld</button></div></div>').join("")||'<div class="empty">Nog geen weggeefitems.</div>';
- $("[data-del-report]").forEach(b=>b.onclick=async()=>{await client.from("reports").delete().eq("id",b.dataset.delReport).eq("user_id",user.id);refreshMine();refreshReports()});
- $("[data-done-give]").forEach(b=>b.onclick=async()=>{await client.from("giveaway_listings").update({status:"afgerond",updated_at:new Date().toISOString()}).eq("id",b.dataset.doneGive).eq("owner_id",user.id);refreshMine();refreshGiveaways()})
+ $$("[data-del-report]").forEach(b=>b.onclick=async()=>{await client.from("reports").delete().eq("id",b.dataset.delReport).eq("user_id",user.id);refreshMine();refreshReports()});
+ $$("[data-done-give]").forEach(b=>b.onclick=async()=>{await client.from("giveaway_listings").update({status:"afgerond",updated_at:new Date().toISOString()}).eq("id",b.dataset.doneGive).eq("owner_id",user.id);refreshMine();refreshGiveaways()})
 }
 function saveProfile(e){e.preventDefault();const p={name:$("#profileName").value.trim(),petName:$("#petName").value.trim(),breed:$("#breed").value.trim(),avatar:$("#avatar").value,species:$("#species").value};write(PKEY,p);applyProfile();toast("Opgeslagen")}
 function applyProfile(){
@@ -182,7 +182,7 @@ function syncPushUi(){
  $("#pushToggle").checked=!!s.push;
  $("#radius").value=s.radius||2000;
  $("#radiusVal").textContent=((s.radius||2000)/1000)+" km";
- $(".push-cat").forEach(x=>x.checked=(s.categories||[]).includes(x.value));
+ $$(".push-cat").forEach(x=>x.checked=(s.categories||[]).includes(x.value));
  $("#pushArea").textContent=s.areaLabel||"Mijn gebied";
  if($("#myAreaLabel"))$("#myAreaLabel").textContent=s.areaLabel||"Mijn gebied";
 }
