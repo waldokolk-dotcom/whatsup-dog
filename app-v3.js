@@ -15,7 +15,7 @@ async function boot(){
  client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
  const {data}=await client.auth.getSession(); if(data.session) user=data.session.user;
  if(!user){const r=await client.auth.signInAnonymously();if(r.error){console.warn(r.error);toast("Veilige toestelsessie kon niet starten");return}user=r.data.user}
- initMap(); bind(); applyProfile(); syncPushUi();
+ initMap(); bind(); syncPushUi(); applyProfile();
  await refreshReports().catch(err=>console.warn("Meldingen laden",err));
  await refreshGiveaways().catch(err=>console.warn("Weggeefhoek laden",err));
  await refreshMine().catch(err=>console.warn("Mijn Whatsup laden",err));
@@ -179,12 +179,17 @@ async function saveSubscription(sub){const s=settings(),j=sub.toJSON();const row
 async function savePushPrefs(){const s=settings();s.radius=Number($("#radius").value);s.categories=$$(".push-cat:checked").map(x=>x.value);write(SKEY,s);$("#radiusVal").textContent=(s.radius/1000).toFixed(s.radius<1000?1:0)+" km";try{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();if(sub)await saveSubscription(sub)}catch{}}
 function syncPushUi(){
  const s=settings();
- $("#pushToggle").checked=!!s.push;
- $("#radius").value=s.radius||2000;
- $("#radiusVal").textContent=((s.radius||2000)/1000)+" km";
- $$(".push-cat").forEach(x=>x.checked=(s.categories||[]).includes(x.value));
- $("#pushArea").textContent=s.areaLabel||"Mijn gebied";
- if($("#myAreaLabel"))$("#myAreaLabel").textContent=s.areaLabel||"Mijn gebied";
+ const area=document.querySelector("#pushArea");
+ const radius=document.querySelector("#radius");
+ const radiusVal=document.querySelector("#radiusVal");
+ const toggle=document.querySelector("#pushToggle");
+ const myArea=document.querySelector("#myAreaLabel");
+ if(area)area.textContent=s.areaLabel||"Mijn gebied";
+ if(myArea)myArea.textContent=s.areaLabel||"Mijn gebied";
+ if(toggle)toggle.checked=!!s.push;
+ if(radius)radius.value=String(s.radius||2000);
+ if(radiusVal)radiusVal.textContent=((s.radius||2000)/1000)+" km";
+ document.querySelectorAll(".push-cat").forEach(x=>x.checked=(s.categories||[]).includes(x.value));
 }
 async function finishOnboarding(e){e.preventDefault();const place=$("#onboardPlace").value.trim(),p={species:$("input[name=onSpecies]:checked")?.value||"both",avatar:"🐾",name:"",petName:"",breed:""};write(PKEY,p);if(place&&place!=="Mijn locatie"){try{const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(place)),a=await r.json();if(a[0]){const s=settings();s.areaLabel=a[0].display_name.split(",")[0];s.lat=+a[0].lat;s.lng=+a[0].lon;write(SKEY,s)}}catch{}}localStorage.setItem("wd_v3_onboarded","1");$("#onboarding").close();location.reload()}
 async function installApp(){if(deferredInstall){deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;return}toast(/iphone|ipad|ipod/i.test(navigator.userAgent)?"Tik Deel en kies ‘Zet op beginscherm’":"Open het browsermenu en kies ‘App installeren’")}
