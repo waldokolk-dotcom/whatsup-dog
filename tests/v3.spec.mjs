@@ -190,7 +190,7 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=9');
+  expect(app).toContain('v=10');
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
