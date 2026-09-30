@@ -5,8 +5,8 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings";
-const APP_VERSION="3.9", APP_VERSION_DATE="30-09-2026";
-let client,user,map,markers,offleashLayer,reportState={category:null,type:null,subtype:null},deferredInstall=null;
+const APP_VERSION="4.0", APP_VERSION_DATE="30-09-2026";
+let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
 const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2400)};
@@ -47,6 +47,8 @@ function bind(){
  $("#offleashToggle")?.addEventListener("change",toggleOffleashLayer);
  $("#areaForm").addEventListener("submit",saveArea);
  $("#reportForm").addEventListener("submit",submitReport);
+ $("#reportUseGps")?.addEventListener("click",useCurrentReportLocation);
+ $("#reportChooseMap")?.addEventListener("click",chooseReportLocationOnMap);
  $$(".report-type").forEach(b=>b.addEventListener("click",()=>chooseReport(b.dataset.cat,b.dataset.type,b.dataset.subtype||"")));
  $("#giveCreate").addEventListener("click",()=>$("#giveDialog").showModal());
  $("#giveForm").addEventListener("submit",submitGiveaway);
@@ -112,7 +114,7 @@ function toggleOffleashLayer(e){
  if(on){if(!map.hasLayer(offleashLayer))offleashLayer.addTo(map);toast("Losloopgebieden zichtbaar")}
  else{if(map.hasLayer(offleashLayer))map.removeLayer(offleashLayer);toast("Losloopgebieden verborgen")}
 }
-function markerIcon(r){const c=["danger","vegetation","dirty","road"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"?"#28a17a":"#5178db";const e=r.type==="lost"?"!":r.type==="fun"?"♥":r.type==="spotted"?"🐾":"!";return L.divIcon({className:"",html:'<div class="marker" style="background:'+c+'"><span>'+e+'</span></div>',iconSize:[38,38],iconAnchor:[19,34]})}
+function markerIcon(r){const c=["danger","vegetation","dirty"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"||r.type==="walk"?"#28a17a":r.type==="road"?"#4f7fd7":"#5178db";const e=iconForReport(r);return L.divIcon({className:"",html:'<div class="marker" style="background:'+c+'"><span>'+e+'</span></div>',iconSize:[38,38],iconAnchor:[19,34]})}
 async function refreshReports(){
  if(!client||!user)return;
  await client.rpc("archive_expired_reports").catch(()=>{});
@@ -123,11 +125,22 @@ async function refreshReports(){
  renderAlerts(data||[]);
 }
 function iconForReport(r){
- const t=r.type;
+ const sub=String(r.subtype||"").toLowerCase(),t=r.type;
+ if(sub.includes("glas"))return "🔺";
+ if(sub.includes("giftige plant"))return "🌿";
+ if(sub.includes("vervuild water"))return "💧";
+ if(sub.includes("gevaarlijk object"))return "🚧";
+ if(sub.includes("agressief dier"))return "🐕";
+ if(sub.includes("vermist"))return "❤️";
+ if(sub.includes("gevonden"))return "🧡";
+ if(sub.includes("afsluiting"))return "⛔";
+ if(sub.includes("drukte"))return "🚗";
+ if(sub.includes("ontmoeting"))return "🐕";
+ if(sub.includes("activiteit"))return "🎈";
  if(t==="lost")return "❤️";
  if(t==="spotted")return "🐾";
- if(t==="fun")return "💚";
- if(t==="road")return "💡";
+ if(t==="fun"||t==="walk")return "💚";
+ if(t==="road"||t==="other")return "💡";
  if(t==="vegetation")return "🌿";
  return "⚠️";
 }
@@ -182,17 +195,61 @@ async function openReportDetail(r){
  $("#detailDialog").showModal()
 }
 function labelType(t){return ({danger:"Gevaar",vegetation:"Vegetatie",road:"Handig",fun:"Leuk",spotted:"Dier",lost:"Vermist / gevonden"})[t]||"Melding"}
-function openReport(){reportState={category:null,type:null,subtype:null};$("#reportStep1").hidden=false;$("#reportStep2").hidden=true;$("#reportText").value="";$("#reportPhoto").value="";$("#reportDialog").showModal()}
-function chooseReport(cat,type,sub){reportState={category:cat,type,subtype:sub};$("#reportStep1").hidden=true;$("#reportStep2").hidden=false;$("#reportChosen").textContent=({danger:"Gevaar",animal:"Dier",handy:"Handig",fun:"Leuk"})[cat]||"Melding";renderSubChoices(cat)}
+function openReport(){
+ reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null};
+ $("#reportStep1").hidden=false;$("#reportStep2").hidden=true;$("#reportText").value="";$("#reportPhoto").value="";
+ useCurrentReportLocation();
+ $("#reportDialog").showModal()
+}
+function chooseReport(cat,type,sub){
+ reportState={...reportState,category:cat,type,subtype:sub};
+ $("#reportStep1").hidden=true;$("#reportStep2").hidden=false;
+ $("#reportChosen").textContent=({danger:"Gevaar",animal:"Dier",handy:"Handig",fun:"Leuk"})[cat]||"Melding";
+ renderSubChoices(cat);
+ setTimeout(()=>reportLocationMap?.invalidateSize(),50)
+}
 function renderSubChoices(cat){
- const box=$("#reportSubs");const opts=cat==="danger"?[["danger","Glas"],["vegetation","Giftige planten"],["danger","Vervuild water"],["danger","Gevaarlijk object"],["danger","Agressief dier"]]:cat==="animal"?[["spotted","Dier gezien"],["lost","Vermist dier"],["lost","Gevonden dier"]]:cat==="handy"?[["road","Afsluiting"],["road","Drukte"],["other","Tip"]]:[["fun","Leuke plek"],["walk","Ontmoeting"],["fun","Activiteit"]];
- box.innerHTML=opts.map((o,i)=>'<button type="button" class="chip '+(i===0?"active":"")+'" data-t="'+o[0]+'" data-s="'+esc(o[1])+'">'+esc(o[1])+'</button>').join("");reportState.type=opts[0][0];reportState.subtype=opts[0][1];
+ const box=$("#reportSubs");
+ const opts=cat==="danger"?[["danger","Glas","🔺"],["vegetation","Giftige planten","🌿"],["danger","Vervuild water","💧"],["danger","Gevaarlijk object","🚧"],["danger","Agressief dier","🐕"]]
+ :cat==="animal"?[["spotted","Dier gezien","🐾"],["lost","Vermist dier","❤️"],["lost","Gevonden dier","🧡"]]
+ :cat==="handy"?[["road","Afsluiting","⛔"],["road","Drukte","🚗"],["other","Tip","💡"]]
+ :[["fun","Leuke plek","💚"],["walk","Ontmoeting","🐕"],["fun","Activiteit","🎈"]];
+ box.innerHTML=opts.map((o,i)=>'<button type="button" class="chip '+(i===0?"active":"")+'" data-t="'+o[0]+'" data-s="'+esc(o[1])+'"><span class="chip-icon">'+o[2]+'</span>'+esc(o[1])+'</button>').join("");
+ reportState.type=opts[0][0];reportState.subtype=opts[0][1];
  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{box.querySelectorAll("button").forEach(x=>x.classList.remove("active"));b.classList.add("active");reportState.type=b.dataset.t;reportState.subtype=b.dataset.s})
+}
+function useCurrentReportLocation(){
+ reportState.locationMode="gps";reportState.location=null;
+ $("#reportUseGps")?.classList.add("active");$("#reportChooseMap")?.classList.remove("active");
+ $("#reportLocationMapWrap")?.classList.add("hidden");
+ const s=$("#reportLocationStatus");if(s)s.textContent="Mijn huidige locatie wordt gebruikt.";
+}
+function chooseReportLocationOnMap(){
+ reportState.locationMode="map";
+ $("#reportUseGps")?.classList.remove("active");$("#reportChooseMap")?.classList.add("active");
+ $("#reportLocationMapWrap")?.classList.remove("hidden");
+ const center=reportState.location||map?.getCenter()||{lat:52.2182,lng:5.4835};
+ if(!reportLocationMap){
+   reportLocationMap=L.map("reportLocationMap",{zoomControl:true,attributionControl:false}).setView([center.lat,center.lng],16);
+   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(reportLocationMap);
+   reportLocationMarker=L.marker([center.lat,center.lng],{draggable:true}).addTo(reportLocationMap);
+   const commit=ll=>{reportState.location={lat:ll.lat,lng:ll.lng};reportLocationMarker.setLatLng(ll);const s=$("#reportLocationStatus");if(s)s.textContent="Gekozen plek op de kaart wordt gebruikt."};
+   reportLocationMap.on("click",e=>commit(e.latlng));
+   reportLocationMarker.on("dragend",e=>commit(e.target.getLatLng()));
+ }else{
+   reportLocationMap.setView([center.lat,center.lng],16);reportLocationMarker.setLatLng([center.lat,center.lng]);
+ }
+ reportState.location={lat:center.lat,lng:center.lng};
+ const status=$("#reportLocationStatus");if(status)status.textContent="Tik op de kaart of sleep de pin naar de juiste plek.";
+ setTimeout(()=>reportLocationMap.invalidateSize(),50);
 }
 async function compress(file){if(!file)return null;if(file.size>7*1024*1024)throw new Error("Foto te groot");const bmp=await createImageBitmap(file),scale=Math.min(1,1400/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);bmp.close?.();return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("foto")),"image/jpeg",.82))}
 async function submitReport(e){
  e.preventDefault();if(!user||!reportState.type)return;const btn=$("#reportSubmit");btn.disabled=true;
- try{let loc=map.getCenter();if($("#useGps").checked&&navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{timeout:6000,maximumAge:30000}))}
+ try{let loc;
+ if(reportState.locationMode==="map"&&reportState.location){loc=reportState.location}
+ else if(navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{timeout:6000,maximumAge:30000}))}
+ else{throw new Error("location-unavailable")}
  const id=crypto.randomUUID(),p=profile();let photo_path=null,file=$("#reportPhoto").files[0];
  if(file){const blob=await compress(file);photo_path=user.id+"/"+id+".jpg";const up=await client.storage.from("report-photos").upload(photo_path,blob,{contentType:"image/jpeg",upsert:false});if(up.error)throw up.error}
  const row={id,user_id:user.id,author_name:(p.name||"Buurtgenoot").slice(0,40),author_avatar:p.avatar||"🐾",type:reportState.type,subtype:reportState.subtype||null,text:($("#reportText").value.trim()||reportState.subtype||"Nieuwe melding").slice(0,220),lat:loc.lat,lng:loc.lng,photo_path,species:p.species||"both"};
