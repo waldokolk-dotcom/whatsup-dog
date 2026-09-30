@@ -27,7 +27,7 @@ assert.match(html,/id="radius"/,'Push radius control missing');
 assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
 assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
-assert.match(html,/app-v3\.js\?v=7/,'V3 app controller not wired');
+assert.match(html,/app-v3\.js\?v=8/,'V3 app controller not wired');
 assert.match(html,/app-v3\.css\?v=8/,'V3 visual system not wired');
 
 assert.match(app,/signInAnonymously/,'Invisible device auth missing');
@@ -47,6 +47,8 @@ assert.match(app,/registerUpdateSystem/,'Automatic PWA update registration missi
 assert.match(app,/checkForAppUpdate/,'Update check flow missing');
 assert.match(app,/SKIP_WAITING/,'Safe update activation message missing');
 assert.match(app,/visibilitychange/,'Foreground update check missing');
+assert.match(app,/hideUpdateBanner/,'Update banner dismissal flow missing');
+assert.match(app,/setTimeout\(\(\)=>/,'Update fallback reload missing');
 assert.match(app,/nijkerk-losloopgebieden\.geojson/,'Official Nijkerk losloopgebieden layer missing');
 assert.match(app,/wd_v3_offleash/,'Losloop layer preference persistence missing');
 assert.match(app,/openReportDetail/,'Report detail flow missing');
@@ -54,13 +56,14 @@ assert.match(app,/resolve_own_report/,'Owner resolve flow missing');
 assert.match(app,/archive_expired_reports/,'Automatic report expiry cleanup missing');
 assert.match(html,/id="detailResolve"/,'Resolve action missing from report detail');
 assert.doesNotMatch(app,/signInWithPassword|signUp\(|resetPasswordForEmail/,'Password/account flows must not ship');
+assert.match(app,/\$\$\("\.push-cat"\)\.forEach/,'Push category listeners must bind to all category controls');
 
 assert.match(css,/--green:#0f7a67/,'Approved premium visual tokens missing');
 assert.match(css,/\.paw-fab/,'One-hand PawWheel styling missing');
 assert.match(css,/\.offleash-control/,'Losloopgebieden control styling missing');
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
-assert.match(sw,/app-v3\.js\?v=7/,'Offline cache missing V3 app');
+assert.match(sw,/app-v3\.js\?v=8/,'Offline cache missing V3 app');
 assert.match(sw,/app-v3\.css\?v=8/,'Offline cache missing V3 CSS');
 assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');

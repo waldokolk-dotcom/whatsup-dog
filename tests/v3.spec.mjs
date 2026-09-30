@@ -152,7 +152,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
-  await expect(page.locator('#appVersion')).toContainText('3.7');
+  await expect(page.locator('#appVersion')).toContainText('3.8');
   await expect(page.locator('#versionDate')).toContainText('30-09-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
@@ -160,4 +160,14 @@ test('Info shows app version and manual update control',async({page})=>{
 test('update prompt is present and hidden until a new worker waits',async({page})=>{
   await expect(page.locator('#updateBanner')).toHaveClass(/hidden/);
   await expect(page.locator('#applyUpdateButton')).toHaveText(/Nu bijwerken/);
+});
+
+test('update button dismisses banner immediately before worker activation',async({page})=>{
+  await page.evaluate(()=>{
+    const banner=document.querySelector('#updateBanner');
+    banner.classList.remove('hidden');
+    const btn=document.querySelector('#applyUpdateButton');
+    btn.click();
+  });
+  await expect(page.locator('#updateBanner')).toHaveClass(/hidden/);
 });

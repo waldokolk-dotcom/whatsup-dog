@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings";
-const APP_VERSION="3.7", APP_VERSION_DATE="30-09-2026";
+const APP_VERSION="3.8", APP_VERSION_DATE="30-09-2026";
 let client,user,map,markers,offleashLayer,reportState={category:null,type:null,subtype:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -54,7 +54,7 @@ function bind(){
  $("#pushToggle").addEventListener("change",togglePush);
  $("#pushTestButton")?.addEventListener("click",testPushNotification);
  $("#radius").addEventListener("input",e=>{$("#radiusVal").textContent=(e.target.value/1000).toFixed(e.target.value<1000?1:0)+" km"});$("#radius").addEventListener("change",savePushPrefs);
- $(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
+ $$(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
  $("#installButton").addEventListener("click",installApp);
  $("#checkUpdateButton")?.addEventListener("click",()=>checkForAppUpdate(true));
  $("#applyUpdateButton")?.addEventListener("click",applyAppUpdate);
@@ -413,8 +413,14 @@ function syncVersionUi(){
 function showUpdateBanner(worker,registration){
  updateWorker=worker||registration?.waiting||null;
  updateRegistration=registration||updateRegistration;
- const banner=$("#updateBanner");
+ const banner=$("#updateBanner"),btn=$("#applyUpdateButton");
+ if(btn){btn.disabled=false;btn.textContent="Nu bijwerken"}
  if(banner)banner.classList.remove("hidden");
+}
+function hideUpdateBanner(){
+ const banner=$("#updateBanner"),btn=$("#applyUpdateButton");
+ if(banner)banner.classList.add("hidden");
+ if(btn){btn.disabled=false;btn.textContent="Nu bijwerken"}
 }
 
 async function registerUpdateSystem(){
@@ -437,6 +443,7 @@ async function registerUpdateSystem(){
    });
 
    navigator.serviceWorker.addEventListener("controllerchange",()=>{
+     hideUpdateBanner();
      if(updateReloading)return;
      updateReloading=true;
      location.reload();
@@ -467,16 +474,50 @@ async function checkForAppUpdate(userRequested=false){
  }
 }
 
-function applyAppUpdate(){
+async function applyAppUpdate(){
+ const banner=$("#updateBanner"),btn=$("#applyUpdateButton");
  const worker=updateWorker||updateRegistration?.waiting;
+
+ // Directe visuele feedback: een tweede tik is nooit nodig.
+ if(banner)banner.classList.add("hidden");
+ if(btn){btn.disabled=true;btn.textContent="Bijwerken…"}
+
  if(!worker){
-   checkForAppUpdate(true);
+   hideUpdateBanner();
+   await checkForAppUpdate(true);
    return;
  }
- const btn=$("#applyUpdateButton");
- if(btn){btn.disabled=true;btn.textContent="Bijwerken…"}
+
  updateReloading=false;
- worker.postMessage({type:"SKIP_WAITING"});
+ try{
+   worker.postMessage({type:"SKIP_WAITING"});
+ }catch(err){
+   console.warn("Update activeren mislukt",err);
+   hideUpdateBanner();
+   toast("Bijwerken lukt nu niet — probeer opnieuw");
+   return;
+ }
+
+ // Safari/iOS geeft controllerchange niet altijd direct door.
+ // Als de nieuwe worker al actief is of de melding uitblijft, herladen we veilig zelf.
+ const started=Date.now();
+ const fallback=setInterval(()=>{
+   const waiting=updateRegistration?.waiting;
+   if(!waiting||Date.now()-started>4500){
+     clearInterval(fallback);
+     if(!updateReloading){
+       updateReloading=true;
+       location.reload();
+     }
+   }
+ },250);
+ setTimeout(()=>{
+   clearInterval(fallback);
+   if(!updateReloading){
+     updateReloading=true;
+     location.reload();
+   }
+ },5000);
 }
 
 registerUpdateSystem();
