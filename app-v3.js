@@ -54,7 +54,7 @@ function bind(){
  $("#pushToggle").addEventListener("change",togglePush);
  $("#pushTestButton")?.addEventListener("click",testPushNotification);
  $("#radius").addEventListener("input",e=>{$("#radiusVal").textContent=(e.target.value/1000).toFixed(e.target.value<1000?1:0)+" km"});$("#radius").addEventListener("change",savePushPrefs);
- $(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
+ $$(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
  $("#installButton").addEventListener("click",installApp);
  $("#checkUpdateButton")?.addEventListener("click",()=>checkForAppUpdate(true));
  $("#applyUpdateButton")?.addEventListener("click",applyAppUpdate);
