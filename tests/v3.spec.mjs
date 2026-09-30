@@ -84,6 +84,6 @@ test('Mijn Whatsup uses structured activity cards instead of empty bars',async({
 test('info tab explains install and safety',async({page})=>{
   await page.locator('[data-view="info"]').click();
   await expect(page.locator('#view-info')).toContainText('Gebruik & veiligheid');
-  await expect(page.locator('#view-info')).toContainText('iPhone/iPad');
-  await expect(page.locator('#view-info')).toContainText('geen account, gebruikersnaam of wachtwoord');
+  await expect(page.locator('#view-info')).toContainText('iPhone / iPad');
+  await expect(page.locator('#view-info')).toContainText('Geen account en geen wachtwoord');
 });
