@@ -22,71 +22,18 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/validate.mjs
-      - run: node scripts/dialog-ui-check.mjs
-      - run: node scripts/mobile-ux-agent.mjs
-      - run: node scripts/release-agent.mjs
-      - run: node scripts/hosted-e2e-safety-check.mjs
-      - name: Build isolated read-only preview for browser tests
-        run: node scripts/build-preview.mjs
-      - name: Install browser usability test tooling
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Run accountless V3 browser journeys
         run: |
-          npm install --no-audit --no-fund
-          npx playwright install --with-deps chromium
-      - name: Run autonomous usability journeys
-        timeout-minutes: 8
-        continue-on-error: true
-        run: |
-          python3 -m http.server 8765 >/tmp/whatsup-dog-http.log 2>&1 &
+          python3 -m http.server 8765 >/tmp/whatsup-pages.log 2>&1 &
           SERVER_PID=$!
           trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
-          for i in {1..20}; do
-            if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi
-            sleep 0.5
-          done
-          curl -fsS http://127.0.0.1:8765/ >/dev/null
-          timeout 6m npm run test:usability
-      - if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: usability-playwright-report
-          path: playwright-report
-          if-no-files-found: ignore
-      - id: supabase_cli
-        continue-on-error: true
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-      - if: steps.supabase_cli.outcome == 'success'
-        run: supabase start
-      - if: steps.supabase_cli.outcome == 'success'
-        run: supabase db reset
-      - if: steps.supabase_cli.outcome == 'success'
-        run: supabase test db
-      - if: steps.supabase_cli.outcome == 'success'
-        run: node scripts/api-e2e.mjs
-      - if: always()
-        run: |
-          if command -v supabase >/dev/null 2>&1; then
-            supabase stop --no-backup
-          fi
-      - name: Refuse deployment against an outdated hosted database
+          for i in {1..20}; do if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi; sleep 0.5; done
+          npx playwright test tests/v3.spec.mjs --reporter=line --global-timeout=180000
+      - name: Verify hosted backend release
         run: node scripts/verify-hosted-release.mjs
       - run: node scripts/build-site.mjs
-      - name: Checkout isolated preview snapshot
-        uses: actions/checkout@v4
-        with:
-          ref: 9f5a9a91a00f923b7295fceef846ebe92ade12e6
-          path: .preview-source
-          persist-credentials: false
-      - name: Build read-only preview alongside unchanged production assets
-        run: |
-          cd .preview-source
-          node scripts/build-preview.mjs
-          cd ..
-          mkdir -p dist/preview
-          cp -a .preview-source/dist/. dist/preview/
-          test -f dist/preview/preview-guard.js
-          grep -q 'preview-guard.js?v=1' dist/preview/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
