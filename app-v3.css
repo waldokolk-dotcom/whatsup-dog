@@ -200,3 +200,165 @@ dialog[open]{
 .rule-row small{color:var(--muted);font-size:11px;line-height:1.45;margin-top:4px}
 .rule-icon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:17px;font-weight:900;flex:none}
 .rule-icon.red{background:#fdecef;color:#b43e59}
+
+
+/* V3.5 Weggeefhoek as one visual series */
+.give-hero,
+.contact-banner{
+  min-height:112px;
+  padding:18px;
+  display:grid;
+  grid-template-columns:60px minmax(0,1fr);
+  gap:14px;
+  align-items:center;
+  border-radius:22px;
+  box-shadow:0 8px 24px rgba(19,55,46,.06);
+}
+
+.give-hero{
+  background:linear-gradient(135deg,#fff7e9,#fef2df);
+  border:1px solid #f3dfba;
+  margin-bottom:12px;
+}
+
+.contact-banner{
+  background:linear-gradient(135deg,#eef6ff,#e9f2ff);
+  border:1px solid #d6e5fb;
+  margin-bottom:12px;
+}
+
+.give-hero-icon,
+.contact-icon{
+  width:60px;
+  height:60px;
+  border-radius:18px;
+  background:#fff;
+  display:grid;
+  place-items:center;
+  font-size:31px;
+  line-height:1;
+  box-shadow:0 6px 18px rgba(25,55,46,.08);
+}
+
+.give-hero h2,
+.contact-banner b{
+  margin:3px 0 5px;
+  font-size:18px;
+  line-height:1.22;
+  color:var(--ink);
+  font-weight:850;
+}
+
+.give-hero p,
+.contact-banner span{
+  margin:0;
+  font-size:13px;
+  line-height:1.42;
+  color:var(--ink-2);
+}
+
+.contact-banner span{color:#52667a}
+
+.giveaway-list-title{
+  margin-top:18px;
+  margin-bottom:10px;
+}
+
+.give-list.modern-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.give-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:22px;
+  overflow:hidden;
+  box-shadow:0 8px 24px rgba(19,55,46,.06);
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+
+.give-card-media{
+  width:100%;
+  height:150px;
+  object-fit:cover;
+  background:linear-gradient(135deg,#f5f2ea,#ebe7de);
+  display:grid;
+  place-items:center;
+  font-size:44px;
+}
+
+.give-card img.give-card-media{
+  display:block;
+}
+
+.give-body{
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  flex:1;
+}
+
+.give-card h3{
+  font-size:16px;
+  line-height:1.25;
+  margin:9px 0 6px;
+  color:var(--ink);
+}
+
+.give-card p{
+  font-size:12px;
+  line-height:1.45;
+  margin:0 0 8px;
+}
+
+.give-card .location{
+  margin-top:auto;
+  padding-top:2px;
+}
+
+.give-card .badge{
+  align-self:flex-start;
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:6px 9px;
+  background:var(--green-soft);
+  color:var(--green-dark);
+  font-weight:850;
+  font-size:10px;
+}
+
+.give-card .primary{
+  min-height:42px;
+  border-radius:16px;
+  font-size:12px;
+  margin-top:8px;
+}
+
+@media(max-width:430px){
+  .give-hero,.contact-banner{
+    grid-template-columns:56px minmax(0,1fr);
+    min-height:104px;
+    padding:15px;
+    gap:12px;
+  }
+  .give-hero-icon,.contact-icon{
+    width:56px;
+    height:56px;
+    font-size:29px;
+  }
+  .give-hero h2,.contact-banner b{font-size:16px}
+  .give-hero p,.contact-banner span{font-size:12px}
+  .give-list.modern-grid{grid-template-columns:1fr;gap:10px}
+  .give-card{display:grid;grid-template-columns:108px minmax(0,1fr)}
+  .give-card-media{height:100%;min-height:142px}
+  .give-card .give-body{padding:12px}
+}
+
+@media(min-width:680px){
+  .give-list.modern-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
