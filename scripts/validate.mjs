@@ -27,7 +27,7 @@ assert.match(html,/id="radius"/,'Push radius control missing');
 assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
 assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
-assert.match(html,/app-v3\.js\?v=8/,'V3 app controller not wired');
+assert.match(html,/app-v3\.js\?v=9/,'V3 app controller not wired');
 assert.match(html,/app-v3\.css\?v=9/,'V3 visual system not wired');
 
 assert.match(app,/signInAnonymously/,'Invisible device auth missing');
@@ -39,6 +39,8 @@ assert.match(app,/PushManager/,'Web Push capability missing');
 assert.match(app,/applicationServerKey/,'VAPID subscription missing');
 assert.match(app,/register_push_subscription/,'Server-side push subscription reclaim RPC missing');
 assert.match(app,/testPushNotification/,'Push test flow missing');
+assert.match(app,/sameApplicationServerKey/,'Push subscription VAPID repair missing');
+assert.match(app,/secure-context-required/,'Desktop push secure-context diagnosis missing');
 assert.match(html,/id="pushStatus"/,'Push status UI missing');
 assert.match(app,/radius_m/,'Radius must persist server-side');
 assert.match(app,/categories:s\.categories/,'Push category preferences missing');
@@ -63,7 +65,7 @@ assert.match(css,/\.paw-fab/,'One-hand PawWheel styling missing');
 assert.match(css,/\.offleash-control/,'Losloopgebieden control styling missing');
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
-assert.match(sw,/app-v3\.js\?v=8/,'Offline cache missing V3 app');
+assert.match(sw,/app-v3\.js\?v=9/,'Offline cache missing V3 app');
 assert.match(sw,/app-v3\.css\?v=9/,'Offline cache missing V3 CSS');
 assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');
