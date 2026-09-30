@@ -15,7 +15,10 @@ async function boot(){
  client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
  const {data}=await client.auth.getSession(); if(data.session) user=data.session.user;
  if(!user){const r=await client.auth.signInAnonymously();if(r.error){console.warn(r.error);toast("Veilige toestelsessie kon niet starten");return}user=r.data.user}
- initMap(); bind(); applyProfile(); await refreshReports(); await refreshGiveaways(); await refreshMine(); syncPushUi();
+ initMap(); bind(); applyProfile(); syncPushUi();
+ await refreshReports().catch(err=>console.warn("Meldingen laden",err));
+ await refreshGiveaways().catch(err=>console.warn("Weggeefhoek laden",err));
+ await refreshMine().catch(err=>console.warn("Mijn Whatsup laden",err));
  if(!localStorage.getItem("wd_v3_onboarded")) $("#onboarding").showModal();
  const qp=new URLSearchParams(location.search).get("report");if(qp)setTimeout(()=>openReportById(qp),700);
 }
