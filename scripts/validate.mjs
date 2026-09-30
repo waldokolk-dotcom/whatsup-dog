@@ -27,8 +27,8 @@ assert.match(html,/id="radius"/,'Push radius control missing');
 assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
 assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
-assert.match(html,/app-v3\.js\?v=9/,'V3 app controller not wired');
-assert.match(html,/app-v3\.css\?v=9/,'V3 visual system not wired');
+assert.match(html,/app-v3\.js\?v=10/,'V3 app controller not wired');
+assert.match(html,/app-v3\.css\?v=10/,'V3 visual system not wired');
 
 assert.match(app,/signInAnonymously/,'Invisible device auth missing');
 assert.match(app,/from\("reports"\)\.insert/,'Shared report persistence missing');
@@ -57,6 +57,13 @@ assert.match(app,/openReportDetail/,'Report detail flow missing');
 assert.match(app,/resolve_own_report/,'Owner resolve flow missing');
 assert.match(app,/archive_expired_reports/,'Automatic report expiry cleanup missing');
 assert.match(html,/id="detailResolve"/,'Resolve action missing from report detail');
+assert.match(html,/id="reportChooseMap"/,'Report map location chooser missing');
+assert.match(html,/id="reportLocationMap"/,'Report location map missing');
+assert.match(app,/chooseReportLocationOnMap/,'Report map picker logic missing');
+assert.match(app,/Gevaarlijk object/,'Danger subtype icon mapping missing');
+assert.match(app,/Vermist dier/,'Animal subtype icon mapping missing');
+assert.match(app,/Afsluiting/,'Handy subtype icon mapping missing');
+assert.match(app,/Activiteit/,'Fun subtype icon mapping missing');
 assert.doesNotMatch(app,/signInWithPassword|signUp\(|resetPasswordForEmail/,'Password/account flows must not ship');
 assert.match(app,/\$\$\("\.push-cat"\)\.forEach/,'Push category listeners must bind to all category controls');
 
@@ -65,8 +72,8 @@ assert.match(css,/\.paw-fab/,'One-hand PawWheel styling missing');
 assert.match(css,/\.offleash-control/,'Losloopgebieden control styling missing');
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
-assert.match(sw,/app-v3\.js\?v=9/,'Offline cache missing V3 app');
-assert.match(sw,/app-v3\.css\?v=9/,'Offline cache missing V3 CSS');
+assert.match(sw,/app-v3\.js\?v=10/,'Offline cache missing V3 app');
+assert.match(sw,/app-v3\.css\?v=10/,'Offline cache missing V3 CSS');
 assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');
 assert.match(sw,/SKIP_WAITING/,'Service worker update activation handler missing');

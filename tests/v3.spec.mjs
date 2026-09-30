@@ -151,7 +151,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
-  await expect(page.locator('#appVersion')).toContainText('3.9');
+  await expect(page.locator('#appVersion')).toContainText('4.0');
   await expect(page.locator('#versionDate')).toContainText('30-09-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
@@ -190,5 +190,33 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=9');
+  expect(app).toContain('v=10');
+});
+
+test('report can switch from current location to a chosen map location',async({page})=>{
+  await page.locator('#pawFab').click();
+  await page.locator('#pawReport').click();
+  await page.locator('.report-type[data-cat="danger"]').click();
+  await expect(page.locator('#reportUseGps')).toHaveClass(/active/);
+  await page.locator('#reportChooseMap').click();
+  await expect(page.locator('#reportChooseMap')).toHaveClass(/active/);
+  await expect(page.locator('#reportLocationMapWrap')).toBeVisible();
+  await expect(page.locator('#reportLocationStatus')).toContainText(/kaart|plek/i);
+});
+
+test('all report categories expose distinct subtype icons',async({page})=>{
+  const categories=[
+    ['danger',['🔺','🌿','💧','🚧','🐕']],
+    ['animal',['🐾','❤️','🧡']],
+    ['handy',['⛔','🚗','💡']],
+    ['fun',['💚','🐕','🎈']]
+  ];
+  for(const [cat,icons] of categories){
+    await page.locator('#reportDialog').evaluate(el=>{ if(el.open) el.close(); });
+    await page.locator('#pawFab').click();
+    await page.locator('#pawReport').click();
+    await page.locator('.report-type[data-cat="'+cat+'"]').click();
+    const texts=await page.locator('#reportSubs .chip-icon').allTextContents();
+    expect(texts).toEqual(icons);
+  }
 });
