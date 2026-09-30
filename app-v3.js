@@ -40,7 +40,7 @@ function bind(){
  $("#closeProfileEditor")?.addEventListener("click",()=>$("#profileEditor").classList.add("hidden"));
  $("#myReportsCard")?.addEventListener("click",()=>$("#myReports").classList.toggle("hidden"));
  $("#myGiveCard")?.addEventListener("click",()=>$("#myGive").classList.toggle("hidden"));
- $("[data-close]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog")?.close()));
+ $$("[data-close]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog")?.close()));
  $("#areaPill").addEventListener("click",()=>$("#areaDialog").showModal());
  $("#locateBtn").addEventListener("click",locate);
  $("#areaForm").addEventListener("submit",saveArea);
