@@ -30,7 +30,17 @@ function bind(){
  $("#pawArea").addEventListener("click",()=>{$("#pawDialog").close();$("#areaDialog").showModal()});
  $("#pawMine").addEventListener("click",()=>{$("#pawDialog").close();showView("my")});
  $("#pawInfo").addEventListener("click",()=>{$("#pawDialog").close();showView("info")});
- $$("[data-close]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog")?.close()));
+ $("#mapAlerts")?.addEventListener("click",()=>showView("alerts"));
+ $("#myAlertsShortcut")?.addEventListener("click",()=>showView("my"));
+ $("#alertAreaButton")?.addEventListener("click",()=>$("#areaDialog").showModal());
+ $("#myAreaLink")?.addEventListener("click",()=>$("#areaDialog").showModal());
+ $("#myPushLink")?.addEventListener("click",()=>showView("alerts"));
+ $("#myInfoLink")?.addEventListener("click",()=>showView("info"));
+ $("#editProfileButton")?.addEventListener("click",()=>$("#profileEditor").classList.remove("hidden"));
+ $("#closeProfileEditor")?.addEventListener("click",()=>$("#profileEditor").classList.add("hidden"));
+ $("#myReportsCard")?.addEventListener("click",()=>$("#myReports").classList.toggle("hidden"));
+ $("#myGiveCard")?.addEventListener("click",()=>$("#myGive").classList.toggle("hidden"));
+ $("[data-close]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog")?.close()));
  $("#areaPill").addEventListener("click",()=>$("#areaDialog").showModal());
  $("#locateBtn").addEventListener("click",locate);
  $("#areaForm").addEventListener("submit",saveArea);
@@ -49,7 +59,10 @@ function bind(){
 }
 function showView(v){
  $$(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
- if(v==="map")setTimeout(()=>map?.invalidateSize(),50); if(v==="giveaway")refreshGiveaways();if(v==="my")refreshMine();
+ if(v==="map")setTimeout(()=>map?.invalidateSize(),50);
+ if(v==="alerts")refreshReports();
+ if(v==="giveaway")refreshGiveaways();
+ if(v==="my")refreshMine();
 }
 function initMap(){
  const s=settings();map=L.map("map",{zoomControl:false,attributionControl:true}).setView([s.lat,s.lng],14);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);markers=L.layerGroup().addTo(map);$("#areaPill").textContent=s.areaLabel+" ▾";
@@ -57,7 +70,42 @@ function initMap(){
 function markerIcon(r){const c=["danger","vegetation","dirty","road"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"?"#28a17a":"#5178db";const e=r.type==="lost"?"!":r.type==="fun"?"♥":r.type==="spotted"?"🐾":"!";return L.divIcon({className:"",html:'<div class="marker" style="background:'+c+'"><span>'+e+'</span></div>',iconSize:[38,38],iconAnchor:[19,34]})}
 async function refreshReports(){
  if(!client||!user)return;const {data,error}=await client.from("reports").select("id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,photo_path,status,created_at,species").eq("status","active").order("created_at",{ascending:false}).limit(200);
- if(error){console.warn(error);return}markers.clearLayers();for(const r of data||[]){L.marker([r.lat,r.lng],{icon:markerIcon(r)}).addTo(markers).on("click",()=>openReportDetail(r))}
+ if(error){console.warn(error);return}
+ markers.clearLayers();
+ for(const r of data||[]){L.marker([r.lat,r.lng],{icon:markerIcon(r)}).addTo(markers).on("click",()=>openReportDetail(r))}
+ renderAlerts(data||[]);
+}
+function iconForReport(r){
+ const t=r.type;
+ if(t==="lost")return "❤️";
+ if(t==="spotted")return "🐾";
+ if(t==="fun")return "💚";
+ if(t==="road")return "💡";
+ if(t==="vegetation")return "🌿";
+ return "⚠️";
+}
+function classForReport(r){
+ if(["danger","vegetation","dirty"].includes(r.type))return "orange";
+ if(r.type==="lost")return "pink";
+ if(r.type==="spotted")return "green";
+ if(r.type==="road")return "blue";
+ return "teal";
+}
+function renderAlerts(rows){
+ const list=$("#alertsList"); if(!list)return;
+ if(!rows.length){list.innerHTML='<div class="empty">Nog geen meldingen in jouw buurt.</div>';return}
+ const s=settings(), now=Date.now();
+ list.innerHTML=rows.slice(0,20).map(r=>{
+   const minutes=Math.max(1,Math.round((now-new Date(r.created_at||now).getTime())/60000));
+   const ago=minutes<60?minutes+" min":Math.round(minutes/60)+" u";
+   const title=r.subtype||labelType(r.type);
+   return '<button class="alert-item" data-alert-id="'+esc(r.id)+'"><span class="alert-dot '+classForReport(r)+'">'+iconForReport(r)+'</span><span><b>'+esc(title)+'</b><small>'+esc(r.text||"Melding in de buurt")+'</small></span><time>'+ago+'</time></button>'
+ }).join("");
+ list.querySelectorAll("[data-alert-id]").forEach(btn=>btn.onclick=async()=>{
+   const id=btn.dataset.alertId;
+   const {data}=await client.from("reports").select("*").eq("id",id).maybeSingle();
+   if(data)openReportDetail(data);
+ });
 }
 async function openReportById(id){return client.from("reports").select("*").eq("id",id).maybeSingle().then(({data})=>{if(data){showView("map");map.setView([data.lat,data.lng],16);openReportDetail(data)}})}
 async function openReportDetail(r){$("#detailTitle").textContent=r.subtype||labelType(r.type);$("#detailText").textContent=r.text||"Melding";$("#detailMeta").textContent=(r.author_name||"Buurtgenoot")+" · "+new Date(r.created_at||Date.now()).toLocaleString("nl-NL",{dateStyle:"short",timeStyle:"short"});const del=$("#detailDelete");del.hidden=r.user_id!==user?.id;del.onclick=async()=>{if(!confirm("Deze melding verwijderen?"))return;const {error}=await client.from("reports").delete().eq("id",r.id).eq("user_id",user.id);if(error)return toast("Verwijderen mislukt");$("#detailDialog").close();await refreshReports();await refreshMine();toast("Melding verwijderd")};$("#detailDialog").showModal()}
@@ -90,18 +138,54 @@ async function submitGiveaway(e){
  catch(err){console.warn(err);toast("Plaatsen lukt nu niet")}finally{b.disabled=false}
 }
 async function refreshMine(){
- const p=profile(),s=settings();$("#myName").textContent=p.name||"Mijn Whatsup";$("#myMeta").textContent=[p.petName,p.breed,s.areaLabel].filter(Boolean).join(" · ")||"Persoonlijke instellingen";$("#myAvatar").textContent=p.avatar||"🐾";$("#profileName").value=p.name||"";$("#petName").value=p.petName||"";$("#breed").value=p.breed||"";$("#avatar").value=p.avatar||"🐾";$("#species").value=p.species||"both";
- if(!client||!user)return;const [r,g]=await Promise.all([client.from("reports").select("id,text,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30),client.from("giveaway_listings").select("id,title,status,created_at").eq("owner_id",user.id).order("created_at",{ascending:false}).limit(30)]);$("#myReports").innerHTML=(r.data||[]).map(x=>'<div class="my-item"><b>'+esc(x.text)+'</b><div class="row"><small>'+esc(x.status)+'</small><button class="danger small" data-del-report="'+x.id+'">Verwijder</button></div></div>').join("")||'<div class="empty">Nog geen meldingen.</div>';$("#myGive").innerHTML=(g.data||[]).map(x=>'<div class="my-item"><b>'+esc(x.title)+'</b><div class="row"><small>'+esc(x.status)+'</small><button class="secondary small" data-done-give="'+x.id+'">Afgehandeld</button></div></div>').join("")||'<div class="empty">Nog geen weggeefitems.</div>';$$("[data-del-report]").forEach(b=>b.onclick=async()=>{await client.from("reports").delete().eq("id",b.dataset.delReport).eq("user_id",user.id);refreshMine();refreshReports()});$$("[data-done-give]").forEach(b=>b.onclick=async()=>{await client.from("giveaway_listings").update({status:"afgerond",updated_at:new Date().toISOString()}).eq("id",b.dataset.doneGive).eq("owner_id",user.id);refreshMine();refreshGiveaways()})
+ const p=profile(),s=settings();
+ $("#myName").textContent=p.name||"Mijn Whatsup";
+ $("#myMeta").textContent=[p.petName,p.breed,s.areaLabel].filter(Boolean).join(" · ")||"Persoonlijke instellingen";
+ $("#myAvatar").textContent=p.avatar||"🐾";
+ $("#myAvatarLarge").textContent=p.avatar||"🐾";
+ $("#myAreaLabel").textContent=s.areaLabel||"Mijn gebied";
+ $("#profileName").value=p.name||"";
+ $("#petName").value=p.petName||"";
+ $("#breed").value=p.breed||"";
+ $("#avatar").value=p.avatar||"🐾";
+ $("#species").value=p.species||"both";
+ if(!client||!user)return;
+ const [r,g]=await Promise.all([
+   client.from("reports").select("id,text,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(30),
+   client.from("giveaway_listings").select("id,title,status,created_at").eq("owner_id",user.id).order("created_at",{ascending:false}).limit(30)
+ ]);
+ const reports=r.data||[], gives=g.data||[];
+ $("#myReportsCount").textContent=reports.length;
+ $("#myGiveCount").textContent=gives.length;
+ $("#myReports").innerHTML=reports.map(x=>'<div class="my-item"><b>'+esc(x.text)+'</b><div class="row"><small>'+esc(x.status)+'</small><button class="danger small" data-del-report="'+x.id+'">Verwijder</button></div></div>').join("")||'<div class="empty">Nog geen meldingen.</div>';
+ $("#myGive").innerHTML=gives.map(x=>'<div class="my-item"><b>'+esc(x.title)+'</b><div class="row"><small>'+esc(x.status)+'</small><button class="secondary small" data-done-give="'+x.id+'">Afgehandeld</button></div></div>').join("")||'<div class="empty">Nog geen weggeefitems.</div>';
+ $("[data-del-report]").forEach(b=>b.onclick=async()=>{await client.from("reports").delete().eq("id",b.dataset.delReport).eq("user_id",user.id);refreshMine();refreshReports()});
+ $("[data-done-give]").forEach(b=>b.onclick=async()=>{await client.from("giveaway_listings").update({status:"afgerond",updated_at:new Date().toISOString()}).eq("id",b.dataset.doneGive).eq("owner_id",user.id);refreshMine();refreshGiveaways()})
 }
 function saveProfile(e){e.preventDefault();const p={name:$("#profileName").value.trim(),petName:$("#petName").value.trim(),breed:$("#breed").value.trim(),avatar:$("#avatar").value,species:$("#species").value};write(PKEY,p);applyProfile();toast("Opgeslagen")}
-function applyProfile(){const p=profile();$("#myAvatar").textContent=p.avatar||"🐾";$("#giveForm").town.value=settings().areaLabel||""}
-async function saveArea(e){e.preventDefault();const q=$("#areaSearch").value.trim();if(!q)return;try{const res=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(q));const arr=await res.json();if(!arr[0])return toast("Gebied niet gevonden");const s=settings();s.areaLabel=arr[0].display_name.split(",")[0];s.lat=Number(arr[0].lat);s.lng=Number(arr[0].lon);write(SKEY,s);$("#areaPill").textContent=s.areaLabel+" ▾";map.setView([s.lat,s.lng],14);$("#areaDialog").close();syncPushUi();toast("Gebied aangepast")}catch{toast("Zoeken lukt nu niet")}}
+function applyProfile(){
+ const p=profile(),s=settings();
+ if($("#myAvatar"))$("#myAvatar").textContent=p.avatar||"🐾";
+ if($("#myAvatarLarge"))$("#myAvatarLarge").textContent=p.avatar||"🐾";
+ if($("#myName"))$("#myName").textContent=p.name||"Mijn Whatsup";
+ if($("#myAreaLabel"))$("#myAreaLabel").textContent=s.areaLabel||"Mijn gebied";
+ $("#giveForm").town.value=s.areaLabel||"";
+}
+async function saveArea(e){e.preventDefault();const q=$("#areaSearch").value.trim();if(!q)return;try{const res=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(q));const arr=await res.json();if(!arr[0])return toast("Gebied niet gevonden");const s=settings();s.areaLabel=arr[0].display_name.split(",")[0];s.lat=Number(arr[0].lat);s.lng=Number(arr[0].lon);write(SKEY,s);$("#areaPill").textContent=s.areaLabel+" ▾";map.setView([s.lat,s.lng],14);$("#areaDialog").close();syncPushUi();applyProfile();toast("Gebied aangepast")}catch{toast("Zoeken lukt nu niet")}}
 function locate(){navigator.geolocation?.getCurrentPosition(p=>{map.setView([p.coords.latitude,p.coords.longitude],16);L.circleMarker([p.coords.latitude,p.coords.longitude],{radius:8,color:"#176fa8",fillColor:"#7dc4ff",fillOpacity:1,weight:3}).addTo(map)},()=>toast("Locatie niet gedeeld"),{timeout:6000,maximumAge:30000})}
 function urlB64(s){const pad="=".repeat((4-s.length%4)%4),b=(s+pad).replace(/-/g,"+").replace(/_/g,"/"),raw=atob(b);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
 async function togglePush(e){if(e.target.checked){try{if(!("serviceWorker"in navigator)||!("PushManager"in window))throw new Error("unsupported");const perm=await Notification.requestPermission();if(perm!=="granted")throw new Error("denied");const reg=await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64(VAPID_PUBLIC)});await saveSubscription(sub);const s=settings();s.push=true;write(SKEY,s);toast("Pushmeldingen staan aan")}catch(err){console.warn(err);e.target.checked=false;toast("Pushmeldingen konden niet worden ingeschakeld")}}else{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();if(sub){await client.from("push_subscriptions").delete().eq("endpoint",sub.endpoint).eq("user_id",user.id);await sub.unsubscribe()}const s=settings();s.push=false;write(SKEY,s);toast("Pushmeldingen staan uit")}}
 async function saveSubscription(sub){const s=settings(),j=sub.toJSON();const row={user_id:user.id,endpoint:sub.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,area_label:s.areaLabel,center_lat:s.lat,center_lng:s.lng,radius_m:s.radius,categories:s.categories,enabled:true,updated_at:new Date().toISOString()};const {error}=await client.from("push_subscriptions").upsert(row,{onConflict:"endpoint"});if(error)throw error}
 async function savePushPrefs(){const s=settings();s.radius=Number($("#radius").value);s.categories=$$(".push-cat:checked").map(x=>x.value);write(SKEY,s);$("#radiusVal").textContent=(s.radius/1000).toFixed(s.radius<1000?1:0)+" km";try{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();if(sub)await saveSubscription(sub)}catch{}}
-function syncPushUi(){const s=settings();$("#pushToggle").checked=!!s.push;$("#radius").value=s.radius||2000;$("#radiusVal").textContent=((s.radius||2000)/1000)+" km";$$(".push-cat").forEach(x=>x.checked=(s.categories||[]).includes(x.value));$("#pushArea").textContent=s.areaLabel||"Mijn gebied"}
+function syncPushUi(){
+ const s=settings();
+ $("#pushToggle").checked=!!s.push;
+ $("#radius").value=s.radius||2000;
+ $("#radiusVal").textContent=((s.radius||2000)/1000)+" km";
+ $(".push-cat").forEach(x=>x.checked=(s.categories||[]).includes(x.value));
+ $("#pushArea").textContent=s.areaLabel||"Mijn gebied";
+ if($("#myAreaLabel"))$("#myAreaLabel").textContent=s.areaLabel||"Mijn gebied";
+}
 async function finishOnboarding(e){e.preventDefault();const place=$("#onboardPlace").value.trim(),p={species:$("input[name=onSpecies]:checked")?.value||"both",avatar:"🐾",name:"",petName:"",breed:""};write(PKEY,p);if(place&&place!=="Mijn locatie"){try{const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(place)),a=await r.json();if(a[0]){const s=settings();s.areaLabel=a[0].display_name.split(",")[0];s.lat=+a[0].lat;s.lng=+a[0].lon;write(SKEY,s)}}catch{}}localStorage.setItem("wd_v3_onboarded","1");$("#onboarding").close();location.reload()}
 async function installApp(){if(deferredInstall){deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;return}toast(/iphone|ipad|ipod/i.test(navigator.userAgent)?"Tik Deel en kies ‘Zet op beginscherm’":"Open het browsermenu en kies ‘App installeren’")}
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
