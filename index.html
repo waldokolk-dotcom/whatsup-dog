@@ -2,32 +2,166 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f3efe7"><meta name="description" content="Whatsup Dog — meld wat er in jouw buurt speelt.">
+<meta name="theme-color" content="#f8f6f1"><meta name="description" content="Whatsup Dog — meld wat er in jouw buurt speelt.">
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="./vendor/leaflet/leaflet.css"><link rel="stylesheet" href="app-v3.css?v=1">
+<link rel="stylesheet" href="./vendor/leaflet/leaflet.css"><link rel="stylesheet" href="app-v3.css?v=2">
 <title>Whatsup Dog</title>
 </head>
-<body><div class="app">
-<section id="view-map" class="view map-view active"><div id="map" class="map"></div><button id="areaPill" class="top-pill">Nijkerk ▾</button><button id="locateBtn" class="map-locate" aria-label="Mijn locatie">⌖</button></section>
-<section id="view-giveaway" class="view"><header class="page-head"><div><h1>Weggeefhoek</h1><p>Gratis delen of ruilen. Geen verkoop.</p></div><button id="giveCreate" class="fab-small">＋</button></header><div class="security-note">Contact loopt via e-mail. Je e-mailadres staat niet in de openbare advertentielijst.</div><div id="giveList" class="give-list" style="margin-top:14px"></div></section>
-<section id="view-my" class="view"><header class="page-head"><div><h1>Mijn Whatsup</h1><p id="myMeta">Persoonlijke instellingen</p></div><div id="myAvatar" style="font-size:34px">🐾</div></header>
-<div class="card"><h2>Mijn profiel</h2><form id="profileForm"><label>Mijn naam of alias</label><input id="profileName" maxlength="40" placeholder="Optioneel"><label>Naam dier</label><input id="petName" maxlength="40" placeholder="Optioneel"><div class="grid2"><div><label>Dier</label><select id="species"><option value="dog">Hond</option><option value="cat">Kat</option><option value="both">Beide / anders</option></select></div><div><label>Avatar</label><select id="avatar"><option>🐾</option><option>🐶</option><option>🐕</option><option>🐱</option><option>🐈</option></select></div></div><label>Ras</label><input id="breed" maxlength="80" placeholder="Bijv. Friese stabij"><button class="primary wide" style="margin-top:12px">Opslaan</button></form></div>
-<div class="card"><h2>Meldingen in mijn buurt</h2><div class="settings-row row"><span><b>Pushmeldingen</b><small>Ook als Whatsup Dog niet openstaat</small></span><input id="pushToggle" type="checkbox" class="toggle"></div><div class="settings-row"><b>Gebied</b><small id="pushArea">Mijn gebied</small></div><div class="settings-row"><div class="row"><b>Straal</b><span id="radiusVal" class="radius-value">2 km</span></div><input id="radius" type="range" min="500" max="10000" step="500" value="2000"></div><div class="settings-row"><b>Welke pushberichten?</b><label><input class="push-cat" type="checkbox" value="danger"> Gevaar</label><label><input class="push-cat" type="checkbox" value="lost"> Vermist / gevonden</label><label><input class="push-cat" type="checkbox" value="animal"> Dierenmeldingen</label></div></div>
-<div class="card"><h2>Mijn meldingen</h2><div id="myReports" class="my-items"></div></div><div class="card"><h2>Mijn weggeefitems</h2><div id="myGive" class="my-items"></div></div></section>
-<section id="view-info" class="view"><div class="info-hero"><h1>Gebruik & veiligheid</h1><p>Zo gebruik je Whatsup Dog prettig en veilig.</p></div>
-<div class="info-block"><h2>Zo werkt het</h2><ol><li>Open de app en je staat direct op de kaart.</li><li>Tik met je duim op de poot om snel iets te melden.</li><li>Locatie en tijd worden automatisch voorgesteld; jij bepaalt wat je deelt.</li><li>Kies bij pushmeldingen zelf gebied, straal en categorieën.</li></ol></div>
-<div class="info-block"><h2>Installeren op je telefoon</h2><p class="muted">Daarna opent Whatsup Dog als een gewone app vanaf je beginscherm.</p><button id="installButton" class="primary install-btn">＋ App installeren</button><ul><li><b>iPhone/iPad:</b> open in Safari → Deel → Zet op beginscherm.</li><li><b>Android:</b> browsermenu → App installeren / Toevoegen aan startscherm.</li></ul></div>
-<div class="info-block"><h2>Jouw veiligheid</h2><ul><li>Je hebt geen account, gebruikersnaam of wachtwoord nodig.</li><li>Whatsup Dog gebruikt een technische toestelsessie om jouw eigen items te herkennen.</li><li>Deel geen huisnummer, telefoonnummer of andere onnodige persoonsgegevens in openbare tekst.</li><li>Weggeefcontactadressen worden niet in de openbare advertentielijst opgenomen.</li><li>Een melding is informatie van een gebruiker, geen officiële waarschuwing of hulpdienst.</li><li>Bij direct gevaar: neem contact op met de bevoegde hulpdienst.</li></ul></div>
-<div class="info-block"><h2>Privacy</h2><p>Locatie wordt alleen gebruikt wanneer jij daarvoor toestemming geeft. Voor buurtmeldingen bewaren we het door jou gekozen gebied, straal en notificatievoorkeuren. Wis je browsergegevens of verwijder je de app, dan kan de technische koppeling met eerder geplaatste items verloren gaan.</p></div></section>
-<button id="pawFab" class="paw-fab" aria-label="PawWheel openen">🐾</button>
-<nav class="nav"><button data-view="map" class="active"><span>⌖</span>Kaart</button><button data-view="giveaway"><span>🎁</span>Weggeefhoek</button><button data-view="my"><span>🐾</span>Mijn Whatsup</button><button data-view="info"><span>ⓘ</span>Info</button></nav>
+<body>
+<div class="app">
+  <section id="view-map" class="view map-view active">
+    <div class="map-brand"><span class="brand-word">Whatsup</span><span class="brand-dog">D🐾g</span></div>
+    <button id="areaPill" class="top-pill">Nijkerk ▾</button>
+    <button id="mapAlerts" class="header-icon" aria-label="Meldingen">🔔<span class="notify-dot"></span></button>
+    <div id="map" class="map"></div>
+    <div id="mapCard" class="map-card hidden"></div>
+    <button id="locateBtn" class="map-locate" aria-label="Mijn locatie">◎</button>
+  </section>
+
+  <section id="view-alerts" class="view">
+    <header class="app-header">
+      <div><div class="eyebrow">JOUW BUURT</div><h1>Meldingen</h1><p>Zie wat er speelt en bepaal zelf welke pushberichten je ontvangt.</p></div>
+      <div class="header-badge icon-bell">🔔</div>
+    </header>
+
+    <div class="segmented"><button class="active">In de buurt</button><button id="myAlertsShortcut">Mijn meldingen</button></div>
+
+    <article class="feature-card push-feature">
+      <div class="feature-icon aqua">🔔</div>
+      <div class="feature-copy"><b>Pushmeldingen in jouw buurt</b><span>Ontvang alleen relevante waarschuwingen binnen jouw ingestelde gebied.</span></div>
+      <input id="pushToggle" type="checkbox" class="toggle">
+    </article>
+
+    <article class="card modern-card">
+      <div class="card-head"><div><span class="section-kicker">BEREIK</span><h2>Zoekgebied</h2></div><span id="radiusVal" class="value-pill">2 km</span></div>
+      <input id="radius" type="range" min="500" max="10000" step="500" value="2000">
+      <button id="alertAreaButton" class="setting-link"><span class="mini-icon green">📍</span><span><b id="pushArea">Mijn gebied</b><small>Wijzig plaats, wijk of postcode</small></span><span>›</span></button>
+    </article>
+
+    <article class="card modern-card">
+      <div class="card-head"><div><span class="section-kicker">FILTERS</span><h2>Welke pushberichten?</h2></div></div>
+      <div class="category-grid">
+        <label class="category-card c-orange"><input class="push-cat" type="checkbox" value="danger"><span class="category-icon">⚠️</span><b>Gevaar</b><small>Glas, gif, risico</small></label>
+        <label class="category-card c-pink"><input class="push-cat" type="checkbox" value="lost"><span class="category-icon">❤️</span><b>Vermist</b><small>Vermist of gevonden</small></label>
+        <label class="category-card c-blue"><input class="push-cat" type="checkbox" value="animal"><span class="category-icon">🐾</span><b>Dieren</b><small>Gezien of loslopend</small></label>
+      </div>
+    </article>
+
+    <div class="section-title"><div><span class="section-kicker">ACTUEEL</span><h2>Recente meldingen</h2></div></div>
+    <div id="alertsList" class="activity-list"><div class="empty">Nog geen meldingen in beeld.</div></div>
+  </section>
+
+  <section id="view-giveaway" class="view">
+    <header class="app-header">
+      <div><div class="eyebrow">SAMEN DELEN</div><h1>Weggeefhoek</h1><p>Geef spullen een tweede leven. Gratis of ruilen, nooit verkoop.</p></div>
+      <button id="giveCreate" class="header-add">＋ <span>Item</span></button>
+    </header>
+
+    <div class="give-hero">
+      <div class="give-hero-icon">🎁</div>
+      <div><span class="section-kicker">VOOR DE BUURT</span><h2>Geven voelt goed</h2><p>Van hondenmand tot speelgoed: lokaal delen zonder marktplaatsgedoe.</p></div>
+    </div>
+
+    <div class="contact-banner">
+      <span class="contact-icon">✉️</span>
+      <div><b>Contact loopt via e-mail</b><span>Je e-mailadres staat niet openbaar in de advertentielijst.</span></div>
+    </div>
+
+    <div id="giveList" class="give-list modern-grid"></div>
+  </section>
+
+  <section id="view-my" class="view">
+    <header class="app-header">
+      <div><div class="eyebrow">PERSOONLIJK</div><h1>Mijn Whatsup</h1><p>Je dier, omgeving, eigen meldingen en instellingen op één plek.</p></div>
+      <div class="header-badge icon-profile" id="myAvatar">🐾</div>
+    </header>
+
+    <article class="profile-card">
+      <div class="profile-avatar" id="myAvatarLarge">🐾</div>
+      <div class="profile-main"><b id="myName">Mijn Whatsup</b><span id="myMeta">Persoonlijke instellingen</span></div>
+      <button id="editProfileButton" class="chevron-btn">›</button>
+    </article>
+
+    <div class="section-title"><div><span class="section-kicker">MIJN ACTIVITEIT</span><h2>Overzicht</h2></div></div>
+
+    <button class="activity-summary" id="myReportsCard">
+      <span class="summary-icon green">📣</span>
+      <span class="summary-copy"><b>Mijn meldingen</b><small>Bekijk en beheer je geplaatste meldingen.</small></span>
+      <span class="summary-count" id="myReportsCount">0</span><span class="chevron">›</span>
+    </button>
+    <div id="myReports" class="my-items collapsible"></div>
+
+    <button class="activity-summary" id="myGiveCard">
+      <span class="summary-icon orange">🎁</span>
+      <span class="summary-copy"><b>Mijn weggeefitems</b><small>Bekijk en beheer wat je aanbiedt.</small></span>
+      <span class="summary-count" id="myGiveCount">0</span><span class="chevron">›</span>
+    </button>
+    <div id="myGive" class="my-items collapsible"></div>
+
+    <div class="section-title"><div><span class="section-kicker">INSTELLINGEN</span><h2>Mijn app</h2></div></div>
+    <div class="menu-card">
+      <button id="myAreaLink"><span class="menu-icon blue">📍</span><span><b>Mijn omgeving</b><small id="myAreaLabel">Kies je standaardgebied</small></span><span>›</span></button>
+      <button id="myPushLink"><span class="menu-icon yellow">🔔</span><span><b>Pushmeldingen</b><small>Gebied, straal en categorieën</small></span><span>›</span></button>
+      <button id="myInfoLink"><span class="menu-icon teal">🛡️</span><span><b>Gebruik & veiligheid</b><small>Installeren, privacy en veilig gebruik</small></span><span>›</span></button>
+    </div>
+
+    <article class="card modern-card profile-editor hidden" id="profileEditor">
+      <div class="card-head"><div><span class="section-kicker">PROFIEL</span><h2>Persoonlijk maken</h2></div><button id="closeProfileEditor" class="mini-close">×</button></div>
+      <form id="profileForm">
+        <label>Mijn naam of alias</label><input id="profileName" maxlength="40" placeholder="Optioneel">
+        <label>Naam dier</label><input id="petName" maxlength="40" placeholder="Optioneel">
+        <div class="grid2"><div><label>Dier</label><select id="species"><option value="dog">Hond</option><option value="cat">Kat</option><option value="both">Beide / anders</option></select></div><div><label>Avatar</label><select id="avatar"><option>🐾</option><option>🐶</option><option>🐕</option><option>🐱</option><option>🐈</option></select></div></div>
+        <label>Ras</label><input id="breed" maxlength="80" placeholder="Bijv. Friese stabij">
+        <button class="primary wide" style="margin-top:14px">Opslaan</button>
+      </form>
+    </article>
+  </section>
+
+  <section id="view-info" class="view">
+    <header class="app-header">
+      <div><div class="eyebrow">GOED OM TE WETEN</div><h1>Gebruik & veiligheid</h1><p>Alles wat je nodig hebt om Whatsup Dog prettig en veilig te gebruiken.</p></div>
+      <div class="header-badge icon-safe">🛡️</div>
+    </header>
+
+    <div class="info-tiles">
+      <article class="info-tile"><span class="info-icon green">🐾</span><div><b>Zo werkt het</b><p>Open de kaart, gebruik het PawWheel en meld in een paar tikken wat je onderweg ziet.</p></div></article>
+      <article class="info-tile"><span class="info-icon blue">📲</span><div><b>Installeren</b><p>Whatsup Dog werkt als PWA en kan op je beginscherm staan als gewone app.</p><button id="installButton" class="soft-button">App installeren</button></div></article>
+      <article class="info-tile"><span class="info-icon orange">🔒</span><div><b>Jouw veiligheid</b><p>Geen account en geen wachtwoord. Deel geen onnodige persoonsgegevens in openbare meldingen.</p></div></article>
+      <article class="info-tile"><span class="info-icon purple">📍</span><div><b>Locatie & privacy</b><p>Je locatie wordt alleen gebruikt na toestemming. Voor push bewaren we gekozen gebied, straal en categorieën.</p></div></article>
+    </div>
+
+    <article class="card modern-card">
+      <div class="card-head"><div><span class="section-kicker">INSTALLEREN</span><h2>Op je telefoon</h2></div></div>
+      <div class="howto-row"><span>🍎</span><div><b>iPhone / iPad</b><small>Open in Safari → Deel → Zet op beginscherm</small></div></div>
+      <div class="howto-row"><span>🤖</span><div><b>Android</b><small>Browsermenu → App installeren / Toevoegen aan startscherm</small></div></div>
+    </article>
+
+    <article class="safety-callout"><span>ℹ️</span><p>Een melding in Whatsup Dog is informatie van een gebruiker en geen officiële waarschuwing. Bij direct gevaar gebruik je de bevoegde hulpdienst.</p></article>
+  </section>
+
+  <button id="pawFab" class="paw-fab" aria-label="PawWheel openen"><span>🐾</span><small>Melden</small></button>
+
+  <nav class="nav">
+    <button data-view="map" class="active"><span class="nav-icon nav-green">🗺️</span><b>Kaart</b></button>
+    <button data-view="alerts"><span class="nav-icon nav-blue">🔔</span><b>Meldingen</b></button>
+    <button data-view="giveaway"><span class="nav-icon nav-orange">🎁</span><b>Weggeefhoek</b></button>
+    <button data-view="my"><span class="nav-icon nav-teal">👤</span><b>Mijn Whatsup</b></button>
+    <button data-view="info"><span class="nav-icon nav-purple">ⓘ</span><b>Info</b></button>
+  </nav>
 </div>
-<dialog id="pawDialog"><div class="sheet"><div class="handle"></div><button data-close class="close">×</button><h2>Wat wil je doen?</h2><p class="muted">Alles binnen bereik van je duim.</p><div class="wheel"><button id="pawReport" class="hero"><strong>⚠️</strong>Melden</button><button id="pawGive"><strong>🎁</strong>Weggeefhoek</button><button id="pawArea"><strong>📍</strong>Mijn buurt</button><button id="pawMine"><strong>☰</strong>Mijn items</button><button id="pawInfo"><strong>ⓘ</strong>Gebruik & veiligheid</button></div></div></dialog>
-<dialog id="reportDialog"><form id="reportForm" class="sheet"><div class="handle"></div><button type="button" data-close class="close">×</button><div id="reportStep1"><h2>Wat wil je melden?</h2><div class="report-types"><button type="button" class="report-type" data-cat="danger" data-type="danger"><i class="danger-bg">⚠</i><span><b>Gevaar</b><small class="muted">Glas, gif, gevaarlijke situatie</small></span></button><button type="button" class="report-type" data-cat="animal" data-type="spotted"><i class="animal-bg">🐾</i><span><b>Dier</b><small class="muted">Gezien, vermist of gevonden</small></span></button><button type="button" class="report-type" data-cat="handy" data-type="road"><i class="handy-bg">i</i><span><b>Handig</b><small class="muted">Afsluiting, drukte of tip</small></span></button><button type="button" class="report-type" data-cat="fun" data-type="fun"><i class="fun-bg">♥</i><span><b>Leuk</b><small class="muted">Fijne plek of activiteit</small></span></button></div></div><div id="reportStep2" hidden><h2 id="reportChosen">Melding</h2><div id="reportSubs" class="chipset"></div><label>Korte omschrijving</label><textarea id="reportText" maxlength="220" rows="3" placeholder="Wat moeten mensen weten?"></textarea><label>Foto (optioneel)</label><input id="reportPhoto" type="file" accept="image/jpeg,image/png,image/webp"><label><input id="useGps" type="checkbox" checked> Gebruik mijn huidige locatie</label><button id="reportSubmit" class="primary wide">Plaatsen</button></div></form></dialog>
-<dialog id="detailDialog"><div class="sheet"><div class="handle"></div><button data-close class="close">×</button><h2 id="detailTitle">Melding</h2><p id="detailMeta" class="muted"></p><p id="detailText"></p><button id="detailDelete" class="danger wide" hidden>Verwijderen</button></div></dialog>
-<dialog id="areaDialog"><form id="areaForm" class="sheet"><div class="handle"></div><button type="button" data-close class="close">×</button><h2>Mijn buurt</h2><p class="muted">Kies een plaats of wijk. Je pushstraal loopt ook net over wijkgrenzen heen.</p><label>Plaats, wijk of postcode</label><input id="areaSearch" placeholder="Bijv. Corlaer, Nijkerk"><button class="primary wide" style="margin-top:12px">Gebruik dit gebied</button></form></dialog>
-<dialog id="giveDialog"><form id="giveForm" class="sheet"><div class="handle"></div><button type="button" data-close class="close">×</button><h2>Iets weggeven of ruilen</h2><label>Titel</label><input name="title" required minlength="3" maxlength="90"><label>Omschrijving</label><textarea name="description" required minlength="5" maxlength="1000"></textarea><div class="grid2"><div><label>Voor</label><select name="category"><option value="hond">Hond</option><option value="kat">Kat</option><option value="beide">Beide</option></select></div><div><label>Soort</label><select name="kind"><option value="gratis">Gratis</option><option value="ruilen">Ruilen</option></select></div></div><label>Plaats/wijk</label><input name="town" required minlength="2" maxlength="80"><label>Contact e-mail</label><input name="email" type="email" required maxlength="254" autocomplete="email"><small class="muted">Niet zichtbaar in de openbare advertentielijst.</small><label>Foto (optioneel)</label><input name="photo" type="file" accept="image/jpeg,image/png,image/webp"><button id="giveSubmit" class="primary wide" style="margin-top:14px">Plaatsen</button></form></dialog>
-<dialog id="onboarding"><form id="onboardForm" class="onboard"><div class="hero">🐕</div><div class="progress"><span class="on"></span><span class="on"></span></div><h1>Welkom bij Whatsup Dog</h1><p class="muted">Geen account. Geen wachtwoord. Kies alleen je standaardgebied en waarvoor je de app gebruikt.</p><label>Ik gebruik Whatsup Dog voor</label><div class="chipset"><label class="chip"><input type="radio" name="onSpecies" value="dog" checked> Hond</label><label class="chip"><input type="radio" name="onSpecies" value="cat"> Kat</label><label class="chip"><input type="radio" name="onSpecies" value="both"> Beide</label></div><label>Mijn standaardplaats of wijk</label><input id="onboardPlace" required placeholder="Bijv. Corlaer, Nijkerk"><button id="onboardLocate" type="button" class="secondary wide" style="margin-top:10px">📍 Gebruik mijn locatie</button><button class="primary wide" style="margin-top:10px">Start Whatsup Dog</button><p class="security-note" style="margin-top:14px">Whatsup Dog maakt op de achtergrond alleen een technische toestelsessie om jouw eigen meldingen te kunnen beheren.</p></form></dialog>
+
+<dialog id="pawDialog"><div class="sheet"><div class="handle"></div><button data-close class="close">×</button><div class="sheet-title"><span class="paw-title-icon">🐾</span><div><span class="section-kicker">SNELLE ACTIES</span><h2>Wat wil je doen?</h2><p>Gemaakt voor één hand tijdens het lopen.</p></div></div><div class="wheel"><button id="pawReport" class="hero"><strong>⚠️</strong><span>Melding doen</span><small>Direct vanaf je huidige locatie</small></button><button id="pawGive"><strong>🎁</strong><span>Weggeefhoek</span></button><button id="pawArea"><strong>📍</strong><span>Mijn buurt</span></button><button id="pawMine"><strong>📣</strong><span>Mijn items</span></button><button id="pawInfo"><strong>🛡️</strong><span>Veiligheid</span></button></div></div></dialog>
+
+<dialog id="reportDialog"><form id="reportForm" class="sheet"><div class="handle"></div><button type="button" data-close class="close">×</button><div id="reportStep1"><span class="section-kicker">NIEUWE MELDING</span><h2>Wat wil je melden?</h2><p class="muted">Kies één van de vier soorten. Daarna hoef je alleen nog de kern toe te voegen.</p><div class="report-types"><button type="button" class="report-type type-danger" data-cat="danger" data-type="danger"><i>⚠️</i><span><b>Gevaar</b><small>Glas, gif, gevaarlijke situatie</small></span><em>›</em></button><button type="button" class="report-type type-animal" data-cat="animal" data-type="spotted"><i>🐾</i><span><b>Dier</b><small>Gezien, vermist of gevonden</small></span><em>›</em></button><button type="button" class="report-type type-handy" data-cat="handy" data-type="road"><i>💡</i><span><b>Handig</b><small>Afsluiting, drukte of tip</small></span><em>›</em></button><button type="button" class="report-type type-fun" data-cat="fun" data-type="fun"><i>💚</i><span><b>Leuk</b><small>Fijne plek of activiteit</small></span><em>›</em></button></div></div><div id="reportStep2" hidden><span class="section-kicker">NIEUWE MELDING</span><h2 id="reportChosen">Melding</h2><div id="reportSubs" class="chipset"></div><label>Korte omschrijving</label><textarea id="reportText" maxlength="220" rows="3" placeholder="Wat moeten mensen weten?"></textarea><label>Foto <span class="optional">optioneel</span></label><input id="reportPhoto" type="file" accept="image/jpeg,image/png,image/webp"><label class="check-row"><input id="useGps" type="checkbox" checked><span>Gebruik mijn huidige locatie</span></label><button id="reportSubmit" class="primary wide">Melding plaatsen</button></div></form></dialog>
+
+<dialog id="detailDialog"><div class="sheet"><div class="handle"></div><button data-close class="close">×</button><span class="section-kicker">MELDING</span><h2 id="detailTitle">Melding</h2><p id="detailMeta" class="muted"></p><div id="detailText" class="detail-copy"></div><button id="detailDelete" class="danger wide" hidden>Verwijderen</button></div></dialog>
+
+<dialog id="areaDialog"><form id="areaForm" class="sheet"><div class="handle"></div><button type="button" data-close class="close">×</button><span class="section-kicker">JOUW OMGEVING</span><h2>Mijn buurt</h2><p class="muted">Kies een plaats, wijk of postcode. Pushmeldingen gebruiken daarnaast je ingestelde straal, dus een relevante melding net over de wijkgrens kan gewoon meekomen.</p><label>Plaats, wijk of postcode</label><input id="areaSearch" placeholder="Bijv. Corlaer, Nijkerk"><button class="primary wide" style="margin-top:12px">Gebruik dit gebied</button></form></dialog>
+
+<dialog id="giveDialog"><form id="giveForm" class="sheet"><div class="handle"></div><button type="button" data-close class="close">×</button><span class="section-kicker">WEGGEEFHOEK</span><h2>Iets weggeven of ruilen</h2><label>Titel</label><input name="title" required minlength="3" maxlength="90" placeholder="Bijv. hondenmand"><label>Omschrijving</label><textarea name="description" required minlength="5" maxlength="1000" placeholder="Vertel kort wat je aanbiedt"></textarea><div class="grid2"><div><label>Voor</label><select name="category"><option value="hond">Hond</option><option value="kat">Kat</option><option value="beide">Beide</option></select></div><div><label>Soort</label><select name="kind"><option value="gratis">Gratis</option><option value="ruilen">Ruilen</option></select></div></div><label>Plaats/wijk</label><input name="town" required minlength="2" maxlength="80"><label>Contact e-mail</label><input name="email" type="email" required maxlength="254" autocomplete="email"><div class="form-note"><span>🔒</span><small>Niet zichtbaar in de openbare advertentielijst.</small></div><label>Foto <span class="optional">optioneel</span></label><input name="photo" type="file" accept="image/jpeg,image/png,image/webp"><button id="giveSubmit" class="primary wide" style="margin-top:14px">Item plaatsen</button></form></dialog>
+
+<dialog id="onboarding"><form id="onboardForm" class="onboard"><div class="onboard-mark">Whatsup <b>D🐾g</b></div><div class="onboard-visual"><span>🐕</span><span class="bubble b1">🐾</span><span class="bubble b2">📍</span><span class="bubble b3">💚</span></div><h1>Je buurt. Je wandeling. Samen opletten.</h1><p class="muted">Geen account en geen wachtwoord. Kies alleen je standaardgebied en waarvoor je Whatsup Dog gebruikt.</p><label>Ik gebruik Whatsup Dog voor</label><div class="species-choice"><label><input type="radio" name="onSpecies" value="dog" checked><span>🐶</span><b>Hond</b></label><label><input type="radio" name="onSpecies" value="cat"><span>🐱</span><b>Kat</b></label><label><input type="radio" name="onSpecies" value="both"><span>🐾</span><b>Beide</b></label></div><label>Mijn standaardplaats of wijk</label><input id="onboardPlace" required placeholder="Bijv. Corlaer, Nijkerk"><button id="onboardLocate" type="button" class="secondary wide" style="margin-top:10px">📍 Gebruik mijn locatie</button><button class="primary wide" style="margin-top:10px">Start Whatsup Dog</button><p class="security-note"><span>🛡️</span> Op de achtergrond gebruiken we alleen een technische toestelsessie om jouw eigen items te herkennen.</p></form></dialog>
+
 <div id="toast" class="toast"></div>
-<script src="./vendor/leaflet/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script><script src="backend-config.js?v=4"></script><script src="app-v3.js?v=1"></script>
+<script src="./vendor/leaflet/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script><script src="backend-config.js?v=4"></script><script src="app-v3.js?v=2"></script>
 </body></html>
