@@ -119,3 +119,6 @@ assert.match(html,/IN JOUW BUURT/,'Giveaway listing section heading missing');
 assert.match(css,/--radius-ui:20px/,'Unified corner radius tokens missing');
 assert.match(css,/dialog\[open\]/,'Responsive dialog layout missing');
 console.log('PASS: accountless V3.1 design, five-tab navigation, PawWheel, nearby Web Push, giveaway privacy and PWA security');
+
+assert.match(css,/optical centering for giveaway e-mail icon/,'Email icon centering override missing');
+assert.match(css,/transform:translate\(-50%,-50%\)/,'Email icon is not optically centered');
