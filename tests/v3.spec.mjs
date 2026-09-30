@@ -16,11 +16,12 @@ async function stubBackend(page){
     });
     const client={
       auth:{getSession:async()=>({data:{session:{user:{id:'device-user',is_anonymous:true}}}}),signInAnonymously:async()=>({data:{user:{id:'device-user',is_anonymous:true}},error:null})},
-      from:()=>chain([]),
+      from:(table)=>chain(table==='reports'?(window.__wdReports||[]):[]),
       rpc:async()=>({data:null,error:null}),
       storage:{from:()=>({createSignedUrl:async()=>({data:null,error:null}),upload:async()=>({data:null,error:null})})},
       functions:{invoke:async()=>({data:{ok:true,sent:0},error:null})}
     };
+    window.__wdReports=JSON.parse(localStorage.getItem('__wd_test_reports')||'[]');
     window.__wdTestClient=client;
   });
   await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>window.__wdTestClient};'}));
@@ -152,7 +153,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
-  await expect(page.locator('#appVersion')).toContainText('4.1');
+  await expect(page.locator('#appVersion')).toContainText('4.2');
   await expect(page.locator('#versionDate')).toContainText('30-09-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
@@ -224,9 +225,37 @@ test('all report categories expose distinct subtype icons',async({page})=>{
 
 test('active own reports distinguish status from actions',async({page})=>{
   const script=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(script).toContain('v=11');
+  expect(script).toContain('v=12');
   const response=await page.request.get('/app-v3.js?v=11');
   const source=await response.text();
   expect(source).toContain('Markeer als opgelost');
   expect(source).toContain('Verwijder melding');
+});
+
+test('active polluted-water report is visible as a map marker',async({page})=>{
+  const now=new Date();
+  const expires=new Date(now.getTime()+7*24*60*60*1000);
+  await page.evaluate(({now,expires})=>{
+    localStorage.setItem('__wd_test_reports',JSON.stringify([{
+      id:'test-water',
+      user_id:'device-user',
+      author_name:'Test',
+      author_avatar:'🐾',
+      type:'danger',
+      subtype:'Vervuild water',
+      text:'Blauwalgen in de sloten',
+      lat:52.2136079,
+      lng:5.4506171,
+      photo_path:null,
+      status:'active',
+      created_at:now,
+      species:'dog',
+      expires_at:expires
+    }]));
+  },{now:now.toISOString(),expires:expires.toISOString()});
+  await page.reload();
+  await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
+  await expect(page.locator('.wd-report-marker-icon .marker')).toContainText('💧');
+  const paneZ=await page.locator('.leaflet-reportMarkersPane-pane').evaluate(el=>getComputedStyle(el).zIndex);
+  expect(Number(paneZ)).toBeGreaterThanOrEqual(700);
 });
