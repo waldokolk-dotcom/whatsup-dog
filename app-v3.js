@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings";
-const APP_VERSION="3.8", APP_VERSION_DATE="30-09-2026";
+const APP_VERSION="3.9", APP_VERSION_DATE="30-09-2026";
 let client,user,map,markers,offleashLayer,reportState={category:null,type:null,subtype:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -288,15 +288,31 @@ async function getReadyRegistration(){
  ]);
  return ready;
 }
+function sameApplicationServerKey(sub){
+ try{
+   const current=sub?.options?.applicationServerKey;
+   if(!current)return false;
+   const expected=urlB64(VAPID_PUBLIC);
+   const actual=new Uint8Array(current);
+   if(actual.length!==expected.length)return false;
+   return actual.every((v,i)=>v===expected[i]);
+ }catch{return false}
+}
 async function ensurePushSubscription(){
  if(!("Notification" in window))throw new Error("notifications-unsupported");
  if(!("PushManager" in window))throw new Error("push-unsupported");
+ if(!window.isSecureContext)throw new Error("secure-context-required");
  if(isIOS()&&!isStandalone())throw new Error("ios-install-required");
  if(Notification.permission==="denied")throw new Error("permission-denied");
  const permission=Notification.permission==="granted"?"granted":await Notification.requestPermission();
  if(permission!=="granted")throw new Error(permission==="denied"?"permission-denied":"permission-dismissed");
  const reg=await getReadyRegistration();
  let sub=await reg.pushManager.getSubscription();
+ if(sub&&!sameApplicationServerKey(sub)){
+   await client?.rpc("unregister_push_subscription",{p_endpoint:sub.endpoint}).catch(()=>{});
+   await sub.unsubscribe().catch(()=>{});
+   sub=null;
+ }
  if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64(VAPID_PUBLIC)});
  await saveSubscription(sub);
  return sub;
@@ -308,7 +324,10 @@ function pushErrorMessage(err){
  if(code.includes("permission-dismissed"))return "Je hebt de toestemmingsvraag gesloten. Tik opnieuw op de schakelaar om het nogmaals te proberen.";
  if(code.includes("notifications-unsupported")||code.includes("push-unsupported"))return "Deze browser ondersteunt geen web-push. Gebruik een recente versie van Chrome, Edge, Safari of de geïnstalleerde app.";
  if(code.includes("service-worker"))return "De app-service kon niet starten. Sluit Whatsup Dog volledig, open opnieuw en probeer nogmaals.";
- return "Push kon niet worden geactiveerd. Probeer de app opnieuw te openen; als het blijft gebeuren, controleer de meldingsrechten van Whatsup Dog.";
+ if(code.includes("secure-context-required"))return "Push werkt alleen via de beveiligde https-versie van Whatsup Dog.";
+ if(code.includes("NotAllowedError"))return "De browser of je laptop blokkeert meldingen. Sta meldingen toe voor Whatsup Dog en controleer ook de meldingsinstellingen van Windows/macOS.";
+ if(code.includes("AbortError")||code.includes("InvalidStateError"))return "De oude browserregistratie kon niet worden hersteld. Zet push één keer uit en weer aan; Whatsup Dog maakt dan een nieuwe inschrijving.";
+ return "Push kon niet worden geactiveerd. Controleer de meldingsrechten van Whatsup Dog in je browser én in Windows/macOS en probeer opnieuw.";
 }
 async function togglePush(e){
  const toggle=e.target;
@@ -370,14 +389,20 @@ async function savePushPrefs(){
 }
 async function testPushNotification(){
  try{
-   if(Notification.permission!=="granted")throw new Error("permission-denied");
+   setPushStatus("Laptop/browser wordt gecontroleerd…");
+   await ensurePushSubscription();
    const reg=await getReadyRegistration();
    await reg.showNotification("Whatsup Dog",{
-     body:"Test geslaagd — pushmeldingen kunnen op dit apparaat worden getoond.",
-     icon:"./icon-192.png",badge:"./icon-192.png",tag:"whatsup-dog-test"
+     body:"Test geslaagd — pushmeldingen werken op dit apparaat.",
+     icon:"./icon-192.png",badge:"./icon-192.png",tag:"whatsup-dog-test",
+     renotify:true
    });
+   const s=settings();s.push=true;write(SKEY,s);
+   setPushStatus("Pushmeldingen staan aan","on");
    toast("Testmelding verstuurd");
  }catch(err){
+   console.warn("Push test failed",err);
+   setPushStatus("Pushcontrole mislukt","error");
    showPushHelp(pushErrorMessage(err));
  }
 }
@@ -391,9 +416,20 @@ function syncPushUi(){
  if(area)area.textContent=s.areaLabel||"Mijn gebied";
  if(myArea)myArea.textContent=s.areaLabel||"Mijn gebied";
  if(toggle)toggle.checked=!!s.push;
- if(s.push)setPushStatus("Pushmeldingen staan aan","on");
- else if("Notification" in window&&Notification.permission==="denied"){setPushStatus("Geblokkeerd door browser","error");showPushHelp(pushErrorMessage(new Error("permission-denied")))}
- else setPushStatus("Niet ingeschakeld");
+ if("Notification" in window&&Notification.permission==="denied"){
+   if(toggle)toggle.checked=false;
+   setPushStatus("Geblokkeerd door browser","error");
+   showPushHelp(pushErrorMessage(new Error("permission-denied")));
+ }else if(s.push){
+   setPushStatus("Pushmeldingen staan aan","on");
+   setTimeout(()=>ensurePushSubscription().catch(err=>{
+     console.warn("Push subscription repair failed",err);
+     if(toggle)toggle.checked=false;
+     const next=settings();next.push=false;write(SKEY,next);
+     setPushStatus("Push opnieuw inschakelen","error");
+     showPushHelp(pushErrorMessage(err));
+   }),0);
+ }else setPushStatus("Niet ingeschakeld");
  if(radius)radius.value=String(s.radius||2000);
  if(radiusVal)radiusVal.textContent=((s.radius||2000)/1000)+" km";
  document.querySelectorAll(".push-cat").forEach(x=>x.checked=(s.categories||[]).includes(x.value));
