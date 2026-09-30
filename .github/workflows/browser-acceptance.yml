@@ -1,21 +1,11 @@
-name: Browser account and giveaway acceptance
+name: Browser accountless V3 acceptance
 on:
   pull_request:
     paths:
-      - 'account-*.js'
-      - 'giveaway.*'
+      - 'app-v3.*'
       - 'index.html'
-      - 'tests/account.spec.mjs'
-      - 'tests/account-feedback.spec.mjs'
-      - 'directory-ui.js'
-      - 'profile-ui.js'
-      - 'account-login.css'
-      - 'tests/giveaway.spec.mjs'
-      - 'tests/legacy-cleanup.spec.mjs'
-      - 'tests/login-recovery.spec.mjs'
-      - 'community-backend.js'
-      - 'legacy-report-cleanup.js'
-      - 'v2-layout.css'
+      - 'sw.js'
+      - 'tests/v3.spec.mjs'
       - '.github/workflows/browser-acceptance.yml'
   workflow_dispatch:
 permissions:
@@ -23,7 +13,7 @@ permissions:
 jobs:
   browser-acceptance:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,18 +21,16 @@ jobs:
           node-version: '22'
       - run: npm ci --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
-      - name: Build read-only preview
-        run: node scripts/build-preview.mjs
-      - name: Start local browser server and verify account/giveaway in three viewports
+      - name: Run accountless app acceptance in three viewports
         run: |
           python3 -m http.server 8765 >/tmp/whatsup-browser.log 2>&1 &
           SERVER_PID=$!
           trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
           for i in {1..30}; do if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi; sleep 0.5; done
-          npx playwright test tests/account.spec.mjs tests/account-feedback.spec.mjs tests/giveaway.spec.mjs tests/legacy-cleanup.spec.mjs --reporter=line --global-timeout=240000
+          npx playwright test tests/v3.spec.mjs --reporter=line --global-timeout=180000
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: account-giveaway-browser-report
+          name: v3-browser-report
           path: playwright-report
           if-no-files-found: ignore
