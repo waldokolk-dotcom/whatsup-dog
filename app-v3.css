@@ -625,3 +625,21 @@ dialog[open]{
     flex:1 1 auto;
   }
 }
+
+
+/* V4.2: report markers always visible above area overlays */
+.wd-report-marker-icon{
+  background:transparent !important;
+  border:0 !important;
+  overflow:visible !important;
+}
+.wd-report-marker-icon .marker{
+  width:42px;
+  height:42px;
+  position:relative;
+  z-index:2;
+  box-shadow:0 7px 16px rgba(0,0,0,.24);
+}
+.wd-report-marker-icon .marker span{
+  font-size:18px;
+}
