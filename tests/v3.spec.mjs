@@ -154,7 +154,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
-  await expect(page.locator('#appVersion')).toContainText('4.2');
+  await expect(page.locator('#appVersion')).toContainText('4.3');
   await expect(page.locator('#versionDate')).toContainText('30-09-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
@@ -193,7 +193,7 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=12');
+  expect(app).toContain('v=13');
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
@@ -257,4 +257,14 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
   await page.reload();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
   await expect(page.locator('.wd-report-marker-icon .marker')).toContainText('💧');
+});
+
+test('resolve and delete remove markers from map immediately',async({page})=>{
+  const response=await page.request.get('/app-v3.js?v=13');
+  const source=await response.text();
+  expect(source).toContain('function removeReportMarker');
+  expect(source).toContain('function deleteOwnReport');
+  expect(source).toContain('function resolveOwnReport');
+  expect(source).toContain('delete_own_report');
+  expect(source).toContain('reportId:r.id');
 });
