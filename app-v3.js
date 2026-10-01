@@ -63,11 +63,6 @@ function bind(){
  $("#onboardForm").addEventListener("submit",finishOnboarding);
  $("#onboardLocate").addEventListener("click",()=>navigator.geolocation?.getCurrentPosition(async p=>{const s=settings();s.lat=p.coords.latitude;s.lng=p.coords.longitude;s.areaLabel="Mijn locatie";write(SKEY,s);$("#onboardPlace").value="Mijn locatie";toast("Locatie gekozen")},()=>toast("Locatie niet gedeeld")));
  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
- document.addEventListener("visibilitychange",()=>{
-   if(document.visibilityState==="visible"&&$("#view-map")?.classList.contains("active")){
-     refreshReports().catch(err=>console.warn("Meldingen hervatten",err));
-   }
- });
 }
 function showView(v){
  $(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
