@@ -4,9 +4,9 @@
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
-const PKEY="wd_v3_profile", SKEY="wd_v3_settings";
-const APP_VERSION="4.5", APP_VERSION_DATE="01-10-2026";
-let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
+const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view";
+const APP_VERSION="4.6", APP_VERSION_DATE="01-10-2026";
+let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
 const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2400)};
@@ -76,14 +76,16 @@ function showView(v){
  if(v==="my")refreshMine();
 }
 function initMap(){
- const s=settings();
- map=L.map("map",{zoomControl:false,attributionControl:true}).setView([s.lat,s.lng],14);
+ const s=settings(),saved=read(MAPVIEWKEY,null);
+ const start=saved&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng))?saved:{lat:s.lat,lng:s.lng,zoom:14};
+ map=L.map("map",{zoomControl:false,attributionControl:true}).setView([Number(start.lat),Number(start.lng)],Number(start.zoom)||14);
  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
  const reportPane=map.createPane("reportMarkersPane");
  reportPane.style.zIndex="720";
  reportPane.style.pointerEvents="auto";
  offleashLayer=L.layerGroup();
  markers=L.layerGroup().addTo(map);
+ map.on("moveend",()=>{const center=map.getCenter();write(MAPVIEWKEY,{lat:center.lat,lng:center.lng,zoom:map.getZoom()})});
  $("#areaPill").textContent=s.areaLabel+" ▾";
  const enabled=localStorage.getItem("wd_v3_offleash")!=="0";
  const toggle=$("#offleashToggle");if(toggle)toggle.checked=enabled;
@@ -130,6 +132,18 @@ async function refreshReports(){
  markers.clearLayers();
  for(const r of data||[]){if(!Number.isFinite(Number(r.lat))||!Number.isFinite(Number(r.lng)))continue;L.marker([Number(r.lat),Number(r.lng)],{icon:markerIcon(r),pane:"reportMarkersPane",zIndexOffset:1000,reportId:r.id}).addTo(markers).on("click",()=>openReportDetail(r))}
  renderAlerts(data||[]);
+ focusLatestOwnActiveReport(data||[]);
+}
+function focusLatestOwnActiveReport(rows){
+ if(initialReportFocusDone||!map||!user)return;
+ initialReportFocusDone=true;
+ const own=rows.filter(r=>r.user_id===user.id&&Number.isFinite(Number(r.lat))&&Number.isFinite(Number(r.lng))).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))[0];
+ if(!own)return;
+ const point=L.latLng(Number(own.lat),Number(own.lng));
+ if(!map.getBounds().pad(-0.08).contains(point)){
+   map.setView(point,16,{animate:false});
+   setTimeout(()=>map.invalidateSize(),30);
+ }
 }
 function iconForReport(r){
  const sub=String(r.subtype||"").toLowerCase(),t=r.type;
