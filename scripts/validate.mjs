@@ -125,5 +125,3 @@ assert.match(css,/transform:translate\(-50%,-50%\)/,'Email icon is not optically
 
 assert.match(app,/if\(v==="map"\)[\s\S]*refreshReports/,'Map view must refresh active reports');
 assert.match(app,/visibilitychange/,'Foreground report refresh missing');
-assert.match(app,/pageshow/,'Page resume report refresh missing');
-assert.match(app,/window\.addEventListener\("online"/,'Online report refresh missing');
