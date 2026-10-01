@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings";
-const APP_VERSION="4.4", APP_VERSION_DATE="01-10-2026";
+const APP_VERSION="4.4.1", APP_VERSION_DATE="01-10-2026";
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -66,7 +66,7 @@ function bind(){
  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
 }
 function showView(v){
- $(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
+ $$(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
  if(v==="map"){
    setTimeout(()=>map?.invalidateSize(),50);
    refreshReports().catch(err=>console.warn("Kaartmeldingen verversen",err));
