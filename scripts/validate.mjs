@@ -122,3 +122,5 @@ console.log('PASS: accountless V3.1 design, five-tab navigation, PawWheel, nearb
 
 assert.match(css,/optical centering for giveaway e-mail icon/,'Email icon centering override missing');
 assert.match(css,/transform:translate\(-50%,-50%\)/,'Email icon is not optically centered');
+
+assert.match(app,/pageshow/,'Map resync on PWA resume missing');
