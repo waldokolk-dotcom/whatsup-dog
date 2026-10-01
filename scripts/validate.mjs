@@ -27,7 +27,7 @@ assert.match(html,/id="radius"/,'Push radius control missing');
 assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
 assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
-assert.match(html,/app-v3\.js\?v=13/,'V3 app controller not wired');
+assert.match(html,/app-v3\.js\?v=14/,'V3 app controller not wired');
 assert.match(html,/app-v3\.css\?v=13/,'V3 visual system not wired');
 
 assert.match(app,/signInAnonymously/,'Invisible device auth missing');
@@ -83,7 +83,7 @@ assert.match(css,/\.paw-fab/,'One-hand PawWheel styling missing');
 assert.match(css,/\.offleash-control/,'Losloopgebieden control styling missing');
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
-assert.match(sw,/app-v3\.js\?v=13/,'Offline cache missing V3 app');
+assert.match(sw,/app-v3\.js\?v=14/,'Offline cache missing V3 app');
 assert.match(sw,/app-v3\.css\?v=13/,'Offline cache missing V3 CSS');
 assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');
@@ -122,3 +122,5 @@ console.log('PASS: accountless V3.1 design, five-tab navigation, PawWheel, nearb
 
 assert.match(css,/optical centering for giveaway e-mail icon/,'Email icon centering override missing');
 assert.match(css,/transform:translate\(-50%,-50%\)/,'Email icon is not optically centered');
+
+assert.match(app,/if\(v==="map"\)[\s\S]*refreshReports/,'Map view must refresh active reports');
