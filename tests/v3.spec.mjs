@@ -155,7 +155,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
-  await expect(page.locator('#appVersion')).toContainText('4.8');
+  await expect(page.locator('#appVersion')).toContainText('4.9');
   await expect(page.locator('#versionDate')).toContainText('01-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
@@ -194,7 +194,7 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=18');
+  expect(app).toContain('v=19');
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
@@ -227,8 +227,8 @@ test('all report categories expose distinct subtype icons',async({page})=>{
 
 test('active own reports distinguish status from actions',async({page})=>{
   const script=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(script).toContain('v=18');
-  const response=await page.request.get('/app-v3.js?v=18');
+  expect(script).toContain('v=19');
+  const response=await page.request.get('/app-v3.js?v=19');
   const source=await response.text();
   expect(source).toContain('Markeer als opgelost');
   expect(source).toContain('Verwijder melding');
@@ -261,7 +261,7 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
 });
 
 test('resolve and delete remove markers from map immediately',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=18');
+  const response=await page.request.get('/app-v3.js?v=19');
   const source=await response.text();
   expect(source).toContain('function removeReportMarker');
   expect(source).toContain('function deleteOwnReport');
@@ -279,7 +279,7 @@ test('email icon is centered inside its square',async({page})=>{
 });
 
 test('map view forces report resync',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=18');
+  const response=await page.request.get('/app-v3.js?v=19');
   const source=await response.text();
   expect(source).toContain('if(v==="map")');
   expect(source).toContain('refreshReports().catch');
@@ -416,4 +416,37 @@ test('report markers reveal icon when zoomed in',async({page})=>{
   expect(cssWidth).toBeGreaterThanOrEqual(32);
   expect(cssWidth).toBeLessThanOrEqual(36);
   await expect(marker.locator('.marker')).toContainText('💧');
+});
+
+test('active report marker stays visible across zoom levels',async({page})=>{
+  const now=new Date();
+  const expires=new Date(now.getTime()+7*24*60*60*1000);
+  await page.evaluate(({now,expires})=>{
+    localStorage.setItem('__wd_test_reports',JSON.stringify([{
+      id:'stable-water',
+      user_id:'device-user',
+      author_name:'Test',
+      author_avatar:'🐾',
+      type:'danger',
+      subtype:'Vervuild water',
+      text:'Blauwalgen in de sloot',
+      lat:52.21424,
+      lng:5.45008,
+      photo_path:null,
+      status:'active',
+      created_at:now,
+      species:'dog',
+      expires_at:expires
+    }]));
+  },{now:now.toISOString(),expires:expires.toISOString()});
+  await page.reload();
+  const marker=page.locator('.wd-report-marker-icon');
+  await expect(marker).toHaveCount(1);
+  await expect(marker.locator('.marker span')).toContainText('💧');
+  const before=await marker.boundingBox();
+  expect(before.width).toBeGreaterThanOrEqual(34);
+  await page.evaluate(()=>window.__wdMap?.setZoom?.(12));
+  await page.waitForTimeout(150);
+  await expect(marker).toHaveCount(1);
+  await expect(marker.locator('.marker span')).toContainText('💧');
 });
