@@ -1,3 +1,4 @@
+// V4.4 map resync regression
 // V4.2 marker visibility regression
 // V4.1 report regression coverage
 import {test,expect} from '@playwright/test';
@@ -154,8 +155,8 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
-  await expect(page.locator('#appVersion')).toContainText('4.3');
-  await expect(page.locator('#versionDate')).toContainText('30-09-2026');
+  await expect(page.locator('#appVersion')).toContainText('4.4');
+  await expect(page.locator('#versionDate')).toContainText('01-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
 
@@ -193,7 +194,7 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=13');
+  expect(app).toContain('v=14');
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
@@ -226,8 +227,8 @@ test('all report categories expose distinct subtype icons',async({page})=>{
 
 test('active own reports distinguish status from actions',async({page})=>{
   const script=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(script).toContain('v=13');
-  const response=await page.request.get('/app-v3.js?v=13');
+  expect(script).toContain('v=14');
+  const response=await page.request.get('/app-v3.js?v=14');
   const source=await response.text();
   expect(source).toContain('Markeer als opgelost');
   expect(source).toContain('Verwijder melding');
@@ -260,7 +261,7 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
 });
 
 test('resolve and delete remove markers from map immediately',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=13');
+  const response=await page.request.get('/app-v3.js?v=14');
   const source=await response.text();
   expect(source).toContain('function removeReportMarker');
   expect(source).toContain('function deleteOwnReport');
@@ -275,4 +276,12 @@ test('email icon is centered inside its square',async({page})=>{
   const inner=await page.locator('.contact-icon-svg').boundingBox();
   expect(Math.abs((outer.x+outer.width/2)-(inner.x+inner.width/2))).toBeLessThanOrEqual(1.5);
   expect(Math.abs((outer.y+outer.height/2)-(inner.y+inner.height/2))).toBeLessThanOrEqual(1.5);
+});
+
+test('map view forces report resync',async({page})=>{
+  const response=await page.request.get('/app-v3.js?v=14');
+  const source=await response.text();
+  expect(source).toContain('if(v==="map")');
+  expect(source).toContain('refreshReports().catch');
+  expect(source).toContain('pageshow');
 });
