@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view";
-const APP_VERSION="4.8", APP_VERSION_DATE="01-10-2026";
+const APP_VERSION="4.9", APP_VERSION_DATE="01-10-2026";
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -86,7 +86,6 @@ function initMap(){
  offleashLayer=L.layerGroup();
  markers=L.layerGroup().addTo(map);
  map.on("moveend",()=>{const center=map.getCenter();write(MAPVIEWKEY,{lat:center.lat,lng:center.lng,zoom:map.getZoom()})});
- map.on("zoomend",refreshReportMarkerScale);
  $("#areaPill").textContent=s.areaLabel+" ▾";
  const enabled=localStorage.getItem("wd_v3_offleash")!=="0";
  const toggle=$("#offleashToggle");if(toggle)toggle.checked=enabled;
@@ -124,25 +123,15 @@ function toggleOffleashLayer(e){
  if(on){if(!map.hasLayer(offleashLayer))offleashLayer.addTo(map);toast("Losloopgebieden zichtbaar")}
  else{if(map.hasLayer(offleashLayer))map.removeLayer(offleashLayer);toast("Losloopgebieden verborgen")}
 }
-function markerPresentation(zoom){
- const z=Number(zoom)||14;
- if(z<=12)return{size:16,icon:0,compact:true};
- if(z===13)return{size:20,icon:0,compact:true};
- if(z===14)return{size:26,icon:12,compact:false};
- if(z===15)return{size:30,icon:14,compact:false};
- if(z===16)return{size:34,icon:15,compact:false};
- return{size:38,icon:17,compact:false};
-}
-function markerIcon(r,zoom=map?.getZoom()||14){
+function markerIcon(r){
  const c=["danger","vegetation","dirty"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"||r.type==="walk"?"#28a17a":r.type==="road"?"#4f7fd7":"#5178db";
- const e=iconForReport(r),p=markerPresentation(zoom),cls=p.compact?"wd-report-marker-icon is-compact":"wd-report-marker-icon";
- const body=p.compact?"":'<span style="font-size:'+p.icon+'px">'+e+'</span>';
- return L.divIcon({className:cls,html:'<div class="marker" style="--marker-size:'+p.size+'px;background:'+c+'">'+body+'</div>',iconSize:[p.size,p.size],iconAnchor:[Math.round(p.size/2),Math.max(1,p.size-3)]})
-}
-function refreshReportMarkerScale(){
- if(!markers||!map)return;
- const zoom=map.getZoom();
- markers.eachLayer(layer=>{if(layer?.setIcon&&layer?.options?.reportData)layer.setIcon(markerIcon(layer.options.reportData,zoom))});
+ const e=iconForReport(r);
+ return L.divIcon({
+   className:"wd-report-marker-icon",
+   html:'<div class="marker" style="background:'+c+'"><span>'+e+'</span></div>',
+   iconSize:[38,38],
+   iconAnchor:[19,34]
+ })
 }
 async function refreshReports(){
  if(!client||!user)return;
