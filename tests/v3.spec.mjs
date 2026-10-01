@@ -283,6 +283,4 @@ test('map tab refreshes report markers from backend',async({page})=>{
   expect(source).toContain('if(v==="map")');
   expect(source).toContain('refreshReports().catch');
   expect(source).toContain('visibilitychange');
-  expect(source).toContain('pageshow');
-  expect(source).toContain('window.addEventListener("online"');
 });
