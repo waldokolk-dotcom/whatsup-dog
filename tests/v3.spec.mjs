@@ -412,8 +412,8 @@ test('report markers reveal icon when zoomed in',async({page})=>{
   await page.reload();
   const marker=page.locator('.wd-report-marker-icon');
   await expect(marker).not.toHaveClass(/is-compact/);
-  const box=await marker.locator('.marker').boundingBox();
-  expect(box.width).toBeGreaterThanOrEqual(32);
-  expect(box.width).toBeLessThanOrEqual(36);
+  const cssWidth=await marker.locator('.marker').evaluate(el=>parseFloat(getComputedStyle(el).width));
+  expect(cssWidth).toBeGreaterThanOrEqual(32);
+  expect(cssWidth).toBeLessThanOrEqual(36);
   await expect(marker.locator('.marker')).toContainText('💧');
 });
