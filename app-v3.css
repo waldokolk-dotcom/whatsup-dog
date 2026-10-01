@@ -659,3 +659,28 @@ dialog[open]{
   transform:translate(-50%,-50%);
   margin:0 !important;
 }
+
+
+/* V4.8 adaptive report markers */
+.wd-report-marker-icon .marker{
+  width:var(--marker-size,26px) !important;
+  height:var(--marker-size,26px) !important;
+  border-width:2px;
+  transition:width .14s ease,height .14s ease,box-shadow .14s ease,opacity .14s ease;
+}
+.wd-report-marker-icon .marker span{
+  line-height:1;
+}
+.wd-report-marker-icon.is-compact .marker{
+  border-radius:50%;
+  transform:none;
+  box-shadow:0 3px 8px rgba(0,0,0,.18);
+}
+.wd-report-marker-icon.is-compact .marker::after{
+  content:"";
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:rgba(255,255,255,.9);
+  display:block;
+}

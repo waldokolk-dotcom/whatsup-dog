@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view";
-const APP_VERSION="4.7", APP_VERSION_DATE="01-10-2026";
+const APP_VERSION="4.8", APP_VERSION_DATE="01-10-2026";
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -86,6 +86,7 @@ function initMap(){
  offleashLayer=L.layerGroup();
  markers=L.layerGroup().addTo(map);
  map.on("moveend",()=>{const center=map.getCenter();write(MAPVIEWKEY,{lat:center.lat,lng:center.lng,zoom:map.getZoom()})});
+ map.on("zoomend",refreshReportMarkerScale);
  $("#areaPill").textContent=s.areaLabel+" ▾";
  const enabled=localStorage.getItem("wd_v3_offleash")!=="0";
  const toggle=$("#offleashToggle");if(toggle)toggle.checked=enabled;
@@ -123,14 +124,33 @@ function toggleOffleashLayer(e){
  if(on){if(!map.hasLayer(offleashLayer))offleashLayer.addTo(map);toast("Losloopgebieden zichtbaar")}
  else{if(map.hasLayer(offleashLayer))map.removeLayer(offleashLayer);toast("Losloopgebieden verborgen")}
 }
-function markerIcon(r){const c=["danger","vegetation","dirty"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"||r.type==="walk"?"#28a17a":r.type==="road"?"#4f7fd7":"#5178db";const e=iconForReport(r);return L.divIcon({className:"wd-report-marker-icon",html:'<div class="marker" style="background:'+c+'"><span>'+e+'</span></div>',iconSize:[42,42],iconAnchor:[21,38]})}
+function markerPresentation(zoom){
+ const z=Number(zoom)||14;
+ if(z<=12)return{size:16,icon:0,compact:true};
+ if(z===13)return{size:20,icon:0,compact:true};
+ if(z===14)return{size:26,icon:12,compact:false};
+ if(z===15)return{size:30,icon:14,compact:false};
+ if(z===16)return{size:34,icon:15,compact:false};
+ return{size:38,icon:17,compact:false};
+}
+function markerIcon(r,zoom=map?.getZoom()||14){
+ const c=["danger","vegetation","dirty"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"||r.type==="walk"?"#28a17a":r.type==="road"?"#4f7fd7":"#5178db";
+ const e=iconForReport(r),p=markerPresentation(zoom),cls=p.compact?"wd-report-marker-icon is-compact":"wd-report-marker-icon";
+ const body=p.compact?"":'<span style="font-size:'+p.icon+'px">'+e+'</span>';
+ return L.divIcon({className:cls,html:'<div class="marker" style="--marker-size:'+p.size+'px;background:'+c+'">'+body+'</div>',iconSize:[p.size,p.size],iconAnchor:[Math.round(p.size/2),Math.max(1,p.size-3)]})
+}
+function refreshReportMarkerScale(){
+ if(!markers||!map)return;
+ const zoom=map.getZoom();
+ markers.eachLayer(layer=>{if(layer?.setIcon&&layer?.options?.reportData)layer.setIcon(markerIcon(layer.options.reportData,zoom))});
+}
 async function refreshReports(){
  if(!client||!user)return;
  await client.rpc("archive_expired_reports").catch(()=>{});
  const {data,error}=await client.from("reports").select("id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,photo_path,status,created_at,species,expires_at").eq("status","active").gt("expires_at",new Date().toISOString()).order("created_at",{ascending:false}).limit(200);
  if(error){console.warn(error);return}
  markers.clearLayers();
- for(const r of data||[]){if(!Number.isFinite(Number(r.lat))||!Number.isFinite(Number(r.lng)))continue;L.marker([Number(r.lat),Number(r.lng)],{icon:markerIcon(r),pane:"reportMarkersPane",zIndexOffset:1000,reportId:r.id}).addTo(markers).on("click",()=>openReportDetail(r))}
+ for(const r of data||[]){if(!Number.isFinite(Number(r.lat))||!Number.isFinite(Number(r.lng)))continue;L.marker([Number(r.lat),Number(r.lng)],{icon:markerIcon(r),pane:"reportMarkersPane",zIndexOffset:1000,reportId:r.id,reportData:r,riseOnHover:true}).addTo(markers).on("click",()=>openReportDetail(r))}
  renderAlerts(data||[]);
  focusLatestOwnActiveReport(data||[]);
 }
@@ -305,7 +325,7 @@ async function submitReport(e){
  showView("map");
  map.setView([loc.lat,loc.lng],17);
  const optimistic={...row,status:"active",created_at:new Date().toISOString(),expires_at:new Date(Date.now()+7*24*60*60*1000).toISOString()};
- L.marker([loc.lat,loc.lng],{icon:markerIcon(optimistic),pane:"reportMarkersPane",zIndexOffset:1200,reportId:id}).addTo(markers).on("click",()=>openReportDetail(optimistic));
+ L.marker([loc.lat,loc.lng],{icon:markerIcon(optimistic),pane:"reportMarkersPane",zIndexOffset:1200,reportId:id,reportData:optimistic,riseOnHover:true}).addTo(markers).on("click",()=>openReportDetail(optimistic));
  setTimeout(()=>map?.invalidateSize(),50);
  await Promise.allSettled([refreshReports(),refreshMine()]);
  map.setView([loc.lat,loc.lng],17);
