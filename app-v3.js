@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view";
-const APP_VERSION="4.6", APP_VERSION_DATE="01-10-2026";
+const APP_VERSION="4.7", APP_VERSION_DATE="01-10-2026";
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -135,13 +135,21 @@ async function refreshReports(){
  focusLatestOwnActiveReport(data||[]);
 }
 function focusLatestOwnActiveReport(rows){
- if(initialReportFocusDone||!map||!user)return;
+ if(initialReportFocusDone||!map)return;
  initialReportFocusDone=true;
- const own=rows.filter(r=>r.user_id===user.id&&Number.isFinite(Number(r.lat))&&Number.isFinite(Number(r.lng))).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))[0];
- if(!own)return;
- const point=L.latLng(Number(own.lat),Number(own.lng));
- if(!map.getBounds().pad(-0.08).contains(point)){
-   map.setView(point,16,{animate:false});
+ const valid=(rows||[]).filter(r=>Number.isFinite(Number(r.lat))&&Number.isFinite(Number(r.lng)));
+ if(!valid.length)return;
+ const s=settings();
+ const area=L.latLng(Number(s.lat),Number(s.lng));
+ const maxDistance=Math.max(Number(s.radius)||2000,3000);
+ const nearby=valid.filter(r=>area.distanceTo(L.latLng(Number(r.lat),Number(r.lng)))<=maxDistance);
+ const candidates=nearby.length?nearby:valid;
+ const own=user?candidates.filter(r=>r.user_id===user.id):[];
+ const latest=(own.length?own:candidates).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))[0];
+ const points=candidates.map(r=>L.latLng(Number(r.lat),Number(r.lng)));
+ const anyVisible=points.some(point=>map.getBounds().pad(-0.05).contains(point));
+ if(!anyVisible&&latest){
+   map.setView([Number(latest.lat),Number(latest.lng)],16,{animate:false});
    setTimeout(()=>map.invalidateSize(),30);
  }
 }
