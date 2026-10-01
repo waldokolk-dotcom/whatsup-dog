@@ -155,7 +155,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
-  await expect(page.locator('#appVersion')).toContainText('4.4');
+  await expect(page.locator('#appVersion')).toContainText('4.4.1');
   await expect(page.locator('#versionDate')).toContainText('01-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
@@ -194,7 +194,7 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=14');
+  expect(app).toContain('v=15');
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
@@ -227,8 +227,8 @@ test('all report categories expose distinct subtype icons',async({page})=>{
 
 test('active own reports distinguish status from actions',async({page})=>{
   const script=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(script).toContain('v=14');
-  const response=await page.request.get('/app-v3.js?v=14');
+  expect(script).toContain('v=15');
+  const response=await page.request.get('/app-v3.js?v=15');
   const source=await response.text();
   expect(source).toContain('Markeer als opgelost');
   expect(source).toContain('Verwijder melding');
@@ -261,7 +261,7 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
 });
 
 test('resolve and delete remove markers from map immediately',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=14');
+  const response=await page.request.get('/app-v3.js?v=15');
   const source=await response.text();
   expect(source).toContain('function removeReportMarker');
   expect(source).toContain('function deleteOwnReport');
@@ -279,9 +279,20 @@ test('email icon is centered inside its square',async({page})=>{
 });
 
 test('map view forces report resync',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=14');
+  const response=await page.request.get('/app-v3.js?v=15');
   const source=await response.text();
   expect(source).toContain('if(v==="map")');
   expect(source).toContain('refreshReports().catch');
   expect(source).toContain('pageshow');
+});
+
+test('navigation switches away from map and back while refreshing reports',async({page})=>{
+  await page.locator('[data-view="giveaway"]').click();
+  await expect(page.locator('#view-giveaway')).toHaveClass(/active/);
+  await page.locator('[data-view="map"]').click();
+  await expect(page.locator('#view-map')).toHaveClass(/active/);
+  const response=await page.request.get('/app-v3.js?v=15');
+  const source=await response.text();
+  expect(source).toContain('$$(".view").forEach');
+  expect(source).toContain('$$(".nav button").forEach');
 });
