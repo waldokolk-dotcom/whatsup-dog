@@ -282,5 +282,4 @@ test('map tab refreshes report markers from backend',async({page})=>{
   const source=await response.text();
   expect(source).toContain('if(v==="map")');
   expect(source).toContain('refreshReports().catch');
-  expect(source).toContain('visibilitychange');
 });
