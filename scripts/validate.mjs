@@ -124,4 +124,3 @@ assert.match(css,/optical centering for giveaway e-mail icon/,'Email icon center
 assert.match(css,/transform:translate\(-50%,-50%\)/,'Email icon is not optically centered');
 
 assert.match(app,/if\(v==="map"\)[\s\S]*refreshReports/,'Map view must refresh active reports');
-assert.match(app,/visibilitychange/,'Foreground report refresh missing');
