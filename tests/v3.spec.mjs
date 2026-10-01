@@ -28,7 +28,7 @@ async function stubBackend(page){
   });
   await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>window.__wdTestClient};'}));
 }
-test.beforeEach(async({page})=>{await stubBackend(page);await page.goto('/');await page.waitForLoadState('domcontentloaded')});
+test.beforeEach(async({page})=>{await stubBackend(page);await page.goto('/');await page.waitForLoadState('domcontentloaded');await page.locator('html[data-app-ready="1"]').waitFor();});
 
 test('opens straight on the map without account UI',async({page})=>{
   await expect(page.locator('#view-map')).toHaveClass(/active/);
@@ -156,7 +156,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
   await expect(page.locator('#appVersion')).toContainText('4.4');
-  await expect(page.locator('#versionDate')).toContainText('30-09-2026');
+  await expect(page.locator('#versionDate')).toContainText('01-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
 
