@@ -66,7 +66,7 @@ function bind(){
  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
 }
 function showView(v){
- $(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
+ $$(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
  if(v==="map"){
    setTimeout(()=>map?.invalidateSize(),50);
    refreshReports().catch(err=>console.warn("Kaartmeldingen verversen",err));
