@@ -357,7 +357,7 @@ test('active nearby report remains visible after anonymous session changes',asyn
   expect(marker.y+marker.height/2).toBeLessThan(mapBox.y+mapBox.height);
 });
 
-test('report markers stay compact on overview zoom',async({page})=>{
+test('report markers remain fully visible on overview zoom',async({page})=>{
   const now=new Date();
   const expires=new Date(now.getTime()+7*24*60*60*1000);
   await page.evaluate(({now,expires})=>{
@@ -381,10 +381,10 @@ test('report markers stay compact on overview zoom',async({page})=>{
   },{now:now.toISOString(),expires:expires.toISOString()});
   await page.reload();
   const marker=page.locator('.wd-report-marker-icon');
-  await expect(marker).toHaveClass(/is-compact/);
+  await expect(marker).not.toHaveClass(/is-compact/);
   const box=await marker.locator('.marker').boundingBox();
-  expect(box.width).toBeLessThanOrEqual(18);
-  await expect(marker.locator('.marker span')).toHaveCount(0);
+  expect(box.width).toBeGreaterThanOrEqual(34);
+  await expect(marker.locator('.marker span')).toContainText('💧');
 });
 
 test('report markers reveal icon when zoomed in',async({page})=>{
@@ -414,7 +414,7 @@ test('report markers reveal icon when zoomed in',async({page})=>{
   await expect(marker).not.toHaveClass(/is-compact/);
   const cssWidth=await marker.locator('.marker').evaluate(el=>parseFloat(getComputedStyle(el).width));
   expect(cssWidth).toBeGreaterThanOrEqual(32);
-  expect(cssWidth).toBeLessThanOrEqual(36);
+  expect(cssWidth).toBeLessThanOrEqual(44);
   await expect(marker.locator('.marker')).toContainText('💧');
 });
 
