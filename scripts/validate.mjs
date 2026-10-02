@@ -27,7 +27,7 @@ assert.match(html,/id="radius"/,'Push radius control missing');
 assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
 assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
-assert.match(html,/app-v3\.js\?v=21/,'V3 app controller not wired');
+assert.match(html,/app-v3\.js\?v=22/,'V3 app controller not wired');
 assert.match(html,/app-v3\.css\?v=20/,'V3 visual system not wired');
 
 assert.match(app,/signInAnonymously/,'Invisible device auth missing');
@@ -56,6 +56,7 @@ assert.match(app,/wd_v3_offleash/,'Losloop layer preference persistence missing'
 assert.match(app,/openReportDetail/,'Report detail flow missing');
 assert.match(app,/resolve_own_report/,'Owner resolve flow missing');
 assert.match(app,/archive_expired_reports/,'Automatic report expiry cleanup missing');
+assert.doesNotMatch(app,/client\.rpc\("archive_expired_reports"\)\.catch/,'Report refresh must not call catch on Supabase query builder');
 assert.match(html,/id="detailResolve"/,'Resolve action missing from report detail');
 assert.match(html,/id="reportChooseMap"/,'Report map location chooser missing');
 assert.match(html,/id="reportLocationMap"/,'Report location map missing');
@@ -88,7 +89,7 @@ assert.match(css,/\.paw-fab/,'One-hand PawWheel styling missing');
 assert.match(css,/\.offleash-control/,'Losloopgebieden control styling missing');
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
-assert.match(sw,/app-v3\.js\?v=21/,'Offline cache missing V3 app');
+assert.match(sw,/app-v3\.js\?v=22/,'Offline cache missing V3 app');
 assert.match(sw,/app-v3\.css\?v=20/,'Offline cache missing V3 CSS');
 assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');

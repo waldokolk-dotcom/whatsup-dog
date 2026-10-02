@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports";
-const APP_VERSION="4.11", APP_VERSION_DATE="02-10-2026";
+const APP_VERSION="4.12", APP_VERSION_DATE="02-10-2026";
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -236,7 +236,12 @@ async function fetchActiveReports(){
 }
 async function refreshReports(){
  if(!client||!user)return;
- await client.rpc("archive_expired_reports").catch(()=>{});
+ try{
+   const expiry=await client.rpc("archive_expired_reports");
+   if(expiry?.error)console.warn("Verlopen meldingen archiveren mislukt",expiry.error);
+ }catch(err){
+   console.warn("Verlopen meldingen archiveren mislukt",err);
+ }
  try{
    const rows=await fetchActiveReports();
    cacheActiveReports(rows);
