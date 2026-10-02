@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports";
-const APP_VERSION="4.13", APP_VERSION_DATE="02-10-2026";
+const APP_VERSION="4.14", APP_VERSION_DATE="02-10-2026";
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -66,8 +66,13 @@ function bind(){
  $$(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
  $("#installButton").addEventListener("click",installApp);
  $("#checkUpdateButton")?.addEventListener("click",openUpdateNotes);
- $("#notesCheckUpdate")?.addEventListener("click",async()=>{$("#updateNotesDialog")?.close();await checkForAppUpdate(true)});
- $("#applyUpdateButton")?.addEventListener("click",applyAppUpdate);
+ $("#notesCheckUpdate")?.addEventListener("click",async()=>{
+  const pending=!!(updateWorker||updateRegistration?.waiting);
+  $("#updateNotesDialog")?.close();
+  if(pending)await applyAppUpdate();
+  else await checkForAppUpdate(true);
+ });
+ $("#applyUpdateButton")?.addEventListener("click",openUpdateNotes);
  $("#onboardForm").addEventListener("submit",finishOnboarding);
  $("#onboardLocate").addEventListener("click",()=>navigator.geolocation?.getCurrentPosition(async p=>{const s=settings();s.lat=p.coords.latitude;s.lng=p.coords.longitude;s.areaLabel="Mijn locatie";write(SKEY,s);$("#onboardPlace").value="Mijn locatie";toast("Locatie gekozen")},()=>toast("Locatie niet gedeeld")));
  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
@@ -488,10 +493,34 @@ async function refreshGiveaways(){
      const {data:s}=await client.storage.from("giveaway-photos").createSignedUrl(x.image_path,900);
      if(s?.signedUrl)img='<img class="give-card-media" src="'+s.signedUrl+'" alt="">'
    }
-   a.innerHTML=img+'<div class="give-body"><span class="badge">'+(x.kind==="ruilen"?"Ruilen":"Gratis")+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><p class="muted small location">📍 '+esc(x.town)+'</p><button class="primary wide contact">✉️ Neem contact op</button></div>';
+   a.innerHTML=img+'<div class="give-body"><span class="badge">'+(x.kind==="ruilen"?"Ruilen":"Gratis")+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><p class="muted small location">📍 '+esc(x.town)+'</p><div class="give-actions"><button class="give-like reaction-button love" type="button" aria-label="Leuk"><span class="reaction-love-icon" aria-hidden="true"><svg viewBox="0 0 42 28" focusable="false"><path class="reaction-heart" d="M21 22S14 17.7 14 12.2a4.7 4.7 0 0 1 8.2-3.1L21 10.4l1.2-1.3a4.7 4.7 0 0 1 8.2 3.1C30.4 17.7 21 22 21 22Z"/><g class="reaction-paws"><circle cx="6.5" cy="7.4" r="2.7"/><circle cx="12.2" cy="5.4" r="2.5"/><path d="M6.7 11.1c2.5-2.8 6.4-2.5 8.3.5 1.5 2.4-.6 5.1-3.2 4.6l-3.5-.8c-2.4-.5-3.1-2.8-1.6-4.3Z"/><circle cx="35.5" cy="7.4" r="2.7"/><circle cx="29.8" cy="5.4" r="2.5"/><path d="M35.3 11.1c-2.5-2.8-6.4-2.5-8.3.5-1.5 2.4.6 5.1 3.2 4.6l3.5-.8c2.4-.5 3.1-2.8 1.6-4.3Z"/></g></svg></span><span>Leuk</span><b class="give-like-count"></b></button><button class="primary contact">✉️ Neem contact op</button></div></div>';
    a.querySelector(".contact").onclick=()=>contactGiveaway(x);
+   const like=a.querySelector(".give-like");
+   loadGiveawayReaction(x.id,like).catch(err=>console.warn("Weggeef-like laden mislukt",err));
+   like.onclick=()=>toggleGiveawayReaction(x.id,like);
    list.append(a)
  }}
+async function loadGiveawayReaction(id,button){
+ const count=button?.querySelector(".give-like-count");if(!button||!count)return;
+ const {data,error}=await client.rpc("get_giveaway_reaction_summary",{target:id});
+ if(error)throw error;
+ const row=Array.isArray(data)?(data[0]||{}):(data||{});
+ count.textContent=Number(row.love_count||0)?String(row.love_count):"";
+ button.classList.toggle("selected",!!row.mine);
+}
+async function toggleGiveawayReaction(id,button){
+ if(!button)return;
+ button.disabled=true;
+ try{
+  const {data,error}=await client.rpc("toggle_giveaway_reaction",{target:id});
+  if(error)throw error;
+  const row=Array.isArray(data)?(data[0]||{}):(data||{});
+  const count=button.querySelector(".give-like-count");
+  if(count)count.textContent=Number(row.love_count||0)?String(row.love_count):"";
+  button.classList.toggle("selected",!!row.mine);
+ }catch(err){console.warn(err);toast("Leuk opslaan lukt nu niet")}
+ finally{button.disabled=false}
+}
 async function contactGiveaway(x){if(x.owner_id===user.id)return toast("Dit is jouw eigen item");const {data,error}=await client.rpc("get_giveaway_contact",{target:x.id});if(error||!data)return toast("Contactadres niet beschikbaar");location.href="mailto:"+encodeURIComponent(data)+"?subject="+encodeURIComponent("Reactie via Whatsup Dog – "+x.title)+"&body="+encodeURIComponent("Hallo,\n\nIk zag via Whatsup Dog dat je '"+x.title+"' aanbiedt. Is dit nog beschikbaar?\n\nGroet,")}
 async function submitGiveaway(e){
  e.preventDefault();const f=e.currentTarget,b=$("#giveSubmit");b.disabled=true;let path=null;
@@ -719,6 +748,11 @@ window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredIns
 let updateRegistration=null, updateWorker=null, updateReloading=false;
 
 const VERSION_NOTES={
+ "4.14":[
+  "Het pootjes-en-hartje-icoon is aangepast: de pootjes zijn nu duidelijker en groter dan het hartje.",
+  "Ook spullen in de Weggeefhoek kun je nu leuk vinden.",
+  "Als er een update klaarstaat, zie je eerst wat er veranderd is en werk je daarna pas bij."
+ ],
  "4.13":[
   "Bij leuke meldingen kun je nu met één pootjes-en-hartje aangeven dat je de melding leuk vindt.",
   "Bij praktische meldingen kun je met een vinkje aangeven dat je de situatie ook hebt gezien.",
@@ -726,10 +760,12 @@ const VERSION_NOTES={
  ]
 };
 function openUpdateNotes(){
- const version=$("#notesVersion"),list=$("#updateNotesList");
+ const version=$("#notesVersion"),list=$("#updateNotesList"),action=$("#notesCheckUpdate");
  if(version)version.textContent=APP_VERSION;
  if(list)list.innerHTML=(VERSION_NOTES[APP_VERSION]||["Kleine verbeteringen en onderhoud."]).map(x=>"<li>"+esc(x)+"</li>").join("");
- $("#updateNotesDialog")?.showModal();
+ if(action)action.textContent=(updateWorker||updateRegistration?.waiting)?"Nu bijwerken":"Controleer op update";
+ const dialog=$("#updateNotesDialog");
+ if(dialog&&!dialog.open)dialog.showModal();
 }
 function syncVersionUi(){
  const v=$("#appVersion"),d=$("#versionDate");
