@@ -19,7 +19,13 @@ async function stubBackend(page){
     const client={
       auth:{getSession:async()=>({data:{session:{user:{id:'device-user',is_anonymous:true}}}}),signInAnonymously:async()=>({data:{user:{id:'device-user',is_anonymous:true}},error:null})},
       from:(table)=>chain(table==='reports'?(window.__wdReports||[]):[]),
-      rpc:async()=>({data:null,error:null}),
+      rpc:async(name)=>{
+        if(name==='get_active_reports'){
+          if(window.__wdFailActiveReports)return {data:null,error:{message:'temporary feed failure'}};
+          return {data:window.__wdReports||[],error:null};
+        }
+        return {data:null,error:null};
+      },
       storage:{from:()=>({createSignedUrl:async()=>({data:null,error:null}),upload:async()=>({data:null,error:null})})},
       functions:{invoke:async()=>({data:{ok:true,sent:0},error:null})}
     };
@@ -155,7 +161,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
-  await expect(page.locator('#appVersion')).toContainText('4.9');
+  await expect(page.locator('#appVersion')).toContainText('4.10');
   await expect(page.locator('#versionDate')).toContainText('01-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
@@ -194,7 +200,7 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=19');
+  expect(app).toContain('v=20');
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
@@ -227,8 +233,8 @@ test('all report categories expose distinct subtype icons',async({page})=>{
 
 test('active own reports distinguish status from actions',async({page})=>{
   const script=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(script).toContain('v=19');
-  const response=await page.request.get('/app-v3.js?v=19');
+  expect(script).toContain('v=20');
+  const response=await page.request.get('/app-v3.js?v=20');
   const source=await response.text();
   expect(source).toContain('Markeer als opgelost');
   expect(source).toContain('Verwijder melding');
@@ -261,7 +267,7 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
 });
 
 test('resolve and delete remove markers from map immediately',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=19');
+  const response=await page.request.get('/app-v3.js?v=20');
   const source=await response.text();
   expect(source).toContain('function removeReportMarker');
   expect(source).toContain('function deleteOwnReport');
@@ -279,7 +285,7 @@ test('email icon is centered inside its square',async({page})=>{
 });
 
 test('map view forces report resync',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=19');
+  const response=await page.request.get('/app-v3.js?v=20');
   const source=await response.text();
   expect(source).toContain('if(v==="map")');
   expect(source).toContain('refreshReports().catch');
@@ -449,4 +455,66 @@ test('active report marker stays visible across zoom levels',async({page})=>{
   await page.waitForTimeout(150);
   await expect(marker).toHaveCount(1);
   await expect(marker.locator('.marker span')).toContainText('💧');
+});
+
+test('transient report feed failure never clears existing markers',async({page})=>{
+  const now=new Date(),expires=new Date(Date.now()+7*24*60*60*1000);
+  await page.evaluate(({now,expires})=>{
+    localStorage.setItem('__wd_test_reports',JSON.stringify([{
+      id:'durable-water',
+      user_id:'device-user',
+      author_name:'Test',
+      author_avatar:'🐾',
+      type:'danger',
+      subtype:'Vervuild water',
+      text:'Blauwalgen blijven zichtbaar',
+      lat:52.21428,
+      lng:5.45023,
+      status:'active',
+      created_at:now,
+      expires_at:expires,
+      species:'dog'
+    }]));
+  },{now:now.toISOString(),expires:expires.toISOString()});
+  await page.reload();
+  await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
+  await page.evaluate(()=>{window.__wdFailActiveReports=true});
+  await page.locator('[data-view="alerts"]').click();
+  await page.locator('[data-view="map"]').click();
+  await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
+  await expect(page.locator('.wd-report-marker-icon .marker span')).toContainText('💧');
+});
+
+test('active report cache survives a page reload when feed temporarily fails',async({page})=>{
+  const now=new Date(),expires=new Date(Date.now()+7*24*60*60*1000);
+  await page.evaluate(({now,expires})=>{
+    localStorage.setItem('__wd_test_reports',JSON.stringify([{
+      id:'cached-water',
+      user_id:'device-user',
+      author_name:'Test',
+      author_avatar:'🐾',
+      type:'danger',
+      subtype:'Vervuild water',
+      text:'Cache borging',
+      lat:52.21428,
+      lng:5.45023,
+      status:'active',
+      created_at:now,
+      expires_at:expires,
+      species:'dog'
+    }]));
+  },{now:now.toISOString(),expires:expires.toISOString()});
+  await page.reload();
+  await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
+  await page.evaluate(()=>{
+    localStorage.setItem('__wd_fail_feed_next_load','1');
+  });
+  await page.addInitScript(()=>{
+    if(localStorage.getItem('__wd_fail_feed_next_load')==='1'){
+      localStorage.removeItem('__wd_fail_feed_next_load');
+      window.__wdFailActiveReports=true;
+    }
+  });
+  await page.reload();
+  await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
 });
