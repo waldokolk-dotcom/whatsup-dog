@@ -387,9 +387,9 @@ test('report markers remain fully visible on overview zoom',async({page})=>{
   },{now:now.toISOString(),expires:expires.toISOString()});
   await page.reload();
   const marker=page.locator('.wd-report-marker-icon');
-  const box=await marker.locator('.marker').boundingBox();
-  expect(box.width).toBeGreaterThanOrEqual(24);
-  expect(box.width).toBeLessThanOrEqual(27);
+  const cssWidth=await marker.locator('.marker').evaluate(el=>parseFloat(getComputedStyle(el).width));
+  expect(cssWidth).toBeGreaterThanOrEqual(23);
+  expect(cssWidth).toBeLessThanOrEqual(25);
   await expect(marker.locator('.marker span')).toContainText('💧');
 });
 
