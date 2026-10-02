@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports";
-const APP_VERSION="4.12", APP_VERSION_DATE="02-10-2026";
+const APP_VERSION="4.13", APP_VERSION_DATE="02-10-2026";
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -65,7 +65,8 @@ function bind(){
  $("#radius").addEventListener("input",e=>{$("#radiusVal").textContent=(e.target.value/1000).toFixed(e.target.value<1000?1:0)+" km"});$("#radius").addEventListener("change",savePushPrefs);
  $$(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
  $("#installButton").addEventListener("click",installApp);
- $("#checkUpdateButton")?.addEventListener("click",()=>checkForAppUpdate(true));
+ $("#checkUpdateButton")?.addEventListener("click",openUpdateNotes);
+ $("#notesCheckUpdate")?.addEventListener("click",async()=>{$("#updateNotesDialog")?.close();await checkForAppUpdate(true)});
  $("#applyUpdateButton")?.addEventListener("click",applyAppUpdate);
  $("#onboardForm").addEventListener("submit",finishOnboarding);
  $("#onboardLocate").addEventListener("click",()=>navigator.geolocation?.getCurrentPosition(async p=>{const s=settings();s.lat=p.coords.latitude;s.lng=p.coords.longitude;s.areaLabel="Mijn locatie";write(SKEY,s);$("#onboardPlace").value="Mijn locatie";toast("Locatie gekozen")},()=>toast("Locatie niet gedeeld")));
@@ -348,6 +349,7 @@ async function openReportDetail(r){
  const own=r.user_id===user?.id;
  actions.classList.toggle("hidden",!own);
  resolve.hidden=!own||r.status!=="active";
+ configureReportReaction(r).catch(err=>console.warn("Reactie laden mislukt",err));
  resolve.onclick=async()=>{
    if(!confirm("Is dit opgelost? De melding verdwijnt direct van de kaart."))return;
    try{
@@ -365,6 +367,42 @@ async function openReportDetail(r){
    }catch(err){console.warn(err);toast("Verwijderen mislukt")}
  };
  $("#detailDialog").showModal()
+}
+function reactionKindForReport(r){return r?.type==="fun"?"love":"seen"}
+function renderReportReaction(kind,summary={}){
+ const box=$("#detailReaction"),btn=$("#detailReactionButton"),label=$("#detailReactionLabel"),count=$("#detailReactionCount");
+ if(!box||!btn||!label||!count)return;
+ const mine=summary?.mine||null;
+ const n=kind==="love"?Number(summary?.love_count||0):Number(summary?.seen_count||0);
+ box.classList.remove("hidden");
+ btn.classList.toggle("selected",mine===kind);
+ btn.classList.toggle("love",kind==="love");
+ btn.classList.toggle("seen",kind==="seen");
+ btn.dataset.kind=kind;
+ $(".reaction-love-icon")?.classList.toggle("hidden",kind!=="love");
+ $(".reaction-seen-icon")?.classList.toggle("hidden",kind!=="seen");
+ label.textContent=kind==="love"?"Leuk":"Gezien";
+ count.textContent=n?String(n):"";
+}
+async function configureReportReaction(r){
+ const box=$("#detailReaction"),btn=$("#detailReactionButton");
+ if(!box||!btn)return;
+ if(r?.status!=="active"){box.classList.add("hidden");return}
+ const kind=reactionKindForReport(r);
+ box.classList.remove("hidden");
+ renderReportReaction(kind,{});
+ const {data,error}=await client.rpc("get_report_reaction_summary",{target:r.id});
+ if(error)throw error;
+ renderReportReaction(kind,Array.isArray(data)?(data[0]||{}):(data||{}));
+ btn.onclick=async()=>{
+   btn.disabled=true;
+   try{
+     const res=await client.rpc("toggle_report_reaction",{target:r.id,kind});
+     if(res.error)throw res.error;
+     renderReportReaction(kind,Array.isArray(res.data)?(res.data[0]||{}):(res.data||{}));
+   }catch(err){console.warn(err);toast("Reactie opslaan lukt nu niet")}
+   finally{btn.disabled=false}
+ };
 }
 function labelType(t){return ({danger:"Gevaar",vegetation:"Vegetatie",road:"Handig",fun:"Leuk",spotted:"Dier",lost:"Vermist / gevonden"})[t]||"Melding"}
 function openReport(){
@@ -680,6 +718,19 @@ window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredIns
 
 let updateRegistration=null, updateWorker=null, updateReloading=false;
 
+const VERSION_NOTES={
+ "4.13":[
+  "Bij leuke meldingen kun je nu met één pootjes-en-hartje aangeven dat je de melding leuk vindt.",
+  "Bij praktische meldingen kun je met een vinkje aangeven dat je de situatie ook hebt gezien.",
+  "Bij Update zie je voortaan in gewone taal wat er in de nieuwe versie is veranderd."
+ ]
+};
+function openUpdateNotes(){
+ const version=$("#notesVersion"),list=$("#updateNotesList");
+ if(version)version.textContent=APP_VERSION;
+ if(list)list.innerHTML=(VERSION_NOTES[APP_VERSION]||["Kleine verbeteringen en onderhoud."]).map(x=>"<li>"+esc(x)+"</li>").join("");
+ $("#updateNotesDialog")?.showModal();
+}
 function syncVersionUi(){
  const v=$("#appVersion"),d=$("#versionDate");
  if(v)v.textContent="Whatsup Dog "+APP_VERSION;

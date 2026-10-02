@@ -728,3 +728,21 @@ dialog[open]{
   .wd-report-marker-icon .marker{box-shadow:0 2px 7px rgba(0,0,0,.18) !important}
   .report-cluster{box-shadow:0 2px 8px rgba(0,0,0,.16)}
 }
+
+/* V4.13 compact report reactions + plain-language update notes */
+.report-reaction{display:flex;justify-content:flex-start;margin:2px 0 14px}
+.report-reaction.hidden,.reaction-love-icon.hidden,.reaction-seen-icon.hidden{display:none!important}
+.reaction-button{min-height:44px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:15px;padding:8px 13px;display:inline-flex;align-items:center;gap:8px;font-weight:850;box-shadow:0 4px 13px rgba(19,55,46,.04)}
+.reaction-button.selected{background:var(--green-soft);border-color:#acdcca;color:var(--green-dark)}
+.reaction-button.love.selected{background:#fff0f3;border-color:#f4c8d2;color:#a83e59}
+.reaction-love-icon{width:34px;height:24px;display:grid;place-items:center}
+.reaction-love-icon svg{width:34px;height:24px;overflow:visible}
+.reaction-love-icon .reaction-heart{fill:#ef6681}
+.reaction-love-icon .reaction-paws{fill:#8b5f4c}
+.reaction-seen-icon{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#e6f4ef;color:var(--green);font-size:17px;font-weight:950}
+.reaction-button b:empty{display:none}
+.reaction-button b{min-width:18px;height:20px;border-radius:999px;padding:0 6px;display:grid;place-items:center;background:rgba(15,122,103,.10);font-size:10px}
+.update-notes-sheet{max-height:78dvh}
+.update-notes-list{display:grid;gap:10px;margin:14px 0 20px;padding:0;list-style:none}
+.update-notes-list li{position:relative;background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px 12px 12px 39px;font-size:13px;line-height:1.45}
+.update-notes-list li::before{content:"✓";position:absolute;left:13px;top:12px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--green-soft);color:var(--green);font-size:11px;font-weight:950}
