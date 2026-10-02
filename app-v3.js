@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports";
-const APP_VERSION="4.10", APP_VERSION_DATE="02-10-2026";
+const APP_VERSION="4.11", APP_VERSION_DATE="02-10-2026";
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -129,15 +129,82 @@ function toggleOffleashLayer(e){
  if(on){if(!map.hasLayer(offleashLayer))offleashLayer.addTo(map);toast("Losloopgebieden zichtbaar")}
  else{if(map.hasLayer(offleashLayer))map.removeLayer(offleashLayer);toast("Losloopgebieden verborgen")}
 }
+function markerSizeForZoom(zoom=map?.getZoom?.()||14){
+ if(zoom<=12)return 24;
+ if(zoom<=14)return 27;
+ if(zoom<=16)return 30;
+ return 32;
+}
 function markerIcon(r){
  const c=["danger","vegetation","dirty"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"||r.type==="walk"?"#28a17a":r.type==="road"?"#4f7fd7":"#5178db";
- const e=iconForReport(r);
+ const e=iconForReport(r),size=markerSizeForZoom();
  return L.divIcon({
    className:"wd-report-marker-icon",
-   html:'<div class="marker" style="background:'+c+'"><span>'+e+'</span></div>',
-   iconSize:[38,38],
-   iconAnchor:[19,34]
+   html:'<div class="marker" style="--marker-size:'+size+'px;background:'+c+'"><span>'+e+'</span></div>',
+   iconSize:[size,size],
+   iconAnchor:[Math.round(size/2),Math.round(size*.88)]
  })
+}
+function reportClusterCellSize(zoom=map?.getZoom?.()||14){
+ if(zoom<=11)return 72;
+ if(zoom<=13)return 58;
+ if(zoom<=15)return 46;
+ if(zoom<=17)return 38;
+ return 30;
+}
+function clusterReportGroups(rows){
+ if(!map)return (rows||[]).map(r=>[r]);
+ const zoom=map.getZoom(),cell=reportClusterCellSize(zoom),buckets=new Map();
+ for(const r of rows||[]){
+   const p=map.project([Number(r.lat),Number(r.lng)],zoom);
+   const key=Math.floor(p.x/cell)+":"+Math.floor(p.y/cell);
+   if(!buckets.has(key))buckets.set(key,[]);
+   buckets.get(key).push(r);
+ }
+ return [...buckets.values()];
+}
+function clusterIcon(group){
+ const count=group.length,icons=[...new Set(group.map(iconForReport))].slice(0,2).join("");
+ const size=count>99?40:count>9?37:35;
+ return L.divIcon({
+   className:"wd-report-cluster-icon",
+   html:'<div class="report-cluster" style="--cluster-size:'+size+'px"><span class="cluster-icons">'+icons+'</span><b>'+count+'</b></div>',
+   iconSize:[size,size],
+   iconAnchor:[Math.round(size/2),Math.round(size/2)]
+ })
+}
+function openReportCluster(group){
+ if(!map||!group?.length)return;
+ if(group.length===1)return openReportDetail(group[0]);
+ const bounds=L.latLngBounds(group.map(r=>[Number(r.lat),Number(r.lng)]));
+ const current=map.getZoom();
+ if(current<18){
+   const target=Math.min(18,current+2);
+   if(bounds.isValid()&&!bounds.getNorthEast().equals(bounds.getSouthWest()))map.fitBounds(bounds,{padding:[46,46],maxZoom:target});
+   else map.setView(bounds.getCenter(),target);
+   return;
+ }
+ const first=group.slice().sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))[0];
+ openReportDetail(first);
+}
+function renderReportMarkers(){
+ if(!map||!markers)return;
+ markers.clearLayers();
+ const valid=validActiveReports(lastActiveReports);
+ for(const group of clusterReportGroups(valid)){
+   if(group.length===1){
+     const r=group[0];
+     L.marker([Number(r.lat),Number(r.lng)],{icon:markerIcon(r),pane:"reportMarkersPane",zIndexOffset:1000,reportId:r.id,reportData:r,riseOnHover:true})
+      .addTo(markers)
+      .on("click",e=>openReportDetail(e.target.options.reportData));
+     continue;
+   }
+   const lat=group.reduce((s,r)=>s+Number(r.lat),0)/group.length,lng=group.reduce((s,r)=>s+Number(r.lng),0)/group.length;
+   L.marker([lat,lng],{icon:clusterIcon(group),pane:"reportMarkersPane",zIndexOffset:900,clusterReports:group,riseOnHover:true})
+    .addTo(markers)
+    .on("click",e=>openReportCluster(e.target.options.clusterReports));
+ }
+ markers.bringToFront?.();
 }
 function validActiveReports(rows){
  const now=Date.now();
@@ -156,29 +223,8 @@ function cachedActiveReports(){
 function syncReportMarkers(rows){
  if(!map||!markers)return;
  if(!map.hasLayer(markers))markers.addTo(map);
- const valid=validActiveReports(rows);
- const wanted=new Map(valid.map(r=>[String(r.id),r]));
- const existing=new Map();
- markers.eachLayer(layer=>{
-   const id=layer?.options?.reportId;
-   if(id)existing.set(String(id),layer);
- });
- for(const [id,layer] of existing){
-   if(!wanted.has(id))markers.removeLayer(layer);
- }
- for(const [id,r] of wanted){
-   const old=existing.get(id);
-   if(old){
-     old.options.reportData=r;
-     old.setLatLng([Number(r.lat),Number(r.lng)]);
-     old.setIcon(markerIcon(r));
-     continue;
-   }
-   L.marker([Number(r.lat),Number(r.lng)],{icon:markerIcon(r),pane:"reportMarkersPane",zIndexOffset:1000,reportId:r.id,reportData:r,riseOnHover:true})
-    .addTo(markers)
-    .on("click",e=>openReportDetail(e.target.options.reportData));
- }
- markers.bringToFront?.();
+ lastActiveReports=validActiveReports(rows);
+ renderReportMarkers();
 }
 async function fetchActiveReports(){
  const first=await client.rpc("get_active_reports");
@@ -270,9 +316,9 @@ function renderAlerts(rows){
 }
 function removeReportMarker(id){
  if(!id)return;
- if(markers)markers.eachLayer(layer=>{if(String(layer?.options?.reportId)===String(id))markers.removeLayer(layer)});
- const rows=cachedActiveReports().filter(r=>String(r.id)!==String(id));
- cacheActiveReports(rows);
+ lastActiveReports=validActiveReports(lastActiveReports).filter(r=>String(r.id)!==String(id));
+ cacheActiveReports(lastActiveReports);
+ renderReportMarkers();
 }
 async function deleteOwnReport(id){
  const {error}=await client.rpc("delete_own_report",{target:id});

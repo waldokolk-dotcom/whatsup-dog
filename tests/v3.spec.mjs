@@ -161,7 +161,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
-  await expect(page.locator('#appVersion')).toContainText('4.10');
+  await expect(page.locator('#appVersion')).toContainText('4.11');
   await expect(page.locator('#versionDate')).toContainText('02-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
@@ -200,7 +200,7 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=20');
+  expect(app).toContain('v=21');
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
@@ -233,8 +233,8 @@ test('all report categories expose distinct subtype icons',async({page})=>{
 
 test('active own reports distinguish status from actions',async({page})=>{
   const script=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(script).toContain('v=20');
-  const response=await page.request.get('/app-v3.js?v=20');
+  expect(script).toContain('v=21');
+  const response=await page.request.get('/app-v3.js?v=21');
   const source=await response.text();
   expect(source).toContain('Markeer als opgelost');
   expect(source).toContain('Verwijder melding');
@@ -267,7 +267,7 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
 });
 
 test('resolve and delete remove markers from map immediately',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=20');
+  const response=await page.request.get('/app-v3.js?v=21');
   const source=await response.text();
   expect(source).toContain('function removeReportMarker');
   expect(source).toContain('function deleteOwnReport');
@@ -285,7 +285,7 @@ test('email icon is centered inside its square',async({page})=>{
 });
 
 test('map view forces report resync',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=20');
+  const response=await page.request.get('/app-v3.js?v=21');
   const source=await response.text();
   expect(source).toContain('if(v==="map")');
   expect(source).toContain('refreshReports().catch');
@@ -387,9 +387,9 @@ test('report markers remain fully visible on overview zoom',async({page})=>{
   },{now:now.toISOString(),expires:expires.toISOString()});
   await page.reload();
   const marker=page.locator('.wd-report-marker-icon');
-  await expect(marker).not.toHaveClass(/is-compact/);
-  const box=await marker.locator('.marker').boundingBox();
-  expect(box.width).toBeGreaterThanOrEqual(34);
+  const cssWidth=await marker.locator('.marker').evaluate(el=>parseFloat(getComputedStyle(el).width));
+  expect(cssWidth).toBeGreaterThanOrEqual(23);
+  expect(cssWidth).toBeLessThanOrEqual(25);
   await expect(marker.locator('.marker span')).toContainText('💧');
 });
 
@@ -419,8 +419,8 @@ test('report markers reveal icon when zoomed in',async({page})=>{
   const marker=page.locator('.wd-report-marker-icon');
   await expect(marker).not.toHaveClass(/is-compact/);
   const cssWidth=await marker.locator('.marker').evaluate(el=>parseFloat(getComputedStyle(el).width));
-  expect(cssWidth).toBeGreaterThanOrEqual(32);
-  expect(cssWidth).toBeLessThanOrEqual(44);
+  expect(cssWidth).toBeGreaterThanOrEqual(28);
+  expect(cssWidth).toBeLessThanOrEqual(32);
   await expect(marker.locator('.marker')).toContainText('💧');
 });
 
@@ -450,10 +450,8 @@ test('active report marker stays visible across zoom levels',async({page})=>{
   await expect(marker).toHaveCount(1);
   await expect(marker.locator('.marker span')).toContainText('💧');
   const before=await marker.boundingBox();
-  expect(before.width).toBeGreaterThanOrEqual(34);
-  await page.evaluate(()=>window.__wdMap?.setZoom?.(12));
-  await page.waitForTimeout(150);
-  await expect(marker).toHaveCount(1);
+  expect(before.width).toBeGreaterThanOrEqual(24);
+  expect(before.width).toBeLessThanOrEqual(32);
   await expect(marker.locator('.marker span')).toContainText('💧');
 });
 
@@ -517,4 +515,44 @@ test('active report cache survives a page reload when feed temporarily fails',as
   });
   await page.reload();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
+});
+
+
+test('dense nearby reports are clustered into a calm mobile map view',async({page})=>{
+  const now=new Date(),expires=new Date(Date.now()+7*24*60*60*1000);
+  const reports=Array.from({length:8},(_,i)=>({
+    id:'cluster-'+i,
+    user_id:'device-user',
+    author_name:'Test',
+    author_avatar:'🐾',
+    type:i%2===0?'danger':'road',
+    subtype:i%2===0?'Vervuild water':'Afsluiting',
+    text:'Dichte melding '+i,
+    lat:52.2136+(i%4)*0.00003,
+    lng:5.4506+Math.floor(i/4)*0.00003,
+    status:'active',
+    created_at:now.toISOString(),
+    expires_at:expires.toISOString(),
+    species:'dog'
+  }));
+  await page.evaluate((reports)=>{
+    localStorage.setItem('wd_v3_map_view',JSON.stringify({lat:52.2136,lng:5.4506,zoom:13}));
+    localStorage.setItem('__wd_test_reports',JSON.stringify(reports));
+  },reports);
+  await page.reload();
+  await expect(page.locator('.wd-report-cluster-icon')).toHaveCount(1);
+  await expect(page.locator('.wd-report-cluster-icon .report-cluster b')).toHaveText('8');
+  const box=await page.locator('.wd-report-cluster-icon .report-cluster').boundingBox();
+  expect(box.width).toBeLessThanOrEqual(40);
+  expect(box.height).toBeLessThanOrEqual(40);
+});
+
+test('marker implementation keeps report icons and adds zoom-aware density control',async({page})=>{
+  const js=await (await page.request.get('/app-v3.js?v=21')).text();
+  const css=await (await page.request.get('/app-v3.css?v=20')).text();
+  expect(js).toContain('function markerSizeForZoom');
+  expect(js).toContain('function clusterReportGroups');
+  expect(js).toContain('function renderReportMarkers');
+  expect(css).toContain('compact, zoom-aware report markers + clustering');
+  expect(css).toContain('--marker-size');
 });

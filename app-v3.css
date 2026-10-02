@@ -660,3 +660,71 @@ dialog[open]{
   margin:0 !important;
 }
 
+
+
+/* V4.4 compact, zoom-aware report markers + clustering */
+.wd-report-marker-icon,
+.wd-report-cluster-icon{
+  background:transparent !important;
+  border:0 !important;
+  overflow:visible !important;
+}
+.wd-report-marker-icon .marker{
+  width:var(--marker-size,30px) !important;
+  height:var(--marker-size,30px) !important;
+  border-width:2px !important;
+  box-shadow:0 3px 9px rgba(0,0,0,.20) !important;
+  position:relative;
+  z-index:2;
+}
+.wd-report-marker-icon .marker span{
+  font-size:clamp(12px,calc(var(--marker-size,30px) * .48),15px) !important;
+  line-height:1;
+}
+.report-cluster{
+  width:var(--cluster-size,35px);
+  height:var(--cluster-size,35px);
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  position:relative;
+  background:rgba(255,255,255,.96);
+  border:2px solid #2f7f69;
+  box-shadow:0 3px 10px rgba(0,0,0,.18);
+  color:#1f5f51;
+  font-weight:900;
+}
+.report-cluster b{
+  min-width:18px;
+  height:18px;
+  padding:0 4px;
+  border-radius:99px;
+  display:grid;
+  place-items:center;
+  background:#1f6f5d;
+  color:white;
+  font-size:10px;
+  line-height:1;
+  box-shadow:0 1px 3px rgba(0,0,0,.18);
+}
+.cluster-icons{
+  position:absolute;
+  top:-7px;
+  right:-7px;
+  min-width:20px;
+  height:20px;
+  padding:0 3px;
+  border-radius:99px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:1px;
+  background:white;
+  border:1px solid rgba(31,95,81,.18);
+  font-size:10px;
+  box-shadow:0 2px 5px rgba(0,0,0,.12);
+}
+@media(max-width:430px){
+  .wd-report-marker-icon .marker{box-shadow:0 2px 7px rgba(0,0,0,.18) !important}
+  .report-cluster{box-shadow:0 2px 8px rgba(0,0,0,.16)}
+}
