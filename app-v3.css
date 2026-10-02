@@ -746,3 +746,12 @@ dialog[open]{
 .update-notes-list{display:grid;gap:10px;margin:14px 0 20px;padding:0;list-style:none}
 .update-notes-list li{position:relative;background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px 12px 12px 39px;font-size:13px;line-height:1.45}
 .update-notes-list li::before{content:"✓";position:absolute;left:13px;top:12px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--green-soft);color:var(--green);font-size:11px;font-weight:950}
+
+/* V4.14: paw-first love icon, giveaway likes and update notes before install */
+.reaction-love-icon{width:40px;height:26px}
+.reaction-love-icon svg{width:40px;height:26px}
+.give-actions{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center;margin-top:10px}
+.give-actions .reaction-button{min-height:40px;padding:7px 10px}
+.give-actions .contact{min-height:40px;width:100%;padding:0 10px;font-size:12px}
+.give-like-count:empty{display:none}
+@media(max-width:390px){.give-actions{grid-template-columns:1fr}.give-actions .reaction-button{justify-content:center}}
