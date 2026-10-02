@@ -27,7 +27,7 @@ assert.match(html,/id="radius"/,'Push radius control missing');
 assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
 assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
-assert.match(html,/app-v3\.js\?v=19/,'V3 app controller not wired');
+assert.match(html,/app-v3\.js\?v=20/,'V3 app controller not wired');
 assert.match(html,/app-v3\.css\?v=19/,'V3 visual system not wired');
 
 assert.match(app,/signInAnonymously/,'Invisible device auth missing');
@@ -85,7 +85,7 @@ assert.match(css,/\.paw-fab/,'One-hand PawWheel styling missing');
 assert.match(css,/\.offleash-control/,'Losloopgebieden control styling missing');
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
-assert.match(sw,/app-v3\.js\?v=19/,'Offline cache missing V3 app');
+assert.match(sw,/app-v3\.js\?v=20/,'Offline cache missing V3 app');
 assert.match(sw,/app-v3\.css\?v=19/,'Offline cache missing V3 CSS');
 assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');
@@ -136,3 +136,10 @@ assert.match(app,/map\.on\("moveend"/,'Map position persistence missing');
 
 assert.match(app,/maxDistance/,'Nearby active report focus logic missing');
 assert.match(app,/area\.distanceTo/,'Area-based active report visibility logic missing');
+
+assert.match(app,/get_active_reports/,'Stable active report feed RPC missing');
+assert.match(app,/syncReportMarkers/,'Idempotent report marker sync missing');
+assert.match(app,/REPORTCACHEKEY/,'Durable active report cache missing');
+assert.match(app,/cachedActiveReports/,'Report cache fallback missing');
+assert.match(app,/setInterval\(resync,30000\)/,'Visible map periodic resync missing');
+assert.match(app,/window\.addEventListener\("online",resync\)/,'Online map resync missing');
