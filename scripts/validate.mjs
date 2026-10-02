@@ -27,8 +27,8 @@ assert.match(html,/id="radius"/,'Push radius control missing');
 assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
 assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
-assert.match(html,/app-v3\.js\?v=23/,'V3 app controller not wired');
-assert.match(html,/app-v3\.css\?v=21/,'V3 visual system not wired');
+assert.match(html,/app-v3\.js\?v=24/,'V3 app controller not wired');
+assert.match(html,/app-v3\.css\?v=22/,'V3 visual system not wired');
 
 assert.match(app,/signInAnonymously/,'Invisible device auth missing');
 assert.match(app,/from\("reports"\)\.insert/,'Shared report persistence missing');
@@ -89,8 +89,8 @@ assert.match(css,/\.paw-fab/,'One-hand PawWheel styling missing');
 assert.match(css,/\.offleash-control/,'Losloopgebieden control styling missing');
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
-assert.match(sw,/app-v3\.js\?v=23/,'Offline cache missing V3 app');
-assert.match(sw,/app-v3\.css\?v=21/,'Offline cache missing V3 CSS');
+assert.match(sw,/app-v3\.js\?v=24/,'Offline cache missing V3 app');
+assert.match(sw,/app-v3\.css\?v=22/,'Offline cache missing V3 CSS');
 assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');
 assert.match(sw,/SKIP_WAITING/,'Service worker update activation handler missing');
@@ -154,3 +154,8 @@ assert.match(html,/id="updateNotesDialog"/,'Update notes dialog missing');
 assert.match(app,/get_report_reaction_summary/,'Reaction summary RPC missing');
 assert.match(app,/toggle_report_reaction/,'Reaction toggle RPC missing');
 assert.match(app,/VERSION_NOTES/,'Plain-language version notes missing');
+
+assert.match(app,/get_giveaway_reaction_summary/,'Giveaway reaction summary missing');
+assert.match(app,/toggle_giveaway_reaction/,'Giveaway reaction toggle missing');
+assert.match(app,/applyUpdateButton"\)\?\.addEventListener\("click",openUpdateNotes\)/,'Pending update must show notes first');
+assert.match(css,/\.give-actions/,'Giveaway like layout missing');
