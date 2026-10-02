@@ -493,8 +493,11 @@ async function refreshGiveaways(){
      const {data:s}=await client.storage.from("giveaway-photos").createSignedUrl(x.image_path,900);
      if(s?.signedUrl)img='<img class="give-card-media" src="'+s.signedUrl+'" alt="">'
    }
-   a.innerHTML=img+'<div class="give-body"><span class="badge">'+(x.kind==="ruilen"?"Ruilen":"Gratis")+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><p class="muted small location">📍 '+esc(x.town)+'</p><button class="primary wide contact">✉️ Neem contact op</button></div>';
+   a.innerHTML=img+'<div class="give-body"><span class="badge">'+(x.kind==="ruilen"?"Ruilen":"Gratis")+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><p class="muted small location">📍 '+esc(x.town)+'</p><div class="give-actions"><button class="give-like reaction-button love" type="button" aria-label="Leuk"><span class="reaction-love-icon" aria-hidden="true"><svg viewBox="0 0 42 28" focusable="false"><path class="reaction-heart" d="M21 22S14 17.7 14 12.2a4.7 4.7 0 0 1 8.2-3.1L21 10.4l1.2-1.3a4.7 4.7 0 0 1 8.2 3.1C30.4 17.7 21 22 21 22Z"/><g class="reaction-paws"><circle cx="6.5" cy="7.4" r="2.7"/><circle cx="12.2" cy="5.4" r="2.5"/><path d="M6.7 11.1c2.5-2.8 6.4-2.5 8.3.5 1.5 2.4-.6 5.1-3.2 4.6l-3.5-.8c-2.4-.5-3.1-2.8-1.6-4.3Z"/><circle cx="35.5" cy="7.4" r="2.7"/><circle cx="29.8" cy="5.4" r="2.5"/><path d="M35.3 11.1c-2.5-2.8-6.4-2.5-8.3.5-1.5 2.4.6 5.1 3.2 4.6l3.5-.8c2.4-.5 3.1-2.8 1.6-4.3Z"/></g></svg></span><span>Leuk</span><b class="give-like-count"></b></button><button class="primary contact">✉️ Neem contact op</button></div></div>';
    a.querySelector(".contact").onclick=()=>contactGiveaway(x);
+   const like=a.querySelector(".give-like");
+   loadGiveawayReaction(x.id,like).catch(err=>console.warn("Weggeef-like laden mislukt",err));
+   like.onclick=()=>toggleGiveawayReaction(x.id,like);
    list.append(a)
  }}
 async function loadGiveawayReaction(id,button){
