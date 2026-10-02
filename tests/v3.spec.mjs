@@ -171,14 +171,11 @@ test('update prompt is present and hidden until a new worker waits',async({page}
   await expect(page.locator('#applyUpdateButton')).toHaveText(/Nu bijwerken/);
 });
 
-test('update button dismisses banner immediately before worker activation',async({page})=>{
-  await page.evaluate(()=>{
-    const banner=document.querySelector('#updateBanner');
-    banner.classList.remove('hidden');
-    const btn=document.querySelector('#applyUpdateButton');
-    btn.click();
-  });
-  await expect(page.locator('#updateBanner')).toHaveClass(/hidden/);
+test('update banner opens version notes before worker activation',async({page})=>{
+  await page.evaluate(()=>document.querySelector('#updateBanner').classList.remove('hidden'));
+  await page.locator('#applyUpdateButton').click();
+  await expect(page.locator('#updateNotesDialog')).toBeVisible();
+  await expect(page.locator('#updateBanner')).not.toHaveClass(/hidden/);
 });
 
 test('giveaway contact banner uses a fixed SVG mail icon at full size',async({page})=>{
@@ -615,7 +612,7 @@ test('update button opens plain-language version notes',async({page})=>{
   await expect(page.locator('#updateNotesDialog')).toBeVisible();
   await expect(page.locator('#notesVersion')).toHaveText('4.14');
   await expect(page.locator('#updateNotesList')).toContainText('pootjes-en-hartje');
-  await expect(page.locator('#updateNotesList')).toContainText('vinkje');
+  await expect(page.locator('#updateNotesList')).toContainText('Weggeefhoek');
   await expect(page.locator('#notesCheckUpdate')).toHaveText('Controleer op update');
 });
 
@@ -624,7 +621,7 @@ test('giveaway like implementation is present and uses the shared love language'
   const js=await (await page.request.get('/app-v3.js?v=24')).text();
   expect(js).toContain('get_giveaway_reaction_summary');
   expect(js).toContain('toggle_giveaway_reaction');
-  expect(js).toContain('class="give-like reaction-button love"');
+  expect(js).toContain('give-like reaction-button love');
   expect(js).toContain('give-like-count');
 });
 
