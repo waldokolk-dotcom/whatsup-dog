@@ -161,7 +161,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
-  await expect(page.locator('#appVersion')).toContainText('4.12');
+  await expect(page.locator('#appVersion')).toContainText('4.13');
   await expect(page.locator('#versionDate')).toContainText('02-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
@@ -200,7 +200,7 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=22');
+  expect(app).toContain('v=23');
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
@@ -233,8 +233,8 @@ test('all report categories expose distinct subtype icons',async({page})=>{
 
 test('active own reports distinguish status from actions',async({page})=>{
   const script=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(script).toContain('v=22');
-  const response=await page.request.get('/app-v3.js?v=22');
+  expect(script).toContain('v=23');
+  const response=await page.request.get('/app-v3.js?v=23');
   const source=await response.text();
   expect(source).toContain('Markeer als opgelost');
   expect(source).toContain('Verwijder melding');
@@ -267,7 +267,7 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
 });
 
 test('resolve and delete remove markers from map immediately',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=22');
+  const response=await page.request.get('/app-v3.js?v=23');
   const source=await response.text();
   expect(source).toContain('function removeReportMarker');
   expect(source).toContain('function deleteOwnReport');
@@ -285,7 +285,7 @@ test('email icon is centered inside its square',async({page})=>{
 });
 
 test('map view forces report resync',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=22');
+  const response=await page.request.get('/app-v3.js?v=23');
   const source=await response.text();
   expect(source).toContain('if(v==="map")');
   expect(source).toContain('refreshReports().catch');
@@ -548,7 +548,7 @@ test('dense nearby reports are clustered into a calm mobile map view',async({pag
 });
 
 test('marker implementation keeps report icons and adds zoom-aware density control',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=22')).text();
+  const js=await (await page.request.get('/app-v3.js?v=23')).text();
   const css=await (await page.request.get('/app-v3.css?v=20')).text();
   expect(js).toContain('function markerSizeForZoom');
   expect(js).toContain('function clusterReportGroups');
@@ -559,7 +559,7 @@ test('marker implementation keeps report icons and adds zoom-aware density contr
 
 
 test('cold start report refresh does not call catch on Supabase rpc builder',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=22')).text();
+  const js=await (await page.request.get('/app-v3.js?v=23')).text();
   expect(js).not.toContain('client.rpc("archive_expired_reports").catch');
   expect(js).toContain('const expiry=await client.rpc("archive_expired_reports")');
   expect(js).toContain('const rows=await fetchActiveReports()');
@@ -589,4 +589,32 @@ test('active report feed is restored after a full page restart',async({page})=>{
   await page.reload();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
   await expect(page.locator('.wd-report-marker-icon .marker')).toContainText('💧');
+});
+
+
+test('report detail offers one calm context-aware reaction',async({page})=>{
+  const now=new Date(),expires=new Date(Date.now()+7*24*60*60*1000);
+  await page.evaluate(({now,expires})=>{
+    localStorage.setItem('__wd_test_reports',JSON.stringify([{
+      id:'fun-reaction',user_id:'someone-else',author_name:'Buurtgenoot',author_avatar:'🐾',
+      type:'fun',subtype:'Fijne plek',text:'Mooi wandelpad',lat:52.21,lng:5.48,status:'active',
+      created_at:now,expires_at:expires,species:'dog'
+    }]));
+  },{now:now.toISOString(),expires:expires.toISOString()});
+  await page.reload();
+  await page.locator('.wd-report-marker-icon').click();
+  await expect(page.locator('#detailReaction')).toBeVisible();
+  await expect(page.locator('#detailReactionLabel')).toHaveText('Leuk');
+  await expect(page.locator('.reaction-love-icon')).toBeVisible();
+  await expect(page.locator('.reaction-seen-icon')).toBeHidden();
+});
+
+test('update button opens plain-language version notes',async({page})=>{
+  await page.locator('[data-view="info"]').click();
+  await page.locator('#checkUpdateButton').click();
+  await expect(page.locator('#updateNotesDialog')).toBeVisible();
+  await expect(page.locator('#notesVersion')).toHaveText('4.13');
+  await expect(page.locator('#updateNotesList')).toContainText('pootjes-en-hartje');
+  await expect(page.locator('#updateNotesList')).toContainText('vinkje');
+  await expect(page.locator('#notesCheckUpdate')).toHaveText('Controleer op update');
 });
