@@ -4,9 +4,9 @@
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
-const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view";
-const APP_VERSION="4.9", APP_VERSION_DATE="01-10-2026";
-let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
+const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports";
+const APP_VERSION="4.10", APP_VERSION_DATE="02-10-2026";
+let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
 const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2400)};
@@ -20,7 +20,13 @@ async function boot(){
  await refreshReports().catch(err=>console.warn("Meldingen laden",err));
  await refreshGiveaways().catch(err=>console.warn("Weggeefhoek laden",err));
  await refreshMine().catch(err=>console.warn("Mijn Whatsup laden",err));
- window.addEventListener("pageshow",()=>{map?.invalidateSize();refreshReports().catch(()=>{})});
+ const resync=()=>{if(document.visibilityState!=="hidden"){map?.invalidateSize();refreshReports({reason:"lifecycle"}).catch(()=>{})}};
+ window.addEventListener("pageshow",resync);
+ window.addEventListener("focus",resync);
+ window.addEventListener("online",resync);
+ document.addEventListener("visibilitychange",resync);
+ clearInterval(reportSyncTimer);
+ reportSyncTimer=setInterval(resync,30000);
  if(!localStorage.getItem("wd_v3_onboarded")) $("#onboarding").showModal();
  const qp=new URLSearchParams(location.search).get("report");if(qp)setTimeout(()=>openReportById(qp),700);
 }
@@ -133,15 +139,72 @@ function markerIcon(r){
    iconAnchor:[19,34]
  })
 }
+function validActiveReports(rows){
+ const now=Date.now();
+ return (rows||[]).filter(r=>r&&r.status==="active"&&Number.isFinite(Number(r.lat))&&Number.isFinite(Number(r.lng))&&(!r.expires_at||new Date(r.expires_at).getTime()>now));
+}
+function cacheActiveReports(rows){
+ lastActiveReports=validActiveReports(rows);
+ write(REPORTCACHEKEY,{saved_at:Date.now(),rows:lastActiveReports});
+}
+function cachedActiveReports(){
+ if(lastActiveReports.length)return validActiveReports(lastActiveReports);
+ const cached=read(REPORTCACHEKEY,{});
+ if(!cached?.saved_at||Date.now()-Number(cached.saved_at)>6*60*60*1000)return [];
+ return validActiveReports(cached.rows||[]);
+}
+function syncReportMarkers(rows){
+ if(!map||!markers)return;
+ if(!map.hasLayer(markers))markers.addTo(map);
+ const valid=validActiveReports(rows);
+ const wanted=new Map(valid.map(r=>[String(r.id),r]));
+ const existing=new Map();
+ markers.eachLayer(layer=>{
+   const id=layer?.options?.reportId;
+   if(id)existing.set(String(id),layer);
+ });
+ for(const [id,layer] of existing){
+   if(!wanted.has(id))markers.removeLayer(layer);
+ }
+ for(const [id,r] of wanted){
+   const old=existing.get(id);
+   if(old){
+     old.options.reportData=r;
+     old.setLatLng([Number(r.lat),Number(r.lng)]);
+     old.setIcon(markerIcon(r));
+     continue;
+   }
+   L.marker([Number(r.lat),Number(r.lng)],{icon:markerIcon(r),pane:"reportMarkersPane",zIndexOffset:1000,reportId:r.id,reportData:r,riseOnHover:true})
+    .addTo(markers)
+    .on("click",e=>openReportDetail(e.target.options.reportData));
+ }
+ markers.bringToFront?.();
+}
+async function fetchActiveReports(){
+ const first=await client.rpc("get_active_reports");
+ if(!first.error)return validActiveReports(first.data||[]);
+ console.warn("Actieve meldingen RPC mislukt",first.error);
+ const fallback=await client.from("reports").select("id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,photo_path,status,created_at,species,expires_at").eq("status","active").gt("expires_at",new Date().toISOString()).order("created_at",{ascending:false}).limit(200);
+ if(fallback.error)throw fallback.error;
+ return validActiveReports(fallback.data||[]);
+}
 async function refreshReports(){
  if(!client||!user)return;
  await client.rpc("archive_expired_reports").catch(()=>{});
- const {data,error}=await client.from("reports").select("id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,photo_path,status,created_at,species,expires_at").eq("status","active").gt("expires_at",new Date().toISOString()).order("created_at",{ascending:false}).limit(200);
- if(error){console.warn(error);return}
- markers.clearLayers();
- for(const r of data||[]){if(!Number.isFinite(Number(r.lat))||!Number.isFinite(Number(r.lng)))continue;L.marker([Number(r.lat),Number(r.lng)],{icon:markerIcon(r),pane:"reportMarkersPane",zIndexOffset:1000,reportId:r.id,reportData:r,riseOnHover:true}).addTo(markers).on("click",()=>openReportDetail(r))}
- renderAlerts(data||[]);
- focusLatestOwnActiveReport(data||[]);
+ try{
+   const rows=await fetchActiveReports();
+   cacheActiveReports(rows);
+   syncReportMarkers(rows);
+   renderAlerts(rows);
+   focusLatestOwnActiveReport(rows);
+ }catch(err){
+   console.warn("Meldingen verversen mislukt",err);
+   const cached=cachedActiveReports();
+   if(cached.length){
+     syncReportMarkers(cached);
+     renderAlerts(cached);
+   }
+ }
 }
 function focusLatestOwnActiveReport(rows){
  if(initialReportFocusDone||!map)return;
@@ -206,8 +269,10 @@ function renderAlerts(rows){
  });
 }
 function removeReportMarker(id){
- if(!markers||!id)return;
- markers.eachLayer(layer=>{if(layer?.options?.reportId===id)markers.removeLayer(layer)});
+ if(!id)return;
+ if(markers)markers.eachLayer(layer=>{if(String(layer?.options?.reportId)===String(id))markers.removeLayer(layer)});
+ const rows=cachedActiveReports().filter(r=>String(r.id)!==String(id));
+ cacheActiveReports(rows);
 }
 async function deleteOwnReport(id){
  const {error}=await client.rpc("delete_own_report",{target:id});
