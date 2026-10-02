@@ -162,7 +162,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('[data-view="info"]').click();
   await expect(page.locator('#appVersion')).toContainText('4.10');
-  await expect(page.locator('#versionDate')).toContainText('01-10-2026');
+  await expect(page.locator('#versionDate')).toContainText('02-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
 
