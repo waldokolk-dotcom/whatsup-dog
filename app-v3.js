@@ -5,9 +5,8 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports";
-const APP_VERSION="4.15", APP_VERSION_DATE="03-10-2026";
+const APP_VERSION="4.16", APP_VERSION_DATE="03-10-2026";
 const SOCIAL_LINKS=Object.freeze({facebook:"https://www.facebook.com/profile.php?id=61594785673559",instagram:"",tiktok:""});
-const APP_SHARE_URL="https://waldokolk-dotcom.github.io/whatsup-dog/";
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -758,24 +757,18 @@ function renderSocialLinks(){
  const detailText=$("#detailText");
  if(detailText&&!$("#detailShare")){const button=document.createElement("button");button.id="detailShare";button.type="button";button.className="secondary compact-share";button.textContent="↗ Delen";detailText.insertAdjacentElement("afterend",button)}
 }
-async function copyShareText(text){
- if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);return}
- const area=document.createElement("textarea");area.value=text;area.setAttribute("readonly","");area.style.position="fixed";area.style.opacity="0";document.body.append(area);area.select();const ok=document.execCommand("copy");area.remove();if(!ok)throw new Error("copy-failed");
-}
-async function shareContent({title,text}){
- const shareText=[text,APP_SHARE_URL].filter(Boolean).join("\n");
- try{
-  if(typeof navigator.share==="function"){await navigator.share({title,text,url:APP_SHARE_URL});return}
-  await copyShareText(shareText);toast("Link gekopieerd");
- }catch(err){if(err?.name!=="AbortError"){console.warn("Delen mislukt",err);toast("Delen lukt nu niet")}}
+function shareContent(){
+ const facebook=SOCIAL_LINKS.facebook;
+ if(!facebook)return;
+ window.open(facebook,"_blank","noopener,noreferrer");
 }
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
 
 let updateRegistration=null, updateWorker=null, updateReloading=false;
 
 const VERSION_NOTES={
- "4.15":[
-  "Nieuw: je kunt WhatsUp Dog nu volgen via Facebook en meldingen of weggeefitems makkelijker delen."
+ "4.16":[
+  "Nieuw: de knop Delen opent rechtstreeks de WhatsUp Dog-Facebookpagina."
  ],
  "4.14":[
   "Het pootjes-en-hartje-icoon is aangepast: de pootjes zijn nu duidelijker en groter dan het hartje.",
