@@ -99,6 +99,16 @@ test('info tab explains install and safety',async({page})=>{
   await expect(page.locator('#view-info')).toContainText('Geen account en geen wachtwoord');
 });
 
+test('Info shows only configured Facebook links with safe external attributes',async({page})=>{
+  await page.locator('[data-view="info"]').click();
+  const facebook=page.locator('[data-social="facebook"]');
+  await expect(facebook).toHaveAttribute('href','https://www.facebook.com/profile.php?id=61594785673559');
+  await expect(facebook).toHaveAttribute('target','_blank');
+  await expect(facebook).toHaveAttribute('rel','noopener noreferrer');
+  await expect(page.locator('#socialThinkAlong')).toHaveAttribute('href','https://www.facebook.com/profile.php?id=61594785673559');
+  await expect(page.locator('[data-social="instagram"],[data-social="tiktok"]')).toHaveCount(0);
+});
+
 test('mobile sheets stay within viewport width and use consistent rounded corners',async({page})=>{
   await page.locator('#areaPill').click();
   await expect(page.locator('#areaDialog')).toBeVisible();
@@ -589,7 +599,7 @@ test('active report feed is restored after a full page restart',async({page})=>{
 });
 
 
-test('report detail offers one calm context-aware reaction',async({page})=>{
+test('report detail offers one calm context-aware reaction and privacy-safe sharing',async({page})=>{
   const now=new Date(),expires=new Date(Date.now()+7*24*60*60*1000);
   await page.evaluate(({now,expires})=>{
     localStorage.setItem('__wd_test_reports',JSON.stringify([{
@@ -604,21 +614,26 @@ test('report detail offers one calm context-aware reaction',async({page})=>{
   await expect(page.locator('#detailReactionLabel')).toHaveText('Leuk');
   await expect(page.locator('.reaction-love-icon')).toBeVisible();
   await expect(page.locator('.reaction-seen-icon')).toBeHidden();
+  await expect(page.locator('#detailShare')).toBeVisible();
+  const js=await (await page.request.get('/app-v3.js?v=25')).text();
+  expect(js).toContain('navigator.share');
+  expect(js).toContain('navigator.clipboard?.writeText');
+  expect(js).toContain('[labelType(r.type),r.subtype,r.text]');
 });
 
 test('update button opens plain-language version notes',async({page})=>{
   await page.locator('[data-view="info"]').click();
   await page.locator('#checkUpdateButton').click();
   await expect(page.locator('#updateNotesDialog')).toBeVisible();
-  await expect(page.locator('#notesVersion')).toHaveText('4.14');
-  await expect(page.locator('#updateNotesList')).toContainText('pootjes-en-hartje');
-  await expect(page.locator('#updateNotesList')).toContainText('Weggeefhoek');
+  await expect(page.locator('#notesVersion')).toHaveText('4.15');
+  await expect(page.locator('#updateNotesList')).toContainText('Facebook');
+  await expect(page.locator('#updateNotesList')).toContainText('weggeefitems');
   await expect(page.locator('#notesCheckUpdate')).toHaveText('Controleer op update');
 });
 
 
 test('giveaway like implementation is present and uses the shared love language',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=24')).text();
+  const js=await (await page.request.get('/app-v3.js?v=25')).text();
   expect(js).toContain('get_giveaway_reaction_summary');
   expect(js).toContain('toggle_giveaway_reaction');
   expect(js).toContain('give-like reaction-button love');
@@ -626,12 +641,12 @@ test('giveaway like implementation is present and uses the shared love language'
 });
 
 test('pending update button opens notes before applying update',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=24')).text();
+  const js=await (await page.request.get('/app-v3.js?v=25')).text();
   expect(js).toContain('$("#applyUpdateButton")?.addEventListener("click",openUpdateNotes)');
   await page.evaluate(()=>document.querySelector('#updateBanner').classList.remove('hidden'));
   await page.locator('#applyUpdateButton').click();
   await expect(page.locator('#updateNotesDialog')).toBeVisible();
-  await expect(page.locator('#notesVersion')).toHaveText('4.14');
+  await expect(page.locator('#notesVersion')).toHaveText('4.15');
 });
 
 test('paw-heart icon makes paws visually larger than before',async({page})=>{
