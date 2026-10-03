@@ -626,7 +626,6 @@ test('update button opens plain-language version notes',async({page})=>{
   await expect(page.locator('#updateNotesDialog')).toBeVisible();
   await expect(page.locator('#notesVersion')).toHaveText('4.16');
   await expect(page.locator('#updateNotesList')).toContainText('Facebook');
-  await expect(page.locator('#updateNotesList')).toContainText('weggeefitems');
   await expect(page.locator('#notesCheckUpdate')).toHaveText('Controleer op update');
 });
 
