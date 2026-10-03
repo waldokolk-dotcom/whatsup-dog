@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f8f6f1"><meta name="description" content="Whatsup Dog — meld wat er in jouw buurt speelt.">
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="./vendor/leaflet/leaflet.css"><link rel="stylesheet" href="app-v3.css?v=22">
+<link rel="stylesheet" href="./vendor/leaflet/leaflet.css"><link rel="stylesheet" href="app-v3.css?v=23">
 <title>Whatsup Dog</title>
 </head>
 <body>
@@ -161,6 +161,13 @@
 
     <article class="safety-callout"><span>ℹ️</span><p>Een melding in Whatsup Dog is informatie van een gebruiker en geen officiële waarschuwing. Bij direct gevaar gebruik je de bevoegde hulpdienst.</p></article>
 
+    <article class="card modern-card social-card">
+      <div class="card-head"><div><span class="section-kicker">SAMEN VERBETEREN</span><h2>Volg WhatsUp Dog</h2></div></div>
+      <div id="socialLinks" class="social-links" hidden></div>
+      <p class="muted social-copy">Deel verhalen, ideeën en opmerkingen en help WhatsUp Dog beter te maken.</p>
+      <a id="socialThinkAlong" class="soft-button social-think" target="_blank" rel="noopener noreferrer" hidden>Denk mee over WhatsUp Dog</a>
+    </article>
+
     <article class="card modern-card version-card">
       <div class="version-icon">🔄</div>
       <div class="version-copy">
@@ -203,5 +210,5 @@
   <button id="applyUpdateButton" type="button">Nu bijwerken</button>
 </div>
 <div id="toast" class="toast"></div>
-<script src="./vendor/leaflet/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script><script src="backend-config.js?v=4"></script><script src="app-v3.js?v=24"></script>
+<script src="./vendor/leaflet/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script><script src="backend-config.js?v=4"></script><script src="app-v3.js?v=25"></script>
 </body></html>

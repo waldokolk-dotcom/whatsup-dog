@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.15] - 2026-10-03
+
+- Nieuw: je kunt WhatsUp Dog nu volgen via Facebook en meldingen of weggeefitems makkelijker delen.
+- Delen gebruikt waar mogelijk het native deelvenster en anders een klembordfallback, zonder exacte GPS-coördinaten of persoonlijke contactgegevens.
+
 ## [1.9.1] - 2026-09-15
 
 ### Changed

@@ -5,7 +5,9 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports";
-const APP_VERSION="4.14", APP_VERSION_DATE="02-10-2026";
+const APP_VERSION="4.15", APP_VERSION_DATE="03-10-2026";
+const SOCIAL_LINKS=Object.freeze({facebook:"https://www.facebook.com/profile.php?id=61594785673559",instagram:"",tiktok:""});
+const APP_SHARE_URL="https://waldokolk-dotcom.github.io/whatsup-dog/";
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
@@ -65,6 +67,7 @@ function bind(){
  $("#radius").addEventListener("input",e=>{$("#radiusVal").textContent=(e.target.value/1000).toFixed(e.target.value<1000?1:0)+" km"});$("#radius").addEventListener("change",savePushPrefs);
  $$(".push-cat").forEach(x=>x.addEventListener("change",savePushPrefs));
  $("#installButton").addEventListener("click",installApp);
+ renderSocialLinks();
  $("#checkUpdateButton")?.addEventListener("click",openUpdateNotes);
  $("#notesCheckUpdate")?.addEventListener("click",async()=>{
   const pending=!!(updateWorker||updateRegistration?.waiting);
@@ -355,6 +358,8 @@ async function openReportDetail(r){
  actions.classList.toggle("hidden",!own);
  resolve.hidden=!own||r.status!=="active";
  configureReportReaction(r).catch(err=>console.warn("Reactie laden mislukt",err));
+ const share=$("#detailShare");
+ if(share)share.onclick=()=>shareContent({title:"Melding via Whatsup Dog",text:[labelType(r.type),r.subtype,r.text].filter(Boolean).join(" — ")});
  resolve.onclick=async()=>{
    if(!confirm("Is dit opgelost? De melding verdwijnt direct van de kaart."))return;
    try{
@@ -493,8 +498,9 @@ async function refreshGiveaways(){
      const {data:s}=await client.storage.from("giveaway-photos").createSignedUrl(x.image_path,900);
      if(s?.signedUrl)img='<img class="give-card-media" src="'+s.signedUrl+'" alt="">'
    }
-   a.innerHTML=img+'<div class="give-body"><span class="badge">'+(x.kind==="ruilen"?"Ruilen":"Gratis")+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><p class="muted small location">📍 '+esc(x.town)+'</p><div class="give-actions"><button class="give-like reaction-button love" type="button" aria-label="Leuk"><span class="reaction-love-icon" aria-hidden="true"><svg viewBox="0 0 42 28" focusable="false"><path class="reaction-heart" d="M21 22S14 17.7 14 12.2a4.7 4.7 0 0 1 8.2-3.1L21 10.4l1.2-1.3a4.7 4.7 0 0 1 8.2 3.1C30.4 17.7 21 22 21 22Z"/><g class="reaction-paws"><circle cx="6.5" cy="7.4" r="2.7"/><circle cx="12.2" cy="5.4" r="2.5"/><path d="M6.7 11.1c2.5-2.8 6.4-2.5 8.3.5 1.5 2.4-.6 5.1-3.2 4.6l-3.5-.8c-2.4-.5-3.1-2.8-1.6-4.3Z"/><circle cx="35.5" cy="7.4" r="2.7"/><circle cx="29.8" cy="5.4" r="2.5"/><path d="M35.3 11.1c-2.5-2.8-6.4-2.5-8.3.5-1.5 2.4.6 5.1 3.2 4.6l3.5-.8c2.4-.5 3.1-2.8 1.6-4.3Z"/></g></svg></span><span>Leuk</span><b class="give-like-count"></b></button><button class="primary contact">✉️ Neem contact op</button></div></div>';
-   a.querySelector(".contact").onclick=()=>contactGiveaway(x);
+    a.innerHTML=img+'<div class="give-body"><span class="badge">'+(x.kind==="ruilen"?"Ruilen":"Gratis")+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.description)+'</p><p class="muted small location">📍 '+esc(x.town)+'</p><div class="give-actions"><button class="give-like reaction-button love" type="button" aria-label="Leuk"><span class="reaction-love-icon" aria-hidden="true"><svg viewBox="0 0 42 28" focusable="false"><path class="reaction-heart" d="M21 22S14 17.7 14 12.2a4.7 4.7 0 0 1 8.2-3.1L21 10.4l1.2-1.3a4.7 4.7 0 0 1 8.2 3.1C30.4 17.7 21 22 21 22Z"/><g class="reaction-paws"><circle cx="6.5" cy="7.4" r="2.7"/><circle cx="12.2" cy="5.4" r="2.5"/><path d="M6.7 11.1c2.5-2.8 6.4-2.5 8.3.5 1.5 2.4-.6 5.1-3.2 4.6l-3.5-.8c-2.4-.5-3.1-2.8-1.6-4.3Z"/><circle cx="35.5" cy="7.4" r="2.7"/><circle cx="29.8" cy="5.4" r="2.5"/><path d="M35.3 11.1c-2.5-2.8-6.4-2.5-8.3.5-1.5 2.4.6 5.1-3.2 4.6l3.5-.8c2.4-.5 3.1-2.8 1.6-4.3Z"/></g></svg></span><span>Leuk</span><b class="give-like-count"></b></button><button class="secondary give-share" type="button">↗ Delen</button><button class="primary contact">✉️ Neem contact op</button></div></div>';
+    a.querySelector(".contact").onclick=()=>contactGiveaway(x);
+    a.querySelector(".give-share").onclick=()=>shareContent({title:"Weggeefitem via Whatsup Dog",text:[x.title,x.description,x.town?"Plaats/wijk: "+x.town:""].filter(Boolean).join(" — ")});
    const like=a.querySelector(".give-like");
    loadGiveawayReaction(x.id,like).catch(err=>console.warn("Weggeef-like laden mislukt",err));
    like.onclick=()=>toggleGiveawayReaction(x.id,like);
@@ -743,11 +749,34 @@ function syncPushUi(){
 }
 async function finishOnboarding(e){e.preventDefault();const place=$("#onboardPlace").value.trim(),p={species:$("input[name=onSpecies]:checked")?.value||"both",avatar:"🐾",name:"",petName:"",breed:""};write(PKEY,p);if(place&&place!=="Mijn locatie"){try{const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(place)),a=await r.json();if(a[0]){const s=settings();s.areaLabel=a[0].display_name.split(",")[0];s.lat=+a[0].lat;s.lng=+a[0].lon;write(SKEY,s)}}catch{}}localStorage.setItem("wd_v3_onboarded","1");$("#onboarding").close();location.reload()}
 async function installApp(){if(deferredInstall){deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;return}toast(/iphone|ipad|ipod/i.test(navigator.userAgent)?"Tik Deel en kies ‘Zet op beginscherm’":"Open het browsermenu en kies ‘App installeren’")}
+function renderSocialLinks(){
+ const root=$("#socialLinks");if(!root)return;
+ const labels={facebook:"Facebook",instagram:"Instagram",tiktok:"TikTok"};
+ root.innerHTML=Object.entries(SOCIAL_LINKS).filter(([,url])=>url).map(([name,url])=>'<a class="social-link" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" data-social="'+name+'">'+(name==="facebook"?"f":"↗")+' <span>'+labels[name]+'</span></a>').join("");
+ root.hidden=!root.children.length;
+ const think=$("#socialThinkAlong");if(think){think.href=SOCIAL_LINKS.facebook||"#";think.hidden=!SOCIAL_LINKS.facebook}
+ const detailText=$("#detailText");
+ if(detailText&&!$("#detailShare")){const button=document.createElement("button");button.id="detailShare";button.type="button";button.className="secondary compact-share";button.textContent="↗ Delen";detailText.insertAdjacentElement("afterend",button)}
+}
+async function copyShareText(text){
+ if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);return}
+ const area=document.createElement("textarea");area.value=text;area.setAttribute("readonly","");area.style.position="fixed";area.style.opacity="0";document.body.append(area);area.select();const ok=document.execCommand("copy");area.remove();if(!ok)throw new Error("copy-failed");
+}
+async function shareContent({title,text}){
+ const shareText=[text,APP_SHARE_URL].filter(Boolean).join("\n");
+ try{
+  if(typeof navigator.share==="function"){await navigator.share({title,text,url:APP_SHARE_URL});return}
+  await copyShareText(shareText);toast("Link gekopieerd");
+ }catch(err){if(err?.name!=="AbortError"){console.warn("Delen mislukt",err);toast("Delen lukt nu niet")}}
+}
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
 
 let updateRegistration=null, updateWorker=null, updateReloading=false;
 
 const VERSION_NOTES={
+ "4.15":[
+  "Nieuw: je kunt WhatsUp Dog nu volgen via Facebook en meldingen of weggeefitems makkelijker delen."
+ ],
  "4.14":[
   "Het pootjes-en-hartje-icoon is aangepast: de pootjes zijn nu duidelijker en groter dan het hartje.",
   "Ook spullen in de Weggeefhoek kun je nu leuk vinden.",
