@@ -171,8 +171,8 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.evaluate(()=>document.querySelector('[data-view="info"]').click());
-  await expect(page.locator('#appVersion')).toContainText('4.16');
-  await expect(page.locator('#versionDate')).toContainText('03-10-2026');
+  await expect(page.locator('#appVersion')).toContainText('4.21');
+  await expect(page.locator('#versionDate')).toContainText('08-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
 
@@ -644,7 +644,7 @@ test('pending update button opens notes before applying update',async({page})=>{
   await page.evaluate(()=>document.querySelector('#updateBanner').classList.remove('hidden'));
   await page.locator('#applyUpdateButton').click();
   await expect(page.locator('#updateNotesDialog')).toBeVisible();
-  await expect(page.locator('#notesVersion')).toHaveText('4.16');
+  await expect(page.locator('#notesVersion')).toHaveText('4.21');
 });
 
 test('paw-heart icon makes paws visually larger than before',async({page})=>{
