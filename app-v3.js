@@ -5,7 +5,8 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports";
-const APP_VERSION="4.16", APP_VERSION_DATE="03-10-2026";
+const APP_VERSION="4.20", APP_VERSION_DATE="08-10-2026";
+let premiumMapFilter="all";
 const SOCIAL_LINKS=Object.freeze({facebook:"https://www.facebook.com/profile.php?id=61594785673559",instagram:"",tiktok:""});
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
@@ -32,7 +33,14 @@ async function boot(){
  const qp=new URLSearchParams(location.search).get("report");if(qp)setTimeout(()=>openReportById(qp),700);
 }
 function bind(){
- $$("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
+ $("#wdHomeMap")?.addEventListener("click",()=>showView("map"));
+ $("#wdHomeReport")?.addEventListener("click",openReport);
+ $("#wdHomeDanger")?.addEventListener("click",()=>{premiumMapFilter="danger";syncPremiumMapFilter();showView("map")});
+ $("#wdHomeLost")?.addEventListener("click",()=>{premiumMapFilter="lost";syncPremiumMapFilter();showView("map")});
+ $("#wdHomeOffleash")?.addEventListener("click",()=>{showView("map");const t=$("#offleashToggle");if(t&&!t.checked){t.checked=true;toggleOffleashLayer()}});
+ $("#wdHomeAll")?.addEventListener("click",()=>showView("alerts"));
+ $("[data-mapfilter]").forEach(b=>b.addEventListener("click",()=>{premiumMapFilter=b.dataset.mapfilter;syncPremiumMapFilter()}));
+ $("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
  $("#pawFab").addEventListener("click",()=>$("#pawDialog").showModal());
  $("#pawReport").addEventListener("click",()=>{$("#pawDialog").close();openReport()});
  $("#pawGive").addEventListener("click",()=>{$("#pawDialog").close();showView("giveaway")});
@@ -79,8 +87,41 @@ function bind(){
  $("#onboardLocate").addEventListener("click",()=>navigator.geolocation?.getCurrentPosition(async p=>{const s=settings();s.lat=p.coords.latitude;s.lng=p.coords.longitude;s.areaLabel="Mijn locatie";write(SKEY,s);$("#onboardPlace").value="Mijn locatie";toast("Locatie gekozen")},()=>toast("Locatie niet gedeeld")));
  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
 }
+
+function premiumFilterMatch(r){
+ if(premiumMapFilter==="all")return true;
+ if(premiumMapFilter==="danger")return ["danger","vegetation","road"].includes(r.type);
+ if(premiumMapFilter==="animal")return ["spotted"].includes(r.type);
+ if(premiumMapFilter==="fun")return ["fun","walk","other"].includes(r.type);
+ return r.type===premiumMapFilter;
+}
+function syncPremiumMapFilter(){
+ $("[data-mapfilter]").forEach(b=>b.classList.toggle("active",b.dataset.mapfilter===premiumMapFilter));
+ renderReportMarkers();
+}
+function renderPremiumHome(rows){
+ const host=$("#wdHomeReports");if(!host)return;
+ const entries=validActiveReports(rows).slice().sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0)).slice(0,4);
+ host.replaceChildren();
+ if(!entries.length){const empty=document.createElement("div");empty.className="wd-empty";empty.textContent="Nog geen actieve meldingen in jouw buurt. Bekijk de kaart of deel zelf een nuttige melding.";host.append(empty);return;}
+ const shortTime=d=>{try{return new Date(d).toLocaleDateString("nl-NL",{day:"numeric",month:"short"})}catch{return "Recent"}};
+ for(const r of entries){
+  const item=document.createElement("button");item.type="button";item.className="wd-report-card";
+  const symbol=document.createElement("span");symbol.className="wd-report-symbol "+(r.type==="lost"?"lost":r.type==="spotted"?"animal":r.type==="fun"?"fun":"");
+  symbol.textContent=r.type==="lost"?"♡":r.type==="spotted"?"⌾":r.type==="fun"?"✳":"!";
+  const copy=document.createElement("span");
+  const title=document.createElement("strong");title.textContent=r.subtype||labelType(r.type);
+  const detail=document.createElement("small");detail.textContent=(r.author_name||"Buurtgenoot")+" · "+shortTime(r.created_at);
+  const arrow=document.createElement("span");arrow.textContent="›";arrow.setAttribute("aria-hidden","true");
+  copy.append(title,detail);item.append(symbol,copy,arrow);
+  item.addEventListener("click",()=>{showView("map");map?.setView([Number(r.lat),Number(r.lng)],16);openReportDetail(r)});
+  host.append(item);
+ }
+}
+
 function showView(v){
  $$(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
+ if(v==="home")renderPremiumHome(lastActiveReports.length?lastActiveReports:cachedActiveReports());
  if(v==="map"){
    setTimeout(()=>map?.invalidateSize(),50);
    refreshReports().catch(err=>console.warn("Kaartmeldingen verversen",err));
@@ -198,7 +239,7 @@ function openReportCluster(group){
 function renderReportMarkers(){
  if(!map||!markers)return;
  markers.clearLayers();
- const valid=validActiveReports(lastActiveReports);
+ const valid=validActiveReports(lastActiveReports).filter(premiumFilterMatch);
  for(const group of clusterReportGroups(valid)){
    if(group.length===1){
      const r=group[0];
@@ -255,6 +296,7 @@ async function refreshReports(){
    cacheActiveReports(rows);
    syncReportMarkers(rows);
    renderAlerts(rows);
+   renderPremiumHome(rows);
    focusLatestOwnActiveReport(rows);
  }catch(err){
    console.warn("Meldingen verversen mislukt",err);
@@ -262,6 +304,7 @@ async function refreshReports(){
    if(cached.length){
      syncReportMarkers(cached);
      renderAlerts(cached);
+     renderPremiumHome(cached);
    }
  }
 }
@@ -767,6 +810,7 @@ window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredIns
 let updateRegistration=null, updateWorker=null, updateReloading=false;
 
 const VERSION_NOTES={
+ "4.20":["Whatsup Dog heeft een nieuw premium ontwerp met Home, SVG-iconen, kaartfilters en vernieuwde navigatie.","Je bestaande meldingen, pushinstellingen en weggeefitems blijven behouden."],
  "4.16":[
   "Nieuw: de knop Delen opent rechtstreeks de WhatsUp Dog-Facebookpagina."
  ],
