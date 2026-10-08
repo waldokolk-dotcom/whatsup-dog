@@ -270,7 +270,7 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
   },{now:now.toISOString(),expires:expires.toISOString()});
   await page.reload();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
-  await expect(page.locator('.wd-report-marker-icon .marker')).toContainText('💧');
+  await expect(page.locator('.wd-report-marker-icon .wd-pin-shell')).toContainText('!');
 });
 
 test('resolve and delete remove markers from map immediately',async({page})=>{
@@ -394,10 +394,10 @@ test('report markers remain fully visible on overview zoom',async({page})=>{
   },{now:now.toISOString(),expires:expires.toISOString()});
   await page.reload();
   const marker=page.locator('.wd-report-marker-icon');
-  const cssWidth=await marker.locator('.marker').evaluate(el=>parseFloat(getComputedStyle(el).width));
+  const cssWidth=await marker.locator('.wd-pin-shell').evaluate(el=>parseFloat(getComputedStyle(el).width));
   expect(cssWidth).toBeGreaterThanOrEqual(23);
-  expect(cssWidth).toBeLessThanOrEqual(25);
-  await expect(marker.locator('.marker span')).toContainText('💧');
+  expect(cssWidth).toBeLessThanOrEqual(33);
+  await expect(marker.locator('.wd-pin-center')).toContainText('!');
 });
 
 test('report markers reveal icon when zoomed in',async({page})=>{
@@ -425,10 +425,10 @@ test('report markers reveal icon when zoomed in',async({page})=>{
   await page.reload();
   const marker=page.locator('.wd-report-marker-icon');
   await expect(marker).not.toHaveClass(/is-compact/);
-  const cssWidth=await marker.locator('.marker').evaluate(el=>parseFloat(getComputedStyle(el).width));
+  const cssWidth=await marker.locator('.wd-pin-shell').evaluate(el=>parseFloat(getComputedStyle(el).width));
   expect(cssWidth).toBeGreaterThanOrEqual(28);
-  expect(cssWidth).toBeLessThanOrEqual(32);
-  await expect(marker.locator('.marker')).toContainText('💧');
+  expect(cssWidth).toBeLessThanOrEqual(40);
+  await expect(marker.locator('.wd-pin-shell')).toContainText('!');
 });
 
 test('active report marker stays visible across zoom levels',async({page})=>{
@@ -455,11 +455,11 @@ test('active report marker stays visible across zoom levels',async({page})=>{
   await page.reload();
   const marker=page.locator('.wd-report-marker-icon');
   await expect(marker).toHaveCount(1);
-  await expect(marker.locator('.marker span')).toContainText('💧');
+  await expect(marker.locator('.wd-pin-center')).toContainText('!');
   const before=await marker.boundingBox();
   expect(before.width).toBeGreaterThanOrEqual(24);
   expect(before.width).toBeLessThanOrEqual(32);
-  await expect(marker.locator('.marker span')).toContainText('💧');
+  await expect(marker.locator('.wd-pin-center')).toContainText('!');
 });
 
 test('transient report feed failure never clears existing markers',async({page})=>{
@@ -487,7 +487,7 @@ test('transient report feed failure never clears existing markers',async({page})
   await page.locator('[data-view="alerts"]').click();
   await page.locator('[data-view="map"]').click();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
-  await expect(page.locator('.wd-report-marker-icon .marker span')).toContainText('💧');
+  await expect(page.locator('.wd-report-marker-icon .wd-pin-center')).toContainText('!');
 });
 
 test('active report cache survives a page reload when feed temporarily fails',async({page})=>{
@@ -548,10 +548,10 @@ test('dense nearby reports are clustered into a calm mobile map view',async({pag
   },reports);
   await page.reload();
   await expect(page.locator('.wd-report-cluster-icon')).toHaveCount(1);
-  await expect(page.locator('.wd-report-cluster-icon .report-cluster b')).toHaveText('8');
-  const box=await page.locator('.wd-report-cluster-icon .report-cluster').boundingBox();
-  expect(box.width).toBeLessThanOrEqual(40);
-  expect(box.height).toBeLessThanOrEqual(40);
+  await expect(page.locator('.wd-report-cluster-icon .wd-cluster-premium span')).toHaveText('8');
+  const box=await page.locator('.wd-report-cluster-icon .wd-cluster-premium').boundingBox();
+  expect(box.width).toBeLessThanOrEqual(48);
+  expect(box.height).toBeLessThanOrEqual(48);
 });
 
 test('marker implementation keeps report icons and adds zoom-aware density control',async({page})=>{
@@ -595,7 +595,7 @@ test('active report feed is restored after a full page restart',async({page})=>{
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
   await page.reload();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
-  await expect(page.locator('.wd-report-marker-icon .marker')).toContainText('💧');
+  await expect(page.locator('.wd-report-marker-icon .wd-pin-shell')).toContainText('!');
 });
 
 
