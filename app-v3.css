@@ -768,14 +768,3 @@ dialog[open]{
 .sheet{background:linear-gradient(180deg,#fafbf8,#f3f6f1);box-shadow:0 -28px 90px rgba(10,38,31,.26)}
 :where(button,a,input,textarea,select):focus-visible{outline:3px solid rgba(15,122,103,.36);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.paw-fab:hover{transform:translateX(-50%)}}
-
-/* V4.18 — MagicPath neighborhood-safety direction */
-.app{background-color:#edf3ed}.app:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 15% 5%,rgba(26,174,135,.15),transparent 26rem),radial-gradient(circle at 88% 52%,rgba(70,111,222,.11),transparent 24rem);z-index:0}.app>*{position:relative}
-.app-header{box-shadow:0 12px 30px rgba(15,55,46,.08)}
-.map,.map-card{border-radius:26px;box-shadow:0 18px 44px rgba(21,58,49,.14);overflow:hidden;border:1px solid rgba(255,255,255,.8)}
-.map:after{content:"IN JOUW BUURT";position:absolute;left:14px;top:14px;z-index:610;border:1px solid rgba(255,255,255,.78);border-radius:13px;background:rgba(255,255,255,.88);padding:7px 10px;color:var(--green-dark);font-size:9px;font-weight:950;letter-spacing:.12em;box-shadow:0 8px 22px rgba(19,55,46,.12);backdrop-filter:blur(14px);pointer-events:none}
-.wd-report-marker-icon .marker{box-shadow:0 10px 22px rgba(16,50,42,.28);border-width:4px}
-.feature-card,.give-hero{background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(235,247,241,.94))}
-.value-pill,.badge{box-shadow:inset 0 0 0 1px rgba(15,122,103,.08)}
-.nav button.active:after{content:"";width:5px;height:5px;border-radius:50%;background:var(--green);position:absolute;bottom:5px}.nav button{position:relative}
-@media(max-width:430px){.map-card{margin-left:-4px;margin-right:-4px}.map-card:after{left:11px;top:11px}}
