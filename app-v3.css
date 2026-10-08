@@ -756,3 +756,15 @@ dialog[open]{
 .give-like-count:empty{display:none}
 @media(max-width:390px){.give-actions{grid-template-columns:1fr}.give-actions .reaction-button{justify-content:center}}
 .social-card{display:grid;gap:10px}.social-links{display:flex;flex-wrap:wrap;gap:8px}.social-link,.social-think{text-decoration:none}.social-link{display:inline-flex;align-items:center;gap:8px;border-radius:999px;background:#1877f2;color:#fff;padding:10px 14px;font-weight:900}.social-link:first-letter{font-family:Arial,sans-serif;font-size:19px;font-weight:1000}.social-copy{margin:0;line-height:1.45}.social-think{display:inline-flex;justify-content:center;align-items:center;width:fit-content}.compact-share{margin:10px 0 2px;padding:9px 14px}.give-actions{flex-wrap:wrap}.give-share{padding:9px 12px}.give-actions .contact{flex:1 1 100%}@media(min-width:520px){.give-actions .contact{flex:1 1 auto}}
+
+/* V4.17 — tactile, calm and accessible visual refinement */
+.app{background:radial-gradient(circle at 12% 0,rgba(20,162,127,.10),transparent 25rem),radial-gradient(circle at 92% 25%,rgba(78,109,219,.08),transparent 24rem),var(--bg)}
+.app-header{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.86));backdrop-filter:blur(22px);border-bottom:1px solid rgba(15,122,103,.10)}
+.card,.modern-card,.feature-card,.profile-card,.activity-summary,.menu-card,.give-hero,.contact-banner,.give-card,.info-tile,.setting-link,.alert-item,.report-type{box-shadow:0 12px 30px rgba(24,57,49,.07);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.setting-link:hover,.alert-item:hover,.report-type:hover,.activity-summary:hover,.give-card:hover{transform:translateY(-2px);border-color:#b8d9cf;box-shadow:0 18px 36px rgba(24,57,49,.12)}
+.primary,.header-add{box-shadow:0 12px 26px rgba(15,122,103,.23);transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}.primary:hover,.header-add:hover{transform:translateY(-2px);filter:saturate(1.08);box-shadow:0 17px 30px rgba(15,122,103,.28)}
+.paw-fab{background:linear-gradient(145deg,#18a98c,#096754);box-shadow:0 20px 44px rgba(10,109,91,.34);transition:transform .18s ease,box-shadow .18s ease}.paw-fab:hover{transform:translateX(-50%) translateY(-3px);box-shadow:0 24px 50px rgba(10,109,91,.40)}
+.nav{background:rgba(255,255,255,.91);border-top-color:rgba(15,122,103,.12)}.nav button{border-radius:14px;transition:background .16s ease,color .16s ease,transform .16s ease}.nav button.active{background:linear-gradient(180deg,rgba(223,245,239,.85),rgba(255,255,255,.45));transform:translateY(-1px)}
+.sheet{background:linear-gradient(180deg,#fafbf8,#f3f6f1);box-shadow:0 -28px 90px rgba(10,38,31,.26)}
+:where(button,a,input,textarea,select):focus-visible{outline:3px solid rgba(15,122,103,.36);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.paw-fab:hover{transform:translateX(-50%)}}
