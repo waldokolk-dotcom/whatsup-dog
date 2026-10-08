@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports";
-const APP_VERSION="4.20", APP_VERSION_DATE="08-10-2026";
+const APP_VERSION="4.21", APP_VERSION_DATE="08-10-2026";
 let premiumMapFilter="all";
 const SOCIAL_LINKS=Object.freeze({facebook:"https://www.facebook.com/profile.php?id=61594785673559",instagram:"",tiktok:""});
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
@@ -18,7 +18,7 @@ async function boot(){
  client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
  const {data}=await client.auth.getSession(); if(data.session) user=data.session.user;
  if(!user){const r=await client.auth.signInAnonymously();if(r.error){console.warn(r.error);toast("Veilige toestelsessie kon niet starten");return}user=r.data.user}
- initMap(); bind(); syncPushUi(); applyProfile();
+ initMap(); bind(); showView("home"); syncPushUi(); applyProfile();
  await refreshReports().catch(err=>console.warn("Meldingen laden",err));
  await refreshGiveaways().catch(err=>console.warn("Weggeefhoek laden",err));
  await refreshMine().catch(err=>console.warn("Mijn Whatsup laden",err));
@@ -185,14 +185,12 @@ function markerSizeForZoom(zoom=map?.getZoom?.()||14){
  return 32;
 }
 function markerIcon(r){
- const c=["danger","vegetation","dirty"].includes(r.type)?"#ff6b4a":r.type==="lost"?"#ef476f":r.type==="fun"||r.type==="walk"?"#28a17a":r.type==="road"?"#4f7fd7":"#5178db";
- const e=iconForReport(r),size=markerSizeForZoom();
- return L.divIcon({
-   className:"wd-report-marker-icon",
-   html:'<div class="marker" style="--marker-size:'+size+'px;background:'+c+'"><span>'+e+'</span></div>',
-   iconSize:[size,size],
-   iconAnchor:[Math.round(size/2),Math.round(size*.88)]
- })
+ const kind=r.type==="lost"?"lost":["danger","vegetation","dirty"].includes(r.type)?"danger":["fun","walk"].includes(r.type)?"fun":r.type==="road"?"road":"animal";
+ const glyph=kind==="lost"?"♡":kind==="danger"?"!":kind==="fun"?"✳":kind==="road"?"↗":"•";
+ const size=markerSizeForZoom();
+ return L.divIcon({className:"wd-report-marker-icon wd-pin-"+kind,
+ html:'<div class="wd-pin-shell"><span class="wd-pin-center">'+glyph+'</span></div>',
+ iconSize:[size,size+8],iconAnchor:[Math.round(size/2),size+3]});
 }
 function reportClusterCellSize(zoom=map?.getZoom?.()||14){
  if(zoom<=11)return 72;
@@ -213,14 +211,10 @@ function clusterReportGroups(rows){
  return [...buckets.values()];
 }
 function clusterIcon(group){
- const count=group.length,icons=[...new Set(group.map(iconForReport))].slice(0,2).join("");
- const size=count>99?40:count>9?37:35;
- return L.divIcon({
-   className:"wd-report-cluster-icon",
-   html:'<div class="report-cluster" style="--cluster-size:'+size+'px"><span class="cluster-icons">'+icons+'</span><b>'+count+'</b></div>',
-   iconSize:[size,size],
-   iconAnchor:[Math.round(size/2),Math.round(size/2)]
- })
+ const count=group.length,size=count>99?47:43;
+ return L.divIcon({className:"wd-report-cluster-icon",
+ html:'<div class="wd-cluster-premium"><span>'+count+'</span></div>',
+ iconSize:[size,size],iconAnchor:[size/2,size/2]});
 }
 function openReportCluster(group){
  if(!map||!group?.length)return;
@@ -810,6 +804,7 @@ window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredIns
 let updateRegistration=null, updateWorker=null, updateReloading=false;
 
 const VERSION_NOTES={
+ "4.21":["Nieuwe kaartmarkers, compacte clusters en een vernieuwde kaartpresentatie.","Mobiele bediening en kleuren volledig herzien."],
  "4.20":["Whatsup Dog heeft een nieuw premium ontwerp met Home, SVG-iconen, kaartfilters en vernieuwde navigatie.","Je bestaande meldingen, pushinstellingen en weggeefitems blijven behouden."],
  "4.16":[
   "Nieuw: de knop Delen opent rechtstreeks de WhatsUp Dog-Facebookpagina."
