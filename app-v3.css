@@ -768,3 +768,22 @@ dialog[open]{
 .sheet{background:linear-gradient(180deg,#fafbf8,#f3f6f1);box-shadow:0 -28px 90px rgba(10,38,31,.26)}
 :where(button,a,input,textarea,select):focus-visible{outline:3px solid rgba(15,122,103,.36);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.paw-fab:hover{transform:translateX(-50%)}}
+
+/* V4.19 — iPhone map layout repair: compact controls, no overlapping map label */
+.map-view{height:calc(100% - 86px);background:#e8eee7}
+.map-view .map{border:0;border-radius:0;box-shadow:none;overflow:hidden}
+.map-view .map:after{content:none!important;display:none!important}
+.map-brand{top:calc(10px + env(safe-area-inset-top));left:12px;max-width:calc(100% - 80px);font-size:18px;padding:8px 11px;border-radius:12px;white-space:nowrap;z-index:550}
+.header-icon{top:calc(10px + env(safe-area-inset-top));right:12px;width:40px;height:40px;border-radius:12px}
+.top-pill{top:calc(66px + env(safe-area-inset-top));left:12px;max-width:calc(42% - 16px);padding:10px 12px;font-size:13px;z-index:550}
+.offleash-control,.offleash-control:is(.active){top:calc(66px + env(safe-area-inset-top));right:12px;left:auto;width:190px;max-width:calc(58% - 10px);min-width:0;gap:6px;padding:6px 8px;border-radius:14px;grid-template-columns:auto minmax(0,1fr) auto}
+.offleash-icon{width:28px;height:28px;font-size:16px;border-radius:9px}
+.offleash-copy b{font-size:10px;overflow:hidden;text-overflow:ellipsis}
+.offleash-copy small{font-size:8px;margin-top:2px}
+.offleash-control .toggle{width:36px;height:22px}
+.offleash-control .toggle:after{width:18px;height:18px;top:2px;left:2px}
+.offleash-control .toggle:checked:after{transform:translateX(14px)}
+.map-locate{right:12px;bottom:110px;width:46px;height:46px;border-radius:14px}
+.map-card{left:12px;right:12px;bottom:112px;max-height:42%;overflow:auto}
+.paw-fab{bottom:98px;width:72px;height:72px;border-radius:20px}
+@media(max-width:375px){.offleash-control{width:165px}.offleash-icon{display:none}.top-pill{max-width:39%}.map-brand{font-size:16px}}
