@@ -29,7 +29,15 @@ def main():
     req=urllib.request.Request("https://models.github.ai/inference/chat/completions",
         payload,{"Authorization":"Bearer "+token,"Content-Type":"application/json","Accept":"application/json"},method="POST")
     try:
-        with urllib.request.urlopen(req,timeout=75) as resp: response=json.load(resp)
+        with urllib.request.urlopen(req,timeout=75) as resp:
+            body=resp.read()
+            print("GitHub Models response HTTP",resp.status,"content-type",resp.headers.get("content-type","unknown"),"bytes",len(body))
+            if not body.strip():
+                raise RuntimeError("GitHub Models returned an empty response; verify models:read entitlement and endpoint")
+            try:
+                response=json.loads(body)
+            except json.JSONDecodeError:
+                raise RuntimeError("GitHub Models returned a non-JSON response; verify endpoint and model availability") from None
     except urllib.error.HTTPError as e:
         raise RuntimeError("Model API returned HTTP "+str(e.code)+". Check GitHub Models entitlement and workflow permissions.") from None
     answer=response["choices"][0]["message"]["content"]
