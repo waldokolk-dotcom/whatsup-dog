@@ -1,0 +1,62 @@
+name: Agency Agents pilot (OpenAI API)
+on:
+  pull_request:
+    paths:
+      - "scripts/agency_runner.py"
+      - "agents/upstream/**"
+      - ".github/workflows/agency-agents.yml"
+  workflow_dispatch:
+    inputs:
+      role:
+        description: Selected specialist
+        required: true
+        type: choice
+        options:
+          - onboarding
+          - frontend
+          - review
+      task:
+        description: Assignment (no secrets, max 1800 characters)
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Compile agent runner
+        run: python3 -m py_compile scripts/agency_runner.py
+      - name: Verify vendored agent roles and licence
+        run: |
+          test -s agents/upstream/LICENSE
+          test -s agents/upstream/engineering-frontend-developer.md
+          test -s agents/upstream/engineering-code-reviewer.md
+          test -s agents/upstream/engineering-codebase-onboarding-engineer.md
+  agency-report:
+    if: github.event_name == 'workflow_dispatch'
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run selected Agency agent (read only)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4.1-mini
+          AGENT_ROLE: ${{ github.event_name == 'workflow_dispatch' && inputs.role || 'onboarding' }}
+          AGENT_TASK: ${{ github.event_name == 'workflow_dispatch' && inputs.task || 'Analyseer deze repository op basis van de README, vermeld onzekerheden en adviseer één veilige volgende stap. Doe geen wijzigingen.' }}
+        run: python3 scripts/agency_runner.py
+      - name: Publish report artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agency-report-${{ github.run_id }}
+          path: agent-reports/report.md
+          retention-days: 14
