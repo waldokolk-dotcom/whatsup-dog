@@ -1,0 +1,46 @@
+name: Agency Agents — read-only pilot
+on:
+  workflow_dispatch:
+    inputs:
+      role:
+        description: Selected specialist
+        required: true
+        type: choice
+        options:
+          - onboarding
+          - frontend
+          - review
+      task:
+        description: Assignment (no secrets, max 1800 characters)
+        required: true
+        type: string
+permissions:
+  contents: read
+  models: read
+jobs:
+  agency-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    concurrency:
+      group: agency-report-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify runner syntax
+        run: python3 -m py_compile scripts/agency_runner.py
+      - name: Run selected Agency agent (read only)
+        env:
+          GH_MODELS_TOKEN: ${{ github.token }}
+          AGENT_ROLE: ${{ inputs.role }}
+          AGENT_TASK: ${{ inputs.task }}
+        run: python3 scripts/agency_runner.py
+      - name: Publish report artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agency-report-${{ github.run_id }}
+          path: agent-reports/report.md
+          retention-days: 14
