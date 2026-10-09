@@ -1,5 +1,10 @@
-name: Agency Agents — read-only pilot
+name: Agency Agents pilot
 on:
+  pull_request:
+    paths:
+      - "scripts/agency_runner.py"
+      - "agents/upstream/**"
+      - ".github/workflows/agency-agents.yml"
   workflow_dispatch:
     inputs:
       role:
@@ -18,19 +23,30 @@ permissions:
   contents: read
   models: read
 jobs:
-  agency-report:
+  smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
-    concurrency:
-      group: agency-report-${{ github.ref }}
-      cancel-in-progress: false
+    timeout-minutes: 3
     steps:
-      - name: Checkout current repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Verify runner syntax
+      - name: Compile agent runner
         run: python3 -m py_compile scripts/agency_runner.py
+      - name: Verify vendored agent roles and licence
+        run: |
+          test -s agents/upstream/LICENSE
+          test -s agents/upstream/engineering-frontend-developer.md
+          test -s agents/upstream/engineering-code-reviewer.md
+          test -s agents/upstream/engineering-codebase-onboarding-engineer.md
+  agency-report:
+    if: github.event_name == 'workflow_dispatch'
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Run selected Agency agent (read only)
         env:
           GH_MODELS_TOKEN: ${{ github.token }}
