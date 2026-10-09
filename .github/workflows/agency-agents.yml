@@ -1,4 +1,4 @@
-name: Agency Agents pilot
+name: Agency Agents pilot (OpenAI API)
 on:
   pull_request:
     paths:
@@ -21,7 +21,6 @@ on:
         type: string
 permissions:
   contents: read
-  models: read
 jobs:
   smoke:
     runs-on: ubuntu-latest
@@ -39,6 +38,7 @@ jobs:
           test -s agents/upstream/engineering-code-reviewer.md
           test -s agents/upstream/engineering-codebase-onboarding-engineer.md
   agency-report:
+    if: github.event_name == 'workflow_dispatch'
     needs: smoke
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -48,7 +48,8 @@ jobs:
           persist-credentials: false
       - name: Run selected Agency agent (read only)
         env:
-          GH_MODELS_TOKEN: ${{ github.token }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4.1-mini
           AGENT_ROLE: ${{ github.event_name == 'workflow_dispatch' && inputs.role || 'onboarding' }}
           AGENT_TASK: ${{ github.event_name == 'workflow_dispatch' && inputs.task || 'Analyseer deze repository op basis van de README, vermeld onzekerheden en adviseer één veilige volgende stap. Doe geen wijzigingen.' }}
         run: python3 scripts/agency_runner.py
