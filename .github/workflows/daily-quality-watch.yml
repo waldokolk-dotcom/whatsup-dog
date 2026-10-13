@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: '22'
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Validate static application
         run: node scripts/validate.mjs
       - name: Check species logic
@@ -32,7 +32,15 @@ jobs:
       - name: Install browser
         run: npx playwright install --with-deps chromium
       - name: Browser usability tests
-        run: npm run test:usability
+        run: |
+          python3 -m http.server 8765 >/tmp/whatsup-dog-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi
+            sleep 0.5
+          done
+          npm run test:usability
       - name: Upload test evidence on failure
         if: failure()
         uses: actions/upload-artifact@v4
