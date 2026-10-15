@@ -7,6 +7,7 @@ const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports";
 const APP_VERSION="4.21", APP_VERSION_DATE="08-10-2026";
 let premiumMapFilter="all";
+let reportRefreshSequence=0; // Latest refresh wins.
 const SOCIAL_LINKS=Object.freeze({facebook:"https://www.facebook.com/profile.php?id=61594785673559",instagram:"",tiktok:""});
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
@@ -279,20 +280,24 @@ async function fetchActiveReports(){
 }
 async function refreshReports(){
  if(!client||!user)return;
+ const requestId=++reportRefreshSequence;
  try{
    const expiry=await client.rpc("archive_expired_reports");
    if(expiry?.error)console.warn("Verlopen meldingen archiveren mislukt",expiry.error);
  }catch(err){
    console.warn("Verlopen meldingen archiveren mislukt",err);
  }
+ if(requestId!==reportRefreshSequence)return;
  try{
    const rows=await fetchActiveReports();
+   if(requestId!==reportRefreshSequence)return;
    cacheActiveReports(rows);
    syncReportMarkers(rows);
    renderAlerts(rows);
    renderPremiumHome(rows);
    focusLatestOwnActiveReport(rows);
  }catch(err){
+   if(requestId!==reportRefreshSequence)return;
    console.warn("Meldingen verversen mislukt",err);
    const cached=cachedActiveReports();
    if(cached.length){
