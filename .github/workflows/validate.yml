@@ -13,6 +13,7 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/validate.mjs
+      - run: node scripts/test-selector-contract.mjs
       - run: npm ci --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
       - name: Run V3 browser journeys
