@@ -39,8 +39,8 @@ function bind(){
  $("#wdHomeLost")?.addEventListener("click",()=>{premiumMapFilter="lost";syncPremiumMapFilter();showView("map")});
  $("#wdHomeOffleash")?.addEventListener("click",()=>{showView("map");const t=$("#offleashToggle");if(t&&!t.checked){t.checked=true;toggleOffleashLayer()}});
  $("#wdHomeAll")?.addEventListener("click",()=>showView("alerts"));
- $("[data-mapfilter]").forEach(b=>b.addEventListener("click",()=>{premiumMapFilter=b.dataset.mapfilter;syncPremiumMapFilter()}));
- $("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
+ $$("[data-mapfilter]").forEach(b=>b.addEventListener("click",()=>{premiumMapFilter=b.dataset.mapfilter;syncPremiumMapFilter()}));
+ $$("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
  $("#pawFab").addEventListener("click",()=>$("#pawDialog").showModal());
  $("#pawReport").addEventListener("click",()=>{$("#pawDialog").close();openReport()});
  $("#pawGive").addEventListener("click",()=>{$("#pawDialog").close();showView("giveaway")});
@@ -96,7 +96,7 @@ function premiumFilterMatch(r){
  return r.type===premiumMapFilter;
 }
 function syncPremiumMapFilter(){
- $("[data-mapfilter]").forEach(b=>b.classList.toggle("active",b.dataset.mapfilter===premiumMapFilter));
+ $$("[data-mapfilter]").forEach(b=>b.classList.toggle("active",b.dataset.mapfilter===premiumMapFilter));
  renderReportMarkers();
 }
 function renderPremiumHome(rows){
