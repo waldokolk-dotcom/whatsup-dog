@@ -123,7 +123,10 @@ function showView(v){
  $$(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
  if(v==="home")renderPremiumHome(lastActiveReports.length?lastActiveReports:cachedActiveReports());
  if(v==="map"){
-   setTimeout(()=>map?.invalidateSize(),50);
+   setTimeout(()=>{
+     map?.invalidateSize({animate:false});
+     focusLatestOwnActiveReport(lastActiveReports);
+   },50);
    refreshReports().catch(err=>console.warn("Kaartmeldingen verversen",err));
  }
  if(v==="alerts"){syncPushUi();refreshReports();}
@@ -303,10 +306,13 @@ async function refreshReports(){
  }
 }
 function focusLatestOwnActiveReport(rows){
- if(initialReportFocusDone||!map)return;
- initialReportFocusDone=true;
+ // Home is the first screen: defer map bounds and centering until the map is visible.
+ if(initialReportFocusDone||!map||!$("#view-map")?.classList.contains("active"))return;
+ const container=map.getContainer();
+ if(!container?.clientWidth||!container?.clientHeight)return;
  const valid=(rows||[]).filter(r=>Number.isFinite(Number(r.lat))&&Number.isFinite(Number(r.lng)));
  if(!valid.length)return;
+ map.invalidateSize({animate:false});
  const s=settings();
  const area=L.latLng(Number(s.lat),Number(s.lng));
  const maxDistance=Math.max(Number(s.radius)||2000,3000);
@@ -318,8 +324,8 @@ function focusLatestOwnActiveReport(rows){
  const anyVisible=points.some(point=>map.getBounds().pad(-0.05).contains(point));
  if(!anyVisible&&latest){
    map.setView([Number(latest.lat),Number(latest.lng)],16,{animate:false});
-   setTimeout(()=>map.invalidateSize(),30);
  }
+ initialReportFocusDone=true;
 }
 function iconForReport(r){
  const sub=String(r.subtype||"").toLowerCase(),t=r.type;
