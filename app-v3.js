@@ -37,7 +37,7 @@ function bind(){
  $("#wdHomeReport")?.addEventListener("click",openReport);
  $("#wdHomeDanger")?.addEventListener("click",()=>{premiumMapFilter="danger";syncPremiumMapFilter();showView("map")});
  $("#wdHomeLost")?.addEventListener("click",()=>{premiumMapFilter="lost";syncPremiumMapFilter();showView("map")});
- $("#wdHomeOffleash")?.addEventListener("click",()=>{showView("map");const t=$("#offleashToggle");if(t&&!t.checked){t.checked=true;toggleOffleashLayer()}});
+ $("#wdHomeOffleash")?.addEventListener("click",()=>{showView("map");const t=$("#offleashToggle");if(t&&!t.checked){t.checked=true;toggleOffleashLayer({target:t})}});
  $("#wdHomeAll")?.addEventListener("click",()=>showView("alerts"));
  $$("[data-mapfilter]").forEach(b=>b.addEventListener("click",()=>{premiumMapFilter=b.dataset.mapfilter;syncPremiumMapFilter()}));
  $$("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
