@@ -19,6 +19,16 @@
     section.append(note);
     let checked = [];
     try { const saved = JSON.parse(localStorage.getItem(key)); if(Array.isArray(saved)) checked = saved.filter(x => items.includes(x)); } catch {}
+    const progress = document.createElement("p");
+    progress.id = "wd-walk-progress";
+    progress.setAttribute("role", "status");
+    progress.setAttribute("aria-live", "polite");
+    progress.style.cssText = "font-weight:700;font-size:13px;margin:0 0 8px;color:#087864";
+    section.append(progress);
+    function updateProgress() {
+      const count = section.querySelectorAll("input[type=checkbox]:checked").length;
+      progress.textContent = count === items.length ? "Helemaal klaar! Fijne wandeling 🐾" : `${count} van ${items.length} klaar`;
+    }
     items.forEach(item => {
       const label = document.createElement("label");
       label.style.cssText = "display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px";
@@ -29,6 +39,7 @@
           const values = [...section.querySelectorAll("input[type=checkbox]")].filter(x=>x.checked).map(x=>x.value);
           localStorage.setItem(key, JSON.stringify(values));
         } catch {}
+        updateProgress();
       });
       input.value = item;
       const span = document.createElement("span"); span.textContent = item;
@@ -40,8 +51,10 @@
     reset.addEventListener("click", () => {
       section.querySelectorAll("input[type=checkbox]").forEach(x=>{x.checked=false});
       try {localStorage.removeItem(key)} catch {}
+      updateProgress();
     });
     section.append(reset);
+    updateProgress();
     const reports = home.querySelector("#wdHomeReports");
     if(reports) reports.parentElement.insertBefore(section, reports.previousElementSibling || reports);
     else home.append(section);
