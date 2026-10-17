@@ -100,10 +100,11 @@ assert.match(sw,/showNotification/,'Push notification handler missing');
 assert.match(sw,/notificationclick/,'Push deep-link handler missing');
 assert.match(sw,/SKIP_WAITING/,'Service worker update activation handler missing');
 const installHandler=sw.match(/self\.addEventListener\('install',[^\n]+/s)?.[0]||'';
-assert.match(installHandler,/skipWaiting/,'New workers must activate automatically to prevent stale iPhone installs');
+assert.doesNotMatch(installHandler,/skipWaiting/,'Updated workers must wait for explicit activation');
 
 execFileSync(process.execPath,['--check','app-v3.js']);
 execFileSync(process.execPath,['--check','sw.js']);
+execFileSync(process.execPath,['scripts/sw-update-qa.mjs']);
 
 const manifest=JSON.parse(read('manifest.webmanifest'));
 assert.equal(manifest.scope,'./');
