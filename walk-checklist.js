@@ -33,7 +33,7 @@
       const label = document.createElement("label");
       label.style.cssText = "display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px";
       const input = document.createElement("input");
-      input.type = "checkbox"; input.checked = checked.includes(item);
+      input.type = "checkbox"; input.checked = checked.includes(item); input.setAttribute("aria-label", item);
       input.addEventListener("change", () => {
         try {
           const values = [...section.querySelectorAll("input[type=checkbox]")].filter(x=>x.checked).map(x=>x.value);
@@ -56,7 +56,7 @@
     section.append(reset);
     updateProgress();
     const reports = home.querySelector("#wdHomeReports");
-    if(reports) reports.parentElement.insertBefore(section, reports.previousElementSibling || reports);
+    if(reports) reports.parentElement.insertBefore(section, reports);
     else home.append(section);
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init,{once:true});
