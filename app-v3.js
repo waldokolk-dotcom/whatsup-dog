@@ -144,6 +144,8 @@ function initMap(){
  offleashLayer=L.layerGroup();
  markers=L.layerGroup().addTo(map);
  map.on("moveend",()=>{const center=map.getCenter();write(MAPVIEWKEY,{lat:center.lat,lng:center.lng,zoom:map.getZoom()})});
+ // Marker sizes and clustering depend on zoom; refresh immediately without a backend request.
+ map.on("zoomend",()=>renderReportMarkers());
  $("#areaPill").textContent=s.areaLabel+" ▾";
  const enabled=localStorage.getItem("wd_v3_offleash")!=="0";
  const toggle=$("#offleashToggle");if(toggle)toggle.checked=enabled;
