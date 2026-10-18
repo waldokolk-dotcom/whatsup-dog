@@ -18,6 +18,8 @@ export default defineConfig({
   projects: [
     { name: 'mobile-small', use: { ...devices['iPhone SE'], browserName: 'chromium' } },
     { name: 'mobile-modern', use: { ...devices['iPhone 14'], browserName: 'chromium' } },
-    { name: 'desktop', use: { viewport: { width: 1365, height: 900 } } }
+    { name: 'desktop', use: { viewport: { width: 1365, height: 900 } } },
+    // WebKit is a Safari-engine smoke test, not proof of installation on a physical iPhone.
+    { name: 'iphone-webkit', testMatch: /navigation-interaction\.spec\.mjs/, use: { ...devices['iPhone 14'], browserName: 'webkit' } }
   ]
 });
