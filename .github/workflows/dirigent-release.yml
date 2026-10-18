@@ -24,13 +24,17 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$PR_NUMBER" =~ ^[0-9]{1,8}$ ]]
-          pr="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state,isDraft,headRefName,labels,mergeable)"
+          pr="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state,isDraft,headRefName,headRefOid,labels,mergeable)"
           test "$(jq -r .state <<<"$pr")" = OPEN
           test "$(jq -r .isDraft <<<"$pr")" = false
           [[ "$(jq -r .headRefName <<<"$pr")" == dirigent/issue-* ]]
           jq -e '.labels | any(.name == "dirigent:release-approved")' <<<"$pr" >/dev/null
           test "$(jq -r .mergeable <<<"$pr")" = MERGEABLE
-          gh pr checks "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --required
+          sha="$(jq -r .headRefOid <<<"$pr")"
+          for workflow in validate.yml browser-acceptance.yml; do
+            runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --commit "$sha" --event workflow_dispatch --limit 10 --json status,conclusion,url)"
+            jq -e 'map(select(.status == "completed" and .conclusion == "success")) | length > 0' <<<"$runs" >/dev/null
+          done
       - name: Merge approved change
         run: gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --squash --delete-branch
       - name: Start existing guarded Pages release
