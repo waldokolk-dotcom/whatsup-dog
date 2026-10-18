@@ -8,6 +8,10 @@ on:
       - 'tests/v3.spec.mjs'
       - 'tests/navigation-regression.spec.mjs'
       - 'tests/navigation-interaction.spec.mjs'
+      - 'scripts/dirigent.mjs'
+      - 'docs/DIRIGENT.md'
+      - '.github/workflows/dirigent.yml'
+      - '.github/workflows/dirigent-release.yml'
       - '.github/workflows/browser-acceptance.yml'
   workflow_dispatch:
 permissions:
