@@ -62,6 +62,9 @@ async function report(text) {
   await fs.writeFile('dirigent-result.md', `# Dirigent run\n\n${text}\n`);
   console.log(text);
 }
+async function setOutput(name, value) {
+  if (process.env.GITHUB_OUTPUT) await fs.appendFile(process.env.GITHUB_OUTPUT, `${name}=${value}\n`);
+}
 async function selfTest() {
   const issue = { title: '[Dirigent] test', body: '<!-- dirigent-task {"version":1,"changes":[{"path":"tests/example.spec.mjs","find":"a","replace":"b"}],"acceptance":["test"]} -->' };
   const parsed = parseTask(issue);
@@ -89,6 +92,8 @@ async function main() {
   call('git', ['push', 'origin', branch]);
   const body = [`Resolves #${issue.number}`, '', 'Automated by Dirigent from an explicitly approved, bounded issue recipe.', '', `Changed: ${touched.map(file => '`' + file + '`').join(', ')}`, '', 'Repository quality gates must pass. This pull request is a draft and cannot release without the separate release approval workflow.'].join('\n');
   const url = call('gh', ['pr', 'create', '-R', repo, '--draft', '--base', 'main', '--head', branch, '--title', `Dirigent: ${issue.title.replace(/^\[Dirigent\]\s*/i, '').slice(0, 90)}`, '--body', body]);
+  await setOutput('branch', branch);
+  await setOutput('pull_request_url', url);
   await report(`Selected issue #${issue.number} (priority score ${score(issue)}).\n\nCreated isolated branch \`${branch}\` and draft pull request: ${url}`);
 }
 
