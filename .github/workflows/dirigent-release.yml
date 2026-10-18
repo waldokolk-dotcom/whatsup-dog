@@ -1,0 +1,39 @@
+name: Dirigent controlled release
+on:
+  workflow_dispatch:
+    inputs:
+      pull_request:
+        description: Approved Dirigent pull request number
+        required: true
+        type: string
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+  checks: read
+jobs:
+  verify-merge-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ inputs.pull_request }}
+    steps:
+      - name: Verify approval, branch and completed checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$PR_NUMBER" =~ ^[0-9]{1,8}$ ]]
+          pr="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state,isDraft,headRefName,labels,mergeable)"
+          test "$(jq -r .state <<<"$pr")" = OPEN
+          test "$(jq -r .isDraft <<<"$pr")" = false
+          [[ "$(jq -r .headRefName <<<"$pr")" == dirigent/issue-* ]]
+          jq -e '.labels | any(.name == "dirigent:release-approved")' <<<"$pr" >/dev/null
+          test "$(jq -r .mergeable <<<"$pr")" = MERGEABLE
+          gh pr checks "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --required
+      - name: Merge approved change
+        run: gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --squash --delete-branch
+      - name: Start existing guarded Pages release
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
+      - name: State release boundary
+        run: echo 'Merge and Pages workflow dispatch completed. The Pages run and hosted user flow still require separate verification before claiming live.' >> "$GITHUB_STEP_SUMMARY"
