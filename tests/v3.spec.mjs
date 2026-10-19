@@ -93,14 +93,14 @@ test('Mijn Whatsup uses structured activity cards instead of empty bars',async({
 });
 
 test('info tab explains install and safety',async({page})=>{
-  await page.evaluate(()=>document.querySelector('[data-view="info"]').click());
+  await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
   await expect(page.locator('#view-info')).toContainText('Gebruik & veiligheid');
   await expect(page.locator('#view-info')).toContainText('iPhone / iPad');
   await expect(page.locator('#view-info')).toContainText('Geen account en geen wachtwoord');
 });
 
 test('Info shows only configured Facebook links with safe external attributes',async({page})=>{
-  await page.evaluate(()=>document.querySelector('[data-view="info"]').click());
+  await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
   const facebook=page.locator('[data-social="facebook"]');
   await expect(facebook).toHaveAttribute('href','https://www.facebook.com/profile.php?id=61594785673559');
   await expect(facebook).toHaveAttribute('target','_blank');
@@ -128,7 +128,7 @@ test('own reports can be marked resolved and removed from the live map',async({p
 });
 
 test('Info explains creation, resolution and expiry rules for reports',async({page})=>{
-  await page.evaluate(()=>document.querySelector('[data-view="info"]').click());
+  await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
   await expect(page.locator('#view-info')).toContainText('Spelregels voor meldingen');
   await expect(page.locator('#view-info')).toContainText('Gewone meldingen: 7 dagen');
   await expect(page.locator('#view-info')).toContainText('Leuke plekken en activiteiten: 14 dagen');
@@ -160,17 +160,17 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
       geometry:{type:'Polygon',coordinates:[[[5.48,52.21],[5.481,52.21],[5.481,52.211],[5.48,52.211],[5.48,52.21]]]}
     }]})
   }));
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   await expect(page.locator('#offleashControl')).toBeVisible();
   await expect(page.locator('#offleashToggle')).toBeChecked();
   await page.locator('#offleashToggle').uncheck();
   await expect.poll(async()=>page.evaluate(()=>localStorage.getItem('wd_v3_offleash'))).toBe('0');
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   await expect(page.locator('#offleashToggle')).not.toBeChecked();
 });
 
 test('Info shows app version and manual update control',async({page})=>{
-  await page.evaluate(()=>document.querySelector('[data-view="info"]').click());
+  await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
   await expect(page.locator('#appVersion')).toContainText('4.21');
   await expect(page.locator('#versionDate')).toContainText('08-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
@@ -268,7 +268,7 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
       expires_at:expires
     }]));
   },{now:now.toISOString(),expires:expires.toISOString()});
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
   await expect(page.locator('.wd-report-marker-icon .wd-pin-shell')).toContainText('!');
 });
@@ -329,7 +329,7 @@ test('latest own active report is brought into the visible map',async({page})=>{
       species:'dog'
     }]));
   },{now:now.toISOString(),expires:expires.toISOString()});
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
   const marker=await page.locator('.wd-report-marker-icon').boundingBox();
   const mapBox=await page.locator('#map').boundingBox();
@@ -360,7 +360,7 @@ test('active nearby report remains visible after anonymous session changes',asyn
       species:'dog'
     }]));
   },{now:now.toISOString(),expires:expires.toISOString()});
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
   const marker=await page.locator('.wd-report-marker-icon').boundingBox();
   const mapBox=await page.locator('#map').boundingBox();
@@ -392,7 +392,7 @@ test('report markers remain fully visible on overview zoom',async({page})=>{
       expires_at:expires
     }]));
   },{now:now.toISOString(),expires:expires.toISOString()});
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   const marker=page.locator('.wd-report-marker-icon');
   const cssWidth=await marker.locator('.wd-pin-shell').evaluate(el=>parseFloat(getComputedStyle(el).width));
   expect(cssWidth).toBeGreaterThanOrEqual(23);
@@ -422,7 +422,7 @@ test('report markers reveal icon when zoomed in',async({page})=>{
       expires_at:expires
     }]));
   },{now:now.toISOString(),expires:expires.toISOString()});
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   const marker=page.locator('.wd-report-marker-icon');
   await expect(marker).not.toHaveClass(/is-compact/);
   const cssWidth=await marker.locator('.wd-pin-shell').evaluate(el=>parseFloat(getComputedStyle(el).width));
@@ -452,7 +452,7 @@ test('active report marker stays visible across zoom levels',async({page})=>{
       expires_at:expires
     }]));
   },{now:now.toISOString(),expires:expires.toISOString()});
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   const marker=page.locator('.wd-report-marker-icon');
   await expect(marker).toHaveCount(1);
   await expect(marker.locator('.wd-pin-center')).toContainText('!');
@@ -481,7 +481,7 @@ test('transient report feed failure never clears existing markers',async({page})
       species:'dog'
     }]));
   },{now:now.toISOString(),expires:expires.toISOString()});
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
   await page.evaluate(()=>{window.__wdFailActiveReports=true});
   await page.locator('[data-view="alerts"]').click();
@@ -509,7 +509,7 @@ test('active report cache survives a page reload when feed temporarily fails',as
       species:'dog'
     }]));
   },{now:now.toISOString(),expires:expires.toISOString()});
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
   await page.evaluate(()=>{
     localStorage.setItem('__wd_fail_feed_next_load','1');
@@ -520,7 +520,7 @@ test('active report cache survives a page reload when feed temporarily fails',as
       window.__wdFailActiveReports=true;
     }
   });
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
 });
 
@@ -546,7 +546,7 @@ test('dense nearby reports are clustered into a calm mobile map view',async({pag
     localStorage.setItem('wd_v3_map_view',JSON.stringify({lat:52.2136,lng:5.4506,zoom:13}));
     localStorage.setItem('__wd_test_reports',JSON.stringify(reports));
   },reports);
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   await expect(page.locator('.wd-report-cluster-icon')).toHaveCount(1);
   await expect(page.locator('.wd-report-cluster-icon .wd-cluster-premium span')).toHaveText('8');
   const box=await page.locator('.wd-report-cluster-icon .wd-cluster-premium').boundingBox();
@@ -591,9 +591,9 @@ test('active report feed is restored after a full page restart',async({page})=>{
       species:'dog'
     }]));
   },{now:now.toISOString(),expires:expires.toISOString()});
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   await expect(page.locator('.wd-report-marker-icon')).toHaveCount(1);
   await expect(page.locator('.wd-report-marker-icon .wd-pin-shell')).toContainText('!');
 });
@@ -608,7 +608,7 @@ test('report detail offers one calm context-aware reaction and privacy-safe shar
       created_at:now,expires_at:expires,species:'dog'
     }]));
   },{now:now.toISOString(),expires:expires.toISOString()});
-  await page.reload();
+  await page.reload(); await page.locator('[data-view="map"]').click();
   await page.locator('.wd-report-marker-icon').click();
   await expect(page.locator('#detailReaction')).toBeVisible();
   await expect(page.locator('#detailReactionLabel')).toHaveText('Leuk');
@@ -621,7 +621,7 @@ test('report detail offers one calm context-aware reaction and privacy-safe shar
 });
 
 test('update button opens plain-language version notes',async({page})=>{
-  await page.evaluate(()=>document.querySelector('[data-view="info"]').click());
+  await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
   await page.locator('#checkUpdateButton').click();
   await expect(page.locator('#updateNotesDialog')).toBeVisible();
   await expect(page.locator('#notesVersion')).toHaveText('4.21');

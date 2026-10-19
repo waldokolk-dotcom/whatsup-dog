@@ -16,12 +16,14 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: node scripts/validate.mjs
+      - run: node scripts/walk-checklist-qa.mjs
       - run: npm ci --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
       - name: Run accountless V3 browser journeys
@@ -30,7 +32,7 @@ jobs:
           SERVER_PID=$!
           trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
           for i in {1..20}; do if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi; sleep 0.5; done
-          npx playwright test tests/v3.spec.mjs --reporter=line --global-timeout=180000
+          npx playwright test tests/v3.spec.mjs tests/navigation-regression.spec.mjs tests/navigation-interaction.spec.mjs tests/walk-checklist.spec.mjs --reporter=line --global-timeout=600000
       - name: Verify hosted backend release
         run: node scripts/verify-hosted-release.mjs
       - run: node scripts/build-site.mjs
