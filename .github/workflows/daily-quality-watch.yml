@@ -25,6 +25,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Validate static application
         run: node scripts/validate.mjs
+      - name: Validate walk checklist offline behavior
+        run: node scripts/walk-checklist-qa.mjs
       - name: Check species logic
         run: npm run test:species
       - name: Check design
@@ -40,7 +42,7 @@ jobs:
             if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi
             sleep 0.5
           done
-          npm run test:usability
+          npx playwright test tests/v3.spec.mjs tests/navigation-regression.spec.mjs tests/navigation-interaction.spec.mjs tests/walk-checklist.spec.mjs --reporter=line --global-timeout=600000
       - name: Upload test evidence on failure
         if: failure()
         uses: actions/upload-artifact@v4

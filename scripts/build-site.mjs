@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
 const files=[
-  'index.html','app-v3.css','whatsup-premium.css','app-v3.js','backend-config.js','sw.js',
+  'index.html','app-v3.css','whatsup-premium.css','app-v3.js','walk-checklist.js','backend-config.js','sw.js',
   'manifest.webmanifest','icon-192.png','icon-512.png'
 ];
 fs.rmSync('dist',{recursive:true,force:true});
@@ -19,10 +19,13 @@ fs.mkdirSync('dist/data',{recursive:true});
 fs.copyFileSync('data/nijkerk-losloopgebieden.geojson','dist/data/nijkerk-losloopgebieden.geojson');
 fs.writeFileSync('dist/.nojekyll','');
 const html=fs.readFileSync('dist/index.html','utf8');
-for(const asset of ['whatsup-premium.css','app-v3.css','app-v3.js','sw.js']){
+for(const asset of ['whatsup-premium.css','app-v3.css','app-v3.js','walk-checklist.js']){
  if(!fs.existsSync('dist/'+asset))throw new Error('Production bundle missing '+asset);
  if(!html.includes(asset))throw new Error('HTML missing required app asset '+asset);
 }
+const app=fs.readFileSync('dist/app-v3.js','utf8');
+if(!fs.existsSync('dist/sw.js'))throw new Error('Production bundle missing sw.js');
+if(!app.includes('serviceWorker.register("./sw.js"'))throw new Error('App does not register bundled service worker');
 if(!fs.readFileSync('dist/whatsup-premium.css','utf8').includes('.wd-home'))throw new Error('Production premium stylesheet incomplete');
 console.log('PASS: Whatsup Dog 2.1 premium CSS, app JS and worker present in production bundle');
 console.log('Accountless V3 production bundle only: no retired login/chat assets and no server secrets');

@@ -37,10 +37,10 @@ function bind(){
  $("#wdHomeReport")?.addEventListener("click",openReport);
  $("#wdHomeDanger")?.addEventListener("click",()=>{premiumMapFilter="danger";syncPremiumMapFilter();showView("map")});
  $("#wdHomeLost")?.addEventListener("click",()=>{premiumMapFilter="lost";syncPremiumMapFilter();showView("map")});
- $("#wdHomeOffleash")?.addEventListener("click",()=>{showView("map");const t=$("#offleashToggle");if(t&&!t.checked){t.checked=true;toggleOffleashLayer()}});
+ $("#wdHomeOffleash")?.addEventListener("click",()=>{showView("map");const t=$("#offleashToggle");if(t&&!t.checked){t.checked=true;toggleOffleashLayer({target:t})}});
  $("#wdHomeAll")?.addEventListener("click",()=>showView("alerts"));
- $("[data-mapfilter]").forEach(b=>b.addEventListener("click",()=>{premiumMapFilter=b.dataset.mapfilter;syncPremiumMapFilter()}));
- $("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
+ $$("[data-mapfilter]").forEach(b=>b.addEventListener("click",()=>{premiumMapFilter=b.dataset.mapfilter;syncPremiumMapFilter()}));
+ $$("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
  $("#pawFab").addEventListener("click",()=>$("#pawDialog").showModal());
  $("#pawReport").addEventListener("click",()=>{$("#pawDialog").close();openReport()});
  $("#pawGive").addEventListener("click",()=>{$("#pawDialog").close();showView("giveaway")});
@@ -96,7 +96,7 @@ function premiumFilterMatch(r){
  return r.type===premiumMapFilter;
 }
 function syncPremiumMapFilter(){
- $("[data-mapfilter]").forEach(b=>b.classList.toggle("active",b.dataset.mapfilter===premiumMapFilter));
+ $$("[data-mapfilter]").forEach(b=>b.classList.toggle("active",b.dataset.mapfilter===premiumMapFilter));
  renderReportMarkers();
 }
 function renderPremiumHome(rows){
@@ -123,7 +123,10 @@ function showView(v){
  $$(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
  if(v==="home")renderPremiumHome(lastActiveReports.length?lastActiveReports:cachedActiveReports());
  if(v==="map"){
-   setTimeout(()=>map?.invalidateSize(),50);
+   setTimeout(()=>{
+     map?.invalidateSize({animate:false});
+     focusLatestOwnActiveReport(lastActiveReports);
+   },50);
    refreshReports().catch(err=>console.warn("Kaartmeldingen verversen",err));
  }
  if(v==="alerts"){syncPushUi();refreshReports();}
@@ -141,6 +144,8 @@ function initMap(){
  offleashLayer=L.layerGroup();
  markers=L.layerGroup().addTo(map);
  map.on("moveend",()=>{const center=map.getCenter();write(MAPVIEWKEY,{lat:center.lat,lng:center.lng,zoom:map.getZoom()})});
+ // Marker sizes and clustering depend on zoom; refresh immediately without a backend request.
+ map.on("zoomend",()=>renderReportMarkers());
  $("#areaPill").textContent=s.areaLabel+" ▾";
  const enabled=localStorage.getItem("wd_v3_offleash")!=="0";
  const toggle=$("#offleashToggle");if(toggle)toggle.checked=enabled;
@@ -303,10 +308,13 @@ async function refreshReports(){
  }
 }
 function focusLatestOwnActiveReport(rows){
- if(initialReportFocusDone||!map)return;
- initialReportFocusDone=true;
+ // Home is the first screen: defer map bounds and centering until the map is visible.
+ if(initialReportFocusDone||!map||!$("#view-map")?.classList.contains("active"))return;
+ const container=map.getContainer();
+ if(!container?.clientWidth||!container?.clientHeight)return;
  const valid=(rows||[]).filter(r=>Number.isFinite(Number(r.lat))&&Number.isFinite(Number(r.lng)));
  if(!valid.length)return;
+ map.invalidateSize({animate:false});
  const s=settings();
  const area=L.latLng(Number(s.lat),Number(s.lng));
  const maxDistance=Math.max(Number(s.radius)||2000,3000);
@@ -318,8 +326,8 @@ function focusLatestOwnActiveReport(rows){
  const anyVisible=points.some(point=>map.getBounds().pad(-0.05).contains(point));
  if(!anyVisible&&latest){
    map.setView([Number(latest.lat),Number(latest.lng)],16,{animate:false});
-   setTimeout(()=>map.invalidateSize(),30);
  }
+ initialReportFocusDone=true;
 }
 function iconForReport(r){
  const sub=String(r.subtype||"").toLowerCase(),t=r.type;

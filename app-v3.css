@@ -787,3 +787,20 @@ dialog[open]{
 .map-card{left:12px;right:12px;bottom:112px;max-height:42%;overflow:auto}
 .paw-fab{bottom:98px;width:72px;height:72px;border-radius:20px}
 @media(max-width:375px){.offleash-control{width:165px}.offleash-icon{display:none}.top-pill{max-width:39%}.map-brand{font-size:16px}}
+
+/* P0: size the new Leaflet pin and cluster markup (legacy .marker rules do not apply). */
+.wd-report-marker-icon .wd-pin-shell{
+ box-sizing:border-box;width:100%;height:calc(100% - 8px);display:grid;place-items:center;
+ border:3px solid #fff;border-radius:50%;background:#d9554c;color:#fff;
+ box-shadow:0 3px 10px rgba(16,41,33,.28)
+}
+.wd-report-marker-icon .wd-pin-center{font-size:14px;font-weight:900;line-height:1}
+.wd-report-marker-icon.wd-pin-lost .wd-pin-shell{background:#d65e8a}
+.wd-report-marker-icon.wd-pin-animal .wd-pin-shell{background:#4379b9}
+.wd-report-marker-icon.wd-pin-fun .wd-pin-shell{background:#12876b}
+.wd-report-marker-icon.wd-pin-road .wd-pin-shell{background:#bd713a}
+.wd-report-cluster-icon .wd-cluster-premium{
+ box-sizing:border-box;width:100%;height:100%;display:grid;place-items:center;
+ border:3px solid #fff;border-radius:50%;background:#146e5c;color:#fff;
+ font-size:14px;font-weight:900;box-shadow:0 3px 10px rgba(16,41,33,.25)
+}
