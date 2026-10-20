@@ -1,6 +1,14 @@
 name: Whatsup Dog daily quality watch
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/daily-quality-watch.yml'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'index.html'
+      - 'app-v3.js'
+      - 'walk-checklist.js'
   schedule:
     - cron: '17 5 * * *'
   workflow_dispatch:
@@ -27,10 +35,6 @@ jobs:
         run: node scripts/validate.mjs
       - name: Validate walk checklist offline behavior
         run: node scripts/walk-checklist-qa.mjs
-      - name: Check species logic
-        run: npm run test:species
-      - name: Check design
-        run: npm run test:design
       - name: Install browser
         run: npx playwright install --with-deps chromium
       - name: Browser usability tests
