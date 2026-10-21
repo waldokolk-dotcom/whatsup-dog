@@ -26,6 +26,7 @@ function parseTask(issue) {
   if (!match) throw new Error('Issue has no dirigent-task marker');
   const task = JSON.parse(match[1]);
   if (task.version !== 1 || !Array.isArray(task.changes) || task.changes.length < 1 || task.changes.length > 3) throw new Error('Task must contain 1-3 version 1 changes');
+  if (typeof task.user_value !== 'string' || !task.user_value.trim()) throw new Error('Task needs a concrete user_value');
   if (!Array.isArray(task.acceptance) || task.acceptance.length < 1 || task.acceptance.some(value => typeof value !== 'string' || !value.trim())) throw new Error('Task needs acceptance criteria');
   for (const change of task.changes) {
     if (!validatePath(change.path)) throw new Error(`Path is outside the allowlist: ${change.path}`);
@@ -66,7 +67,7 @@ async function setOutput(name, value) {
   if (process.env.GITHUB_OUTPUT) await fs.appendFile(process.env.GITHUB_OUTPUT, `${name}=${value}\n`);
 }
 async function selfTest() {
-  const issue = { title: '[Dirigent] test', body: '<!-- dirigent-task {"version":1,"changes":[{"path":"tests/example.spec.mjs","find":"a","replace":"b"}],"acceptance":["test"]} -->' };
+  const issue = { title: '[Dirigent] test', body: '<!-- dirigent-task {"version":1,"user_value":"A visible improvement","changes":[{"path":"tests/example.spec.mjs","find":"a","replace":"b"}],"acceptance":["test"]} -->' };
   const parsed = parseTask(issue);
   if (!validatePath(parsed.changes[0].path) || validatePath('.github/workflows/a.yml') || validatePath('sw.js') || validatePath('supabase/functions/a.js')) throw new Error('Path policy self-test failed');
   console.log('Dirigent self-test passed');
@@ -74,11 +75,19 @@ async function selfTest() {
 async function main() {
   if (process.argv[2] === 'self-test') return selfTest();
   const issue = await chooseIssue();
-  if (!issue) return report('No ready Dirigent issue; no changes made.');
+  if (!issue) {
+    await report('BLOCKED: No ready Dirigent issue with a bounded, user-value task; no iteration was produced.');
+    process.exitCode = 1;
+    return;
+  }
   if (issue.state !== 'OPEN') throw new Error('Selected issue is not open');
   const task = parseTask(issue);
   const existing = gh(['pr', 'list', '-R', repo, '--state', 'open', '--search', `head:dirigent/issue-${issue.number}-`, '--json', 'url']);
-  if (existing.length) return report(`Issue #${issue.number} already has an open Dirigent PR: ${existing[0].url}`);
+  if (existing.length) {
+    await report(`BLOCKED: Issue #${issue.number} already has an open Dirigent PR: ${existing[0].url}`);
+    process.exitCode = 1;
+    return;
+  }
   const branch = `dirigent/issue-${issue.number}-${runId}`;
   call('git', ['config', 'user.name', 'dirigent[bot]']);
   call('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);
@@ -94,7 +103,7 @@ async function main() {
   const url = call('gh', ['pr', 'create', '-R', repo, '--draft', '--base', 'main', '--head', branch, '--title', `Dirigent: ${issue.title.replace(/^\[Dirigent\]\s*/i, '').slice(0, 90)}`, '--body', body]);
   await setOutput('branch', branch);
   await setOutput('pull_request_url', url);
-  await report(`Selected issue #${issue.number} (priority score ${score(issue)}).\n\nCreated isolated branch \`${branch}\` and draft pull request: ${url}`);
+  await report(`Selected issue #${issue.number} (priority score ${score(issue)}).\n\nUser value: ${task.user_value}\n\nCreated isolated branch \`${branch}\` and draft pull request: ${url}`);
 }
 
 main().catch(async error => { await report(`BLOCKED: ${String(error.message || error).slice(0, 1000)}`); process.exitCode = 1; });
