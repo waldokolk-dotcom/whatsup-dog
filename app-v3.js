@@ -65,6 +65,7 @@ function bind(){
  $("#reportForm").addEventListener("submit",submitReport);
  $("#reportUseGps")?.addEventListener("click",useCurrentReportLocation);
  $("#reportChooseMap")?.addEventListener("click",chooseReportLocationOnMap);
+ ensureReportNavigation();
  $$(".report-type").forEach(b=>b.addEventListener("click",()=>chooseReport(b.dataset.cat,b.dataset.type,b.dataset.subtype||"")));
  $("#giveCreate").addEventListener("click",()=>$("#giveDialog").showModal());
  $("#giveForm").addEventListener("submit",submitGiveaway);
@@ -459,6 +460,16 @@ async function configureReportReaction(r){
  };
 }
 function labelType(t){return ({danger:"Gevaar",vegetation:"Vegetatie",road:"Handig",fun:"Leuk",spotted:"Dier",lost:"Vermist / gevonden"})[t]||"Melding"}
+function ensureReportNavigation(){
+ const step1=$("#reportStep1"),step2=$("#reportStep2"),submit=$("#reportSubmit");
+ if(!step1||!step2||!submit||$("#reportBack"))return;
+ const progress=(step,label)=>{const el=document.createElement("div");el.className="report-progress";el.setAttribute("aria-label",`Stap ${step} van 2`);el.innerHTML=`<span class="active"></span><span class="${step===2?"active":""}"></span><b>${step} van 2 · ${label}</b>`;return el};
+ step1.prepend(progress(1,"Soort"));step2.prepend(progress(2,"Details"));
+ const actions=document.createElement("div");actions.className="report-form-actions";
+ const back=document.createElement("button");back.type="button";back.id="reportBack";back.className="secondary";back.textContent="← Terug";
+ back.addEventListener("click",()=>{step2.hidden=true;step1.hidden=false;step1.querySelector(".report-type")?.focus()});
+ submit.before(actions);actions.append(back,submit)
+}
 function openReport(){
  reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null};
  $("#reportStep1").hidden=false;$("#reportStep2").hidden=true;$("#reportText").value="";$("#reportPhoto").value="";
