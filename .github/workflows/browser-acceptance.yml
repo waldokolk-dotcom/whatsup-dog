@@ -15,13 +15,14 @@ on:
       - 'docs/DIRIGENT.md'
       - '.github/workflows/dirigent.yml'
       - '.github/workflows/dirigent-release.yml'
+      - '.github/workflows/daily-quality-watch.yml'
       - '.github/workflows/browser-acceptance.yml'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   browser-acceptance:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

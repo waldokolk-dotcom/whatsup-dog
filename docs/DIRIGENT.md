@@ -6,10 +6,10 @@ It considers open issues whose title starts with `[Dirigent]` and, on scheduled 
 
 ```html
 <!-- dirigent-task
-{"version":1,"changes":[{"path":"tests/example.spec.mjs","find":"exact old text","replace":"exact new text"}],"acceptance":["validation and browser tests pass"]}
+{"version":1,"user_value":"Describe the observable improvement for a Whatsup Dog user","changes":[{"path":"tests/example.spec.mjs","find":"exact old text","replace":"exact new text"}],"acceptance":["validation and browser tests pass"]}
 -->
 ```
 
-Only one to three exact replacements in existing allowlisted application or test files are accepted. Workflow, dependency, authentication, secret, service worker, version, deployment and database files are denied. The run creates an isolated branch and draft pull request, then runs the existing validation and browser gate.
+Only one to three exact replacements in existing allowlisted application or test files are accepted. Every task must name concrete user value and measurable acceptance criteria. Workflow, dependency, authentication, secret, service worker, version, deployment and database files are denied. The run creates an isolated branch and draft pull request, then runs the existing validation and browser gate. A scheduled iteration fails visibly when no executable task is ready or an earlier iteration is still open; inactivity is never reported as success.
 
 Release is deliberately separate. A maintainer marks the PR ready, adds `dirigent:release-approved`, and manually runs `Dirigent controlled release`. That workflow refuses non-Dirigent branches, drafts, unapproved PRs, merge conflicts and failing required checks, then merges and dispatches the existing Pages workflow. Neither dispatch nor a successful upload alone is proof of the hosted user flow; the Pages run and hosted checks remain separate evidence gates.

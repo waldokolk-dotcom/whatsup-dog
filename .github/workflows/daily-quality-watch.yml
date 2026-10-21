@@ -1,0 +1,59 @@
+name: Whatsup Dog daily quality watch
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/daily-quality-watch.yml'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'index.html'
+      - 'app-v3.js'
+      - 'walk-checklist.js'
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: whatsup-dog-daily-quality-watch
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Validate static application
+        run: node scripts/validate.mjs
+      - name: Validate walk checklist offline behavior
+        run: node scripts/walk-checklist-qa.mjs
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Browser usability tests
+        run: |
+          python3 -m http.server 8765 >/tmp/whatsup-dog-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi
+            sleep 0.5
+          done
+          npx playwright test tests/v3.spec.mjs tests/navigation-regression.spec.mjs tests/navigation-interaction.spec.mjs tests/walk-checklist.spec.mjs --reporter=line --global-timeout=600000
+      - name: Upload test evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: whatsup-dog-qa-evidence
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
