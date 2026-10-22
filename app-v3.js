@@ -4,11 +4,11 @@
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
-const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports";
-const APP_VERSION="4.21", APP_VERSION_DATE="08-10-2026";
+const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports", REPORTDRAFTKEY="wd_v3_report_draft";
+const APP_VERSION="4.22", APP_VERSION_DATE="22-10-2026", REPORT_DRAFT_TTL=24*60*60*1000;
 let premiumMapFilter="all";
 const SOCIAL_LINKS=Object.freeze({facebook:"https://www.facebook.com/profile.php?id=61594785673559",instagram:"",tiktok:""});
-let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
+let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,reportPhotoUrl=null,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
 const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
 const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2400)};
@@ -65,6 +65,11 @@ function bind(){
  $("#reportForm").addEventListener("submit",submitReport);
  $("#reportUseGps")?.addEventListener("click",useCurrentReportLocation);
  $("#reportChooseMap")?.addEventListener("click",chooseReportLocationOnMap);
+ $("#reportText")?.addEventListener("input",saveReportDraft);
+ $("#reportPhoto")?.addEventListener("change",renderReportPhotoPreview);
+ $("#reportPhotoRemove")?.addEventListener("click",clearReportPhoto);
+ $("#reportReview")?.addEventListener("click",openReportReview);
+ $("#reportDiscard")?.addEventListener("click",discardReportDraft);
  ensureReportNavigation();
  $$(".report-type").forEach(b=>b.addEventListener("click",()=>chooseReport(b.dataset.cat,b.dataset.type,b.dataset.subtype||"")));
  $("#giveCreate").addEventListener("click",()=>$("#giveDialog").showModal());
@@ -461,27 +466,53 @@ async function configureReportReaction(r){
 }
 function labelType(t){return ({danger:"Gevaar",vegetation:"Vegetatie",road:"Handig",fun:"Leuk",spotted:"Dier",lost:"Vermist / gevonden"})[t]||"Melding"}
 function ensureReportNavigation(){
- const step1=$("#reportStep1"),step2=$("#reportStep2"),submit=$("#reportSubmit");
- if(!step1||!step2||!submit||$("#reportBack"))return;
- const progress=(step,label)=>{const el=document.createElement("div");el.className="report-progress";el.setAttribute("aria-label",`Stap ${step} van 2`);el.innerHTML=`<span class="active"></span><span class="${step===2?"active":""}"></span><b>${step} van 2 · ${label}</b>`;return el};
- step1.prepend(progress(1,"Soort"));step2.prepend(progress(2,"Details"));
- const actions=document.createElement("div");actions.className="report-form-actions";
- const back=document.createElement("button");back.type="button";back.id="reportBack";back.className="secondary";back.textContent="← Terug";
- back.addEventListener("click",()=>{step2.hidden=true;step1.hidden=false;step1.querySelector(".report-type")?.focus()});
- submit.before(actions);actions.append(back,submit)
+ const step1=$("#reportStep1"),step2=$("#reportStep2"),step3=$("#reportStep3"),review=$("#reportReview"),submit=$("#reportSubmit");
+ if(!step1||!step2||!step3||!review||!submit||$("#reportBack"))return;
+ const progress=(step,label)=>{const el=document.createElement("div");el.className="report-progress";el.setAttribute("aria-label",`Stap ${step} van 3`);el.innerHTML=`<span class="active"></span><span class="${step>=2?"active":""}"></span><span class="${step>=3?"active":""}"></span><b>${step} van 3 · ${label}</b>`;return el};
+ step1.prepend(progress(1,"Soort"));step2.prepend(progress(2,"Details"));step3.prepend(progress(3,"Controleren"));
+ const addActions=(target,button,id,handler)=>{const actions=document.createElement("div");actions.className="report-form-actions";const back=document.createElement("button");back.type="button";back.id=id;back.className="secondary";back.textContent="← Terug";back.addEventListener("click",handler);button.before(actions);actions.append(back,button)};
+ addActions(step2,review,"reportBack",()=>{step2.hidden=true;step1.hidden=false;step1.querySelector(".report-type")?.focus()});
+ addActions(step3,submit,"reportReviewBack",()=>{step3.hidden=true;step2.hidden=false;$("#reportText")?.focus()})
 }
 function openReport(){
  reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null};
- $("#reportStep1").hidden=false;$("#reportStep2").hidden=true;$("#reportText").value="";$("#reportPhoto").value="";
- useCurrentReportLocation();
+ $("#reportStep1").hidden=false;$("#reportStep2").hidden=true;$("#reportStep3").hidden=true;$("#reportText").value="";clearReportPhoto();
+ $("#reportDraftStatus")?.classList.add("hidden");
+ if(!restoreReportDraft())useCurrentReportLocation();
  $("#reportDialog").showModal()
 }
-function chooseReport(cat,type,sub){
+function saveReportDraft(){
+ if(!reportState.category)return;
+ write(REPORTDRAFTKEY,{savedAt:Date.now(),category:reportState.category,type:reportState.type,subtype:reportState.subtype,locationMode:reportState.locationMode,location:reportState.location,text:$("#reportText")?.value.slice(0,220)||""})
+}
+function restoreReportDraft(){
+ const draft=read(REPORTDRAFTKEY,null);if(!draft||!draft.savedAt||Date.now()-draft.savedAt>REPORT_DRAFT_TTL){localStorage.removeItem(REPORTDRAFTKEY);return false}
+ if(!["danger","animal","handy","fun"].includes(draft.category))return false;
+ reportState={category:draft.category,type:draft.type||null,subtype:draft.subtype||null,locationMode:draft.locationMode==="map"?"map":"gps",location:draft.location||null};
+ $("#reportText").value=String(draft.text||"").slice(0,220);
+ const status=$("#reportDraftStatus");status.textContent="Concept van eerder hervat";status.classList.remove("hidden");
+ chooseReport(reportState.category,reportState.type,reportState.subtype,true);
+ if(reportState.locationMode==="map")chooseReportLocationOnMap();else useCurrentReportLocation();
+ return true
+}
+function discardReportDraft(){localStorage.removeItem(REPORTDRAFTKEY);clearReportPhoto();$("#reportDialog").close();toast("Concept gewist")}
+function clearReportPhoto(){if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);reportPhotoUrl=null;const input=$("#reportPhoto");if(input)input.value="";const preview=$("#reportPhotoPreview");if(preview){preview.classList.add("hidden");preview.hidden=true;preview.style.removeProperty("display")}const img=$("#reportPhotoImage");if(img)img.removeAttribute("src")}
+function renderReportPhotoPreview(){
+ const file=$("#reportPhoto")?.files?.[0];if(!file)return clearReportPhoto();const preview=$("#reportPhotoPreview");$("#reportPhotoName").textContent=file.name;preview.hidden=false;preview.classList.remove("hidden");preview.style.display="grid";if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);reportPhotoUrl=URL.createObjectURL(file);$("#reportPhotoImage").src=reportPhotoUrl
+}
+function openReportReview(){
+ const text=$("#reportText").value.trim();if(text.length<3){toast("Beschrijf kort wat mensen moeten weten");$("#reportText").focus();return}
+ saveReportDraft();const category=({danger:"Gevaar",animal:"Dier",handy:"Handig",fun:"Leuk"})[reportState.category]||"Melding";const location=reportState.locationMode==="map"?"Gekozen plek op de kaart":"Mijn huidige locatie bij plaatsen";const photo=$("#reportPhoto")?.files?.[0]?.name||"Geen foto";
+ $("#reportSummary").innerHTML=`<div class="report-summary-row"><small>Soort</small><b>${esc(category)} · ${esc(reportState.subtype||labelType(reportState.type))}</b></div><div class="report-summary-row"><small>Omschrijving</small><b>${esc(text)}</b></div><div class="report-summary-row"><small>Locatie</small><b>${esc(location)}</b></div><div class="report-summary-row"><small>Foto</small><b>${esc(photo)}</b></div>`;
+ $("#reportStep2").hidden=true;$("#reportStep3").hidden=false;$("#reportSubmit").focus()
+}
+function chooseReport(cat,type,sub,restoring=false){
  const preferredSubtype=reportState.category===cat?reportState.subtype:null;
  reportState={...reportState,category:cat,type,subtype:sub};
  $("#reportStep1").hidden=true;$("#reportStep2").hidden=false;
  $("#reportChosen").textContent=({danger:"Gevaar",animal:"Dier",handy:"Handig",fun:"Leuk"})[cat]||"Melding";
  renderSubChoices(cat,preferredSubtype);
+ if(!restoring)saveReportDraft();
  setTimeout(()=>reportLocationMap?.invalidateSize(),50)
 }
 function renderSubChoices(cat,preferredSubtype=null){
@@ -493,13 +524,14 @@ function renderSubChoices(cat,preferredSubtype=null){
  const selectedIndex=Math.max(0,opts.findIndex(o=>o[1]===preferredSubtype));
  box.innerHTML=opts.map((o,i)=>'<button type="button" class="chip '+(i===selectedIndex?"active":"")+'" data-t="'+o[0]+'" data-s="'+esc(o[1])+'"><span class="chip-icon">'+o[2]+'</span>'+esc(o[1])+'</button>').join("");
  reportState.type=opts[selectedIndex][0];reportState.subtype=opts[selectedIndex][1];
- box.querySelectorAll("button").forEach(b=>b.onclick=()=>{box.querySelectorAll("button").forEach(x=>x.classList.remove("active"));b.classList.add("active");reportState.type=b.dataset.t;reportState.subtype=b.dataset.s})
+ box.querySelectorAll("button").forEach(b=>b.onclick=()=>{box.querySelectorAll("button").forEach(x=>x.classList.remove("active"));b.classList.add("active");reportState.type=b.dataset.t;reportState.subtype=b.dataset.s;saveReportDraft()})
 }
 function useCurrentReportLocation(){
  reportState.locationMode="gps";reportState.location=null;
  $("#reportUseGps")?.classList.add("active");$("#reportChooseMap")?.classList.remove("active");
  $("#reportLocationMapWrap")?.classList.add("hidden");
  const s=$("#reportLocationStatus");if(s)s.textContent="Mijn huidige locatie wordt gebruikt.";
+ saveReportDraft();
 }
 function chooseReportLocationOnMap(){
  reportState.locationMode="map";
@@ -510,7 +542,7 @@ function chooseReportLocationOnMap(){
    reportLocationMap=L.map("reportLocationMap",{zoomControl:true,attributionControl:false}).setView([center.lat,center.lng],16);
    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(reportLocationMap);
    reportLocationMarker=L.marker([center.lat,center.lng],{draggable:true}).addTo(reportLocationMap);
-   const commit=ll=>{reportState.location={lat:ll.lat,lng:ll.lng};reportLocationMarker.setLatLng(ll);const s=$("#reportLocationStatus");if(s)s.textContent="Gekozen plek op de kaart wordt gebruikt."};
+   const commit=ll=>{reportState.location={lat:ll.lat,lng:ll.lng};reportLocationMarker.setLatLng(ll);const s=$("#reportLocationStatus");if(s)s.textContent="Gekozen plek op de kaart wordt gebruikt.";saveReportDraft()};
    reportLocationMap.on("click",e=>commit(e.latlng));
    reportLocationMarker.on("dragend",e=>commit(e.target.getLatLng()));
  }else{
@@ -518,6 +550,7 @@ function chooseReportLocationOnMap(){
  }
  reportState.location={lat:center.lat,lng:center.lng};
  const status=$("#reportLocationStatus");if(status)status.textContent="Tik op de kaart of sleep de pin naar de juiste plek.";
+ saveReportDraft();
  setTimeout(()=>reportLocationMap.invalidateSize(),50);
 }
 async function compress(file){if(!file)return null;if(file.size>7*1024*1024)throw new Error("Foto te groot");const bmp=await createImageBitmap(file),scale=Math.min(1,1400/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);bmp.close?.();return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("foto")),"image/jpeg",.82))}
@@ -531,7 +564,7 @@ async function submitReport(e){
  if(file){const blob=await compress(file);photo_path=user.id+"/"+id+".jpg";const up=await client.storage.from("report-photos").upload(photo_path,blob,{contentType:"image/jpeg",upsert:false});if(up.error)throw up.error}
  const row={id,user_id:user.id,author_name:(p.name||"Buurtgenoot").slice(0,40),author_avatar:p.avatar||"🐾",type:reportState.type,subtype:reportState.subtype||null,text:($("#reportText").value.trim()||reportState.subtype||"Nieuwe melding").slice(0,220),lat:loc.lat,lng:loc.lng,photo_path,species:p.species||"both"};
  const {error}=await client.from("reports").insert(row);if(error)throw error;
- $("#reportDialog").close();
+ localStorage.removeItem(REPORTDRAFTKEY);clearReportPhoto();$("#reportDialog").close();
  showView("map");
  map.setView([loc.lat,loc.lng],17);
  const optimistic={...row,status:"active",created_at:new Date().toISOString(),expires_at:new Date(Date.now()+7*24*60*60*1000).toISOString()};
@@ -825,6 +858,7 @@ window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredIns
 let updateRegistration=null, updateWorker=null, updateReloading=false;
 
 const VERSION_NOTES={
+ "4.22":["Meldingen worden als concept op dit apparaat bewaard en kunnen later worden hervat.","Bekijk of verwijder een foto vooraf en controleer alle gegevens vóór publicatie."],
  "4.21":["Nieuwe kaartmarkers, compacte clusters en een vernieuwde kaartpresentatie.","Mobiele bediening en kleuren volledig herzien."],
  "4.20":["Whatsup Dog heeft een nieuw premium ontwerp met Home, SVG-iconen, kaartfilters en vernieuwde navigatie.","Je bestaande meldingen, pushinstellingen en weggeefitems blijven behouden."],
  "4.16":[

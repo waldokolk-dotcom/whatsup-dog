@@ -53,10 +53,10 @@ test('PawWheel is thumb reachable and starts report flow',async({page})=>{
   await expect(page.locator('#pawDialog')).toBeVisible();
   await page.locator('#pawReport').click();
   await expect(page.locator('#reportDialog')).toBeVisible();
-  await expect(page.locator('#reportStep1 .report-progress')).toContainText('1 van 2 · Soort');
+  await expect(page.locator('#reportStep1 .report-progress')).toContainText('1 van 3 · Soort');
   await page.locator('.report-type[data-cat="danger"]').click();
   await expect(page.locator('#reportStep2')).toBeVisible();
-  await expect(page.locator('#reportStep2 .report-progress')).toContainText('2 van 2 · Details');
+  await expect(page.locator('#reportStep2 .report-progress')).toContainText('2 van 3 · Details');
   await expect(page.locator('#reportSubs')).toContainText('Glas');
   await page.locator('#reportSubs .chip', { hasText: 'Vervuild water' }).click();
   await page.locator('#reportText').fill('Glas bij het bankje');
@@ -65,6 +65,41 @@ test('PawWheel is thumb reachable and starts report flow',async({page})=>{
   await page.locator('.report-type[data-cat="danger"]').click();
   await expect(page.locator('#reportSubs .chip.active')).toContainText('Vervuild water');
   await expect(page.locator('#reportText')).toHaveValue('Glas bij het bankje');
+});
+
+test('report draft resumes and review shows exactly what will be published',async({page})=>{
+  await page.locator('#pawFab').click();
+  await page.locator('#pawReport').click();
+  await page.locator('.report-type[data-cat="animal"]').click();
+  await page.locator('#reportSubs .chip',{hasText:'Vermist dier'}).click();
+  await page.locator('#reportText').fill('Bruine hond met blauwe halsband');
+  await expect.poll(async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('wd_v3_report_draft')||'null')?.text)).toBe('Bruine hond met blauwe halsband');
+  await page.locator('#reportDialog [data-close]').click();
+  await page.locator('#pawFab').click();
+  await page.locator('#pawReport').click();
+  await expect(page.locator('#reportDraftStatus')).toContainText('Concept van eerder hervat');
+  await expect(page.locator('#reportSubs .chip.active')).toContainText('Vermist dier');
+  await expect(page.locator('#reportText')).toHaveValue('Bruine hond met blauwe halsband');
+  await page.locator('#reportReview').click();
+  await expect(page.locator('#reportStep3')).toBeVisible();
+  await expect(page.locator('#reportStep3 .report-progress')).toContainText('3 van 3 · Controleren');
+  await expect(page.locator('#reportSummary')).toContainText('Dier · Vermist dier');
+  await expect(page.locator('#reportSummary')).toContainText('Bruine hond met blauwe halsband');
+  await expect(page.locator('#reportSummary')).toContainText('Geen foto');
+  await page.locator('#reportDiscard').click();
+  await expect.poll(async()=>page.evaluate(()=>localStorage.getItem('wd_v3_report_draft'))).toBeNull();
+});
+
+test('selected report photo can be previewed and removed before upload',async({page})=>{
+  await page.locator('#pawFab').click();
+  await page.locator('#pawReport').click();
+  await page.locator('.report-type[data-cat="fun"]').click();
+  await page.locator('#reportPhoto').setInputFiles({name:'hondenveld.png',mimeType:'image/png',buffer:Buffer.from('fake-image')});
+  await expect(page.locator('#reportPhotoPreview')).toBeVisible();
+  await expect(page.locator('#reportPhotoName')).toHaveText('hondenveld.png');
+  await page.locator('#reportPhotoRemove').click();
+  await expect(page.locator('#reportPhotoPreview')).toBeHidden();
+  await expect(page.locator('#reportPhoto')).toHaveValue('');
 });
 
 test('giveaway is accountless and uses private mail contact',async({page})=>{
@@ -180,8 +215,8 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
-  await expect(page.locator('#appVersion')).toContainText('4.21');
-  await expect(page.locator('#versionDate')).toContainText('08-10-2026');
+  await expect(page.locator('#appVersion')).toContainText('4.22');
+  await expect(page.locator('#versionDate')).toContainText('22-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
 
@@ -216,7 +251,7 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=28');
+  expect(app).toContain('v=29');
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
@@ -239,6 +274,7 @@ test('all report categories expose distinct subtype icons',async({page})=>{
   ];
   for(const [cat,icons] of categories){
     await page.locator('#reportDialog').evaluate(el=>{ if(el.open) el.close(); });
+    await page.evaluate(()=>localStorage.removeItem('wd_v3_report_draft'));
     await page.locator('#pawFab').click();
     await page.locator('#pawReport').click();
     await page.locator('.report-type[data-cat="'+cat+'"]').click();
@@ -249,8 +285,8 @@ test('all report categories expose distinct subtype icons',async({page})=>{
 
 test('active own reports distinguish status from actions',async({page})=>{
   const script=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(script).toContain('v=28');
-  const response=await page.request.get('/app-v3.js?v=28');
+  expect(script).toContain('v=29');
+  const response=await page.request.get('/app-v3.js?v=29');
   const source=await response.text();
   expect(source).toContain('Markeer als opgelost');
   expect(source).toContain('Verwijder melding');
@@ -283,7 +319,7 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
 });
 
 test('resolve and delete remove markers from map immediately',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=28');
+  const response=await page.request.get('/app-v3.js?v=29');
   const source=await response.text();
   expect(source).toContain('function removeReportMarker');
   expect(source).toContain('function deleteOwnReport');
@@ -301,7 +337,7 @@ test('email icon is centered inside its square',async({page})=>{
 });
 
 test('map view forces report resync',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=28');
+  const response=await page.request.get('/app-v3.js?v=29');
   const source=await response.text();
   expect(source).toContain('if(v==="map")');
   expect(source).toContain('refreshReports().catch');
@@ -564,7 +600,7 @@ test('dense nearby reports are clustered into a calm mobile map view',async({pag
 });
 
 test('marker implementation keeps report icons and adds zoom-aware density control',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=28')).text();
+  const js=await (await page.request.get('/app-v3.js?v=29')).text();
   const css=await (await page.request.get('/app-v3.css?v=22')).text();
   expect(js).toContain('function markerSizeForZoom');
   expect(js).toContain('function clusterReportGroups');
@@ -575,7 +611,7 @@ test('marker implementation keeps report icons and adds zoom-aware density contr
 
 
 test('cold start report refresh does not call catch on Supabase rpc builder',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=28')).text();
+  const js=await (await page.request.get('/app-v3.js?v=29')).text();
   expect(js).not.toContain('client.rpc("archive_expired_reports").catch');
   expect(js).toContain('const expiry=await client.rpc("archive_expired_reports")');
   expect(js).toContain('const rows=await fetchActiveReports()');
@@ -624,7 +660,7 @@ test('report detail offers one calm context-aware reaction and privacy-safe shar
   await expect(page.locator('.reaction-love-icon')).toBeVisible();
   await expect(page.locator('.reaction-seen-icon')).toBeHidden();
   await expect(page.locator('#detailShare')).toBeVisible();
-  const js=await (await page.request.get('/app-v3.js?v=28')).text();
+  const js=await (await page.request.get('/app-v3.js?v=29')).text();
   expect(js).toContain('window.open(facebook,"_blank","noopener,noreferrer")');
   expect(js).toContain('SOCIAL_LINKS.facebook');
 });
@@ -633,14 +669,14 @@ test('update button opens plain-language version notes',async({page})=>{
   await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
   await page.locator('#checkUpdateButton').click();
   await expect(page.locator('#updateNotesDialog')).toBeVisible();
-  await expect(page.locator('#notesVersion')).toHaveText('4.21');
-  await expect(page.locator('#updateNotesList')).toContainText('kaartmarkers');
+  await expect(page.locator('#notesVersion')).toHaveText('4.22');
+  await expect(page.locator('#updateNotesList')).toContainText('concept');
   await expect(page.locator('#notesCheckUpdate')).toHaveText('Controleer op update');
 });
 
 
 test('giveaway like implementation is present and uses the shared love language',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=28')).text();
+  const js=await (await page.request.get('/app-v3.js?v=29')).text();
   expect(js).toContain('get_giveaway_reaction_summary');
   expect(js).toContain('toggle_giveaway_reaction');
   expect(js).toContain('give-like reaction-button love');
@@ -648,12 +684,12 @@ test('giveaway like implementation is present and uses the shared love language'
 });
 
 test('pending update button opens notes before applying update',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=28')).text();
+  const js=await (await page.request.get('/app-v3.js?v=29')).text();
   expect(js).toContain('$("#applyUpdateButton")?.addEventListener("click",openUpdateNotes)');
   await page.evaluate(()=>document.querySelector('#updateBanner').classList.remove('hidden'));
   await page.locator('#applyUpdateButton').click();
   await expect(page.locator('#updateNotesDialog')).toBeVisible();
-  await expect(page.locator('#notesVersion')).toHaveText('4.21');
+  await expect(page.locator('#notesVersion')).toHaveText('4.22');
 });
 
 test('paw-heart icon makes paws visually larger than before',async({page})=>{
