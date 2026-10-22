@@ -65,6 +65,7 @@ function bind(){
  $("#reportForm").addEventListener("submit",submitReport);
  $("#reportUseGps")?.addEventListener("click",useCurrentReportLocation);
  $("#reportChooseMap")?.addEventListener("click",chooseReportLocationOnMap);
+ ensureReportNavigation();
  $$(".report-type").forEach(b=>b.addEventListener("click",()=>chooseReport(b.dataset.cat,b.dataset.type,b.dataset.subtype||"")));
  $("#giveCreate").addEventListener("click",()=>$("#giveDialog").showModal());
  $("#giveForm").addEventListener("submit",submitGiveaway);
@@ -459,6 +460,16 @@ async function configureReportReaction(r){
  };
 }
 function labelType(t){return ({danger:"Gevaar",vegetation:"Vegetatie",road:"Handig",fun:"Leuk",spotted:"Dier",lost:"Vermist / gevonden"})[t]||"Melding"}
+function ensureReportNavigation(){
+ const step1=$("#reportStep1"),step2=$("#reportStep2"),submit=$("#reportSubmit");
+ if(!step1||!step2||!submit||$("#reportBack"))return;
+ const progress=(step,label)=>{const el=document.createElement("div");el.className="report-progress";el.setAttribute("aria-label",`Stap ${step} van 2`);el.innerHTML=`<span class="active"></span><span class="${step===2?"active":""}"></span><b>${step} van 2 · ${label}</b>`;return el};
+ step1.prepend(progress(1,"Soort"));step2.prepend(progress(2,"Details"));
+ const actions=document.createElement("div");actions.className="report-form-actions";
+ const back=document.createElement("button");back.type="button";back.id="reportBack";back.className="secondary";back.textContent="← Terug";
+ back.addEventListener("click",()=>{step2.hidden=true;step1.hidden=false;step1.querySelector(".report-type")?.focus()});
+ submit.before(actions);actions.append(back,submit)
+}
 function openReport(){
  reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null};
  $("#reportStep1").hidden=false;$("#reportStep2").hidden=true;$("#reportText").value="";$("#reportPhoto").value="";
@@ -466,20 +477,22 @@ function openReport(){
  $("#reportDialog").showModal()
 }
 function chooseReport(cat,type,sub){
+ const preferredSubtype=reportState.category===cat?reportState.subtype:null;
  reportState={...reportState,category:cat,type,subtype:sub};
  $("#reportStep1").hidden=true;$("#reportStep2").hidden=false;
  $("#reportChosen").textContent=({danger:"Gevaar",animal:"Dier",handy:"Handig",fun:"Leuk"})[cat]||"Melding";
- renderSubChoices(cat);
+ renderSubChoices(cat,preferredSubtype);
  setTimeout(()=>reportLocationMap?.invalidateSize(),50)
 }
-function renderSubChoices(cat){
+function renderSubChoices(cat,preferredSubtype=null){
  const box=$("#reportSubs");
  const opts=cat==="danger"?[["danger","Glas","🔺"],["vegetation","Giftige planten","🌿"],["danger","Vervuild water","💧"],["danger","Gevaarlijk object","🚧"],["danger","Agressief dier","🐕"]]
  :cat==="animal"?[["spotted","Dier gezien","🐾"],["lost","Vermist dier","❤️"],["lost","Gevonden dier","🧡"]]
  :cat==="handy"?[["road","Afsluiting","⛔"],["road","Drukte","🚗"],["other","Tip","💡"]]
  :[["fun","Leuke plek","💚"],["walk","Ontmoeting","🐕"],["fun","Activiteit","🎈"]];
- box.innerHTML=opts.map((o,i)=>'<button type="button" class="chip '+(i===0?"active":"")+'" data-t="'+o[0]+'" data-s="'+esc(o[1])+'"><span class="chip-icon">'+o[2]+'</span>'+esc(o[1])+'</button>').join("");
- reportState.type=opts[0][0];reportState.subtype=opts[0][1];
+ const selectedIndex=Math.max(0,opts.findIndex(o=>o[1]===preferredSubtype));
+ box.innerHTML=opts.map((o,i)=>'<button type="button" class="chip '+(i===selectedIndex?"active":"")+'" data-t="'+o[0]+'" data-s="'+esc(o[1])+'"><span class="chip-icon">'+o[2]+'</span>'+esc(o[1])+'</button>').join("");
+ reportState.type=opts[selectedIndex][0];reportState.subtype=opts[selectedIndex][1];
  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{box.querySelectorAll("button").forEach(x=>x.classList.remove("active"));b.classList.add("active");reportState.type=b.dataset.t;reportState.subtype=b.dataset.s})
 }
 function useCurrentReportLocation(){
