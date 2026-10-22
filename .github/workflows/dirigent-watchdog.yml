@@ -1,0 +1,36 @@
+name: Dirigent schedule watchdog
+
+on:
+  schedule:
+    - cron: '40 13 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: dirigent-schedule-watchdog
+  cancel-in-progress: false
+
+jobs:
+  verify-and-recover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read recent Dirigent runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api "repos/$GITHUB_REPOSITORY/actions/workflows/dirigent.yml/runs?per_page=20" > "$RUNNER_TEMP/dirigent-runs.json"
+      - name: Detect missed cycle
+        id: watchdog
+        run: node scripts/dirigent-watchdog.mjs --runs-file "$RUNNER_TEMP/dirigent-runs.json" --max-age-hours 8
+      - name: Recover one missed cycle
+        if: steps.watchdog.outputs.missing == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run dirigent.yml --repo "$GITHUB_REPOSITORY" --ref main -f issue_number=55
+      - name: Record recovery
+        if: steps.watchdog.outputs.missing == 'true'
+        run: echo 'Fallback dispatch submitted for approved issue #55. Dirigent still creates only a draft PR; release remains separately gated.' >> "$GITHUB_STEP_SUMMARY"
