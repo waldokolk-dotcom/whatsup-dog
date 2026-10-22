@@ -498,7 +498,7 @@ function restoreReportDraft(){
 function discardReportDraft(){localStorage.removeItem(REPORTDRAFTKEY);clearReportPhoto();$("#reportDialog").close();toast("Concept gewist")}
 function clearReportPhoto(){if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);reportPhotoUrl=null;const input=$("#reportPhoto");if(input)input.value="";$("#reportPhotoPreview")?.classList.add("hidden");const img=$("#reportPhotoImage");if(img)img.removeAttribute("src")}
 function renderReportPhotoPreview(){
- const file=$("#reportPhoto")?.files?.[0];if(!file)return clearReportPhoto();if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);reportPhotoUrl=URL.createObjectURL(file);$("#reportPhotoImage").src=reportPhotoUrl;$("#reportPhotoName").textContent=file.name;$("#reportPhotoPreview").classList.remove("hidden")
+ const file=$("#reportPhoto")?.files?.[0];if(!file)return clearReportPhoto();$("#reportPhotoName").textContent=file.name;$("#reportPhotoPreview").classList.remove("hidden");if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);reportPhotoUrl=URL.createObjectURL(file);$("#reportPhotoImage").src=reportPhotoUrl
 }
 function openReportReview(){
  const text=$("#reportText").value.trim();if(text.length<3){toast("Beschrijf kort wat mensen moeten weten");$("#reportText").focus();return}

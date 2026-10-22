@@ -216,7 +216,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 test('Info shows app version and manual update control',async({page})=>{
   await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
   await expect(page.locator('#appVersion')).toContainText('4.22');
-  await expect(page.locator('#versionDate')).toContainText('08-10-2026');
+  await expect(page.locator('#versionDate')).toContainText('22-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
 });
 
@@ -274,6 +274,7 @@ test('all report categories expose distinct subtype icons',async({page})=>{
   ];
   for(const [cat,icons] of categories){
     await page.locator('#reportDialog').evaluate(el=>{ if(el.open) el.close(); });
+    await page.evaluate(()=>localStorage.removeItem('wd_v3_report_draft'));
     await page.locator('#pawFab').click();
     await page.locator('#pawReport').click();
     await page.locator('.report-type[data-cat="'+cat+'"]').click();
@@ -669,7 +670,7 @@ test('update button opens plain-language version notes',async({page})=>{
   await page.locator('#checkUpdateButton').click();
   await expect(page.locator('#updateNotesDialog')).toBeVisible();
   await expect(page.locator('#notesVersion')).toHaveText('4.22');
-  await expect(page.locator('#updateNotesList')).toContainText('kaartmarkers');
+  await expect(page.locator('#updateNotesList')).toContainText('concept');
   await expect(page.locator('#notesCheckUpdate')).toHaveText('Controleer op update');
 });
 
