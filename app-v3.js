@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const CFG=window.WHATSUP_DOG_BACKEND||{};
 const VAPID_PUBLIC="BJesefPp3yqkp5xgNwjSlg1xV6URHdadTi9Xo9oHUwuCSEEGWPBnVssL8_zl2gHo-EeVmdjuIuZ6XUSH3Tr4PQY";
 const PKEY="wd_v3_profile", SKEY="wd_v3_settings", MAPVIEWKEY="wd_v3_map_view", REPORTCACHEKEY="wd_v3_active_reports", REPORTDRAFTKEY="wd_v3_report_draft";
-const APP_VERSION="4.22", APP_VERSION_DATE="22-10-2026", REPORT_DRAFT_TTL=24*60*60*1000;
+const APP_VERSION="4.23", APP_VERSION_DATE="22-10-2026", REPORT_DRAFT_TTL=24*60*60*1000;
 let premiumMapFilter="all";
 const SOCIAL_LINKS=Object.freeze({facebook:"https://www.facebook.com/profile.php?id=61594785673559",instagram:"",tiktok:""});
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,reportPhotoUrl=null,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
@@ -33,6 +33,7 @@ async function boot(){
  const qp=new URLSearchParams(location.search).get("report");if(qp)setTimeout(()=>openReportById(qp),700);
 }
 function bind(){
+ $$('[data-close]').forEach(b=>{if(!b.getAttribute('aria-label'))b.setAttribute('aria-label','Sluiten')});
  $("#wdHomeMap")?.addEventListener("click",()=>showView("map"));
  $("#wdHomeReport")?.addEventListener("click",openReport);
  $("#wdHomeDanger")?.addEventListener("click",()=>{premiumMapFilter="danger";syncPremiumMapFilter();showView("map")});
@@ -126,7 +127,7 @@ function renderPremiumHome(rows){
 }
 
 function showView(v){
- $$(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
+ $$(".view").forEach(x=>x.classList.toggle("active",x.id==="view-"+v));$$(".nav button").forEach(x=>{const active=x.dataset.view===v;x.classList.toggle("active",active);if(active)x.setAttribute("aria-current","page");else x.removeAttribute("aria-current")});
  if(v==="home")renderPremiumHome(lastActiveReports.length?lastActiveReports:cachedActiveReports());
  if(v==="map"){
    setTimeout(()=>{
@@ -858,6 +859,7 @@ window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredIns
 let updateRegistration=null, updateWorker=null, updateReloading=false;
 
 const VERSION_NOTES={
+ "4.23":["Een rustigere, modernere vormgeving met één herkenbaar kleur- en componentensysteem.","Compactere bediening, grotere aanraakvlakken en een volwassen indeling voor tablet en desktop."],
  "4.22":["Meldingen worden als concept op dit apparaat bewaard en kunnen later worden hervat.","Bekijk of verwijder een foto vooraf en controleer alle gegevens vóór publicatie."],
  "4.21":["Nieuwe kaartmarkers, compacte clusters en een vernieuwde kaartpresentatie.","Mobiele bediening en kleuren volledig herzien."],
  "4.20":["Whatsup Dog heeft een nieuw premium ontwerp met Home, SVG-iconen, kaartfilters en vernieuwde navigatie.","Je bestaande meldingen, pushinstellingen en weggeefitems blijven behouden."],
