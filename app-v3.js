@@ -477,20 +477,22 @@ function openReport(){
  $("#reportDialog").showModal()
 }
 function chooseReport(cat,type,sub){
+ const preferredSubtype=reportState.category===cat?reportState.subtype:null;
  reportState={...reportState,category:cat,type,subtype:sub};
  $("#reportStep1").hidden=true;$("#reportStep2").hidden=false;
  $("#reportChosen").textContent=({danger:"Gevaar",animal:"Dier",handy:"Handig",fun:"Leuk"})[cat]||"Melding";
- renderSubChoices(cat);
+ renderSubChoices(cat,preferredSubtype);
  setTimeout(()=>reportLocationMap?.invalidateSize(),50)
 }
-function renderSubChoices(cat){
+function renderSubChoices(cat,preferredSubtype=null){
  const box=$("#reportSubs");
  const opts=cat==="danger"?[["danger","Glas","🔺"],["vegetation","Giftige planten","🌿"],["danger","Vervuild water","💧"],["danger","Gevaarlijk object","🚧"],["danger","Agressief dier","🐕"]]
  :cat==="animal"?[["spotted","Dier gezien","🐾"],["lost","Vermist dier","❤️"],["lost","Gevonden dier","🧡"]]
  :cat==="handy"?[["road","Afsluiting","⛔"],["road","Drukte","🚗"],["other","Tip","💡"]]
  :[["fun","Leuke plek","💚"],["walk","Ontmoeting","🐕"],["fun","Activiteit","🎈"]];
- box.innerHTML=opts.map((o,i)=>'<button type="button" class="chip '+(i===0?"active":"")+'" data-t="'+o[0]+'" data-s="'+esc(o[1])+'"><span class="chip-icon">'+o[2]+'</span>'+esc(o[1])+'</button>').join("");
- reportState.type=opts[0][0];reportState.subtype=opts[0][1];
+ const selectedIndex=Math.max(0,opts.findIndex(o=>o[1]===preferredSubtype));
+ box.innerHTML=opts.map((o,i)=>'<button type="button" class="chip '+(i===selectedIndex?"active":"")+'" data-t="'+o[0]+'" data-s="'+esc(o[1])+'"><span class="chip-icon">'+o[2]+'</span>'+esc(o[1])+'</button>').join("");
+ reportState.type=opts[selectedIndex][0];reportState.subtype=opts[selectedIndex][1];
  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{box.querySelectorAll("button").forEach(x=>x.classList.remove("active"));b.classList.add("active");reportState.type=b.dataset.t;reportState.subtype=b.dataset.s})
 }
 function useCurrentReportLocation(){

@@ -58,10 +58,12 @@ test('PawWheel is thumb reachable and starts report flow',async({page})=>{
   await expect(page.locator('#reportStep2')).toBeVisible();
   await expect(page.locator('#reportStep2 .report-progress')).toContainText('2 van 2 · Details');
   await expect(page.locator('#reportSubs')).toContainText('Glas');
+  await page.locator('#reportSubs .chip', { hasText: 'Vervuild water' }).click();
   await page.locator('#reportText').fill('Glas bij het bankje');
   await page.locator('#reportBack').click();
   await expect(page.locator('#reportStep1')).toBeVisible();
   await page.locator('.report-type[data-cat="danger"]').click();
+  await expect(page.locator('#reportSubs .chip.active')).toContainText('Vervuild water');
   await expect(page.locator('#reportText')).toHaveValue('Glas bij het bankje');
 });
 
