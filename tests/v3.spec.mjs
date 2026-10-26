@@ -36,6 +36,21 @@ async function stubBackend(page){
 }
 test.beforeEach(async({page})=>{await stubBackend(page);await page.goto('/');await page.waitForLoadState('domcontentloaded');await page.locator('[data-view="map"]').click()});
 
+test('iPhone map fills available space above bottom navigation',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.locator('[data-view="map"]').click();
+  const layout=await page.evaluate(()=>{
+    const view=document.querySelector('#view-map');
+    const map=document.querySelector('#map');
+    const nav=document.querySelector('.nav');
+    const v=view.getBoundingClientRect(),m=map.getBoundingClientRect(),n=nav.getBoundingClientRect();
+    return {viewBottom:v.bottom,mapBottom:m.bottom,navTop:n.top,padding:parseFloat(getComputedStyle(view).paddingBottom)};
+  });
+  expect(layout.padding).toBe(0);
+  expect(layout.mapBottom).toBeGreaterThanOrEqual(layout.viewBottom-2);
+  expect(layout.mapBottom).toBeGreaterThanOrEqual(layout.navTop-16);
+});
+
 test('opens the map without account UI',async({page})=>{
   await expect(page.locator('#view-map')).toHaveClass(/active/);
   await expect(page.locator('#areaPill')).toContainText('Corlaer');
@@ -132,7 +147,7 @@ test('primary navigation uses five modern app tabs',async({page})=>{
 });
 
 test('modern design layer provides calm tokens, large targets and reduced motion',async({page})=>{
-  const response=await page.request.get('/modern-2026.css?v=1');
+  const response=await page.request.get('/modern-2026.css?v=2');
   expect(response.ok()).toBeTruthy();
   const css=await response.text();
   expect(css).toContain('--wd-brand:#087864');
