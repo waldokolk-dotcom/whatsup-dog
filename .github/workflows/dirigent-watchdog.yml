@@ -30,7 +30,7 @@ jobs:
         if: steps.watchdog.outputs.missing == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run dirigent.yml --repo "$GITHUB_REPOSITORY" --ref main -f issue_number=55
+        run: gh workflow run dirigent.yml --repo "$GITHUB_REPOSITORY" --ref main
       - name: Record recovery
         if: steps.watchdog.outputs.missing == 'true'
-        run: echo 'Fallback dispatch submitted for approved issue #55. Dirigent still creates only a draft PR; release remains separately gated.' >> "$GITHUB_STEP_SUMMARY"
+        run: echo 'Fallback dispatch submitted; Dirigent selects the next eligible task without retrying a completed issue. Draft PR and separate release approval remain required.' >> "$GITHUB_STEP_SUMMARY"
