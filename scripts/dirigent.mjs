@@ -17,6 +17,7 @@ function call(command, args, options = {}) {
 function gh(args) { return JSON.parse(call('gh', args)); }
 function labels(issue) { return (issue.labels || []).map(label => String(label.name || label).toLowerCase()); }
 function score(issue) { return Math.max(0, ...labels(issue).map(label => priorities.get(label) || 0)); }
+function hasOpenDirigentPr(issue, prs) { return prs.some(pr => String(pr.headRefName || '').startsWith(`dirigent/issue-${issue.number}-`)); }
 function validatePath(file) {
   return typeof file === 'string' && allowed.test(file) && !denied.test(file) && !file.includes('..') && !path.isAbsolute(file);
 }
@@ -41,7 +42,8 @@ async function chooseIssue() {
     return gh(['issue', 'view', explicitIssue, '-R', repo, '--json', 'number,title,body,state,labels,url']);
   }
   const issues = gh(['issue', 'list', '-R', repo, '--state', 'open', '--limit', '100', '--json', 'number,title,body,state,labels,url']);
-  return issues.filter(issue => /^\[Dirigent\]/i.test(issue.title || '') && labels(issue).includes('dirigent:ready'))
+  const openPRs = gh(['pr', 'list', '-R', repo, '--state', 'open', '--limit', '100', '--json', 'headRefName,url']);
+  return issues.filter(issue => /^\[Dirigent\]/i.test(issue.title || '') && labels(issue).includes('dirigent:ready') && !hasOpenDirigentPr(issue, openPRs))
     .sort((a, b) => score(b) - score(a) || a.number - b.number)[0];
 }
 async function applyTask(task) {
@@ -70,14 +72,16 @@ async function selfTest() {
   const issue = { title: '[Dirigent] test', body: '<!-- dirigent-task {"version":1,"user_value":"A visible improvement","changes":[{"path":"tests/example.spec.mjs","find":"a","replace":"b"}],"acceptance":["test"]} -->' };
   const parsed = parseTask(issue);
   if (!validatePath(parsed.changes[0].path) || validatePath('.github/workflows/a.yml') || validatePath('sw.js') || validatePath('supabase/functions/a.js')) throw new Error('Path policy self-test failed');
+  if (!hasOpenDirigentPr({number:55}, [{headRefName:'dirigent/issue-55-39757735562'}])) throw new Error('Existing draft PR must be excluded from scheduled selection');
+  if (hasOpenDirigentPr({number:5}, [{headRefName:'dirigent/issue-55-39757735562'}])) throw new Error('Issue number prefix collision');
+  if (hasOpenDirigentPr({number:55}, [{headRefName:'feature/other'}])) throw new Error('Unrelated PR should not block issue');
   console.log('Dirigent self-test passed');
 }
 async function main() {
   if (process.argv[2] === 'self-test') return selfTest();
   const issue = await chooseIssue();
   if (!issue) {
-    await report('BLOCKED: No ready Dirigent issue with a bounded, user-value task; no iteration was produced.');
-    process.exitCode = 1;
+    await report('IDLE: No eligible ready Dirigent issue. Issues with an existing open Dirigent PR are skipped; no new code or PR was produced.');
     return;
   }
   if (issue.state !== 'OPEN') throw new Error('Selected issue is not open');
