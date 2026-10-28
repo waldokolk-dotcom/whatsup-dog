@@ -105,6 +105,7 @@ assert.doesNotMatch(installHandler,/skipWaiting/,'Updated workers must wait for 
 execFileSync(process.execPath,['--check','app-v3.js']);
 execFileSync(process.execPath,['--check','sw.js']);
 execFileSync(process.execPath,['scripts/sw-update-qa.mjs']);
+execFileSync(process.execPath,['scripts/dirigent.mjs','self-test']);
 
 const manifest=JSON.parse(read('manifest.webmanifest'));
 assert.equal(manifest.scope,'./');
