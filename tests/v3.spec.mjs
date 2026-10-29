@@ -34,9 +34,12 @@ async function stubBackend(page){
   });
   await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>window.__wdTestClient};'}));
 }
-test.beforeEach(async({page})=>{await stubBackend(page);await page.goto('/');await page.waitForLoadState('domcontentloaded');await page.locator('[data-view="map"]').click()});
+test.beforeEach(async({page})=>{await stubBackend(page);await page.goto('/');await page.waitForLoadState('domcontentloaded');await expect(page.locator('#view-map')).toHaveClass(/active/)});
 
-test('opens the map without account UI',async({page})=>{
+test('starts directly on the map without account UI',async({page})=>{
+  await expect(page.locator('#view-home')).not.toHaveClass(/active/);
+  await expect(page.locator('[data-view="map"]')).toHaveAttribute('aria-current','page');
+  await expect(page.locator('#map .leaflet-map-pane')).toHaveCount(1);
   await expect(page.locator('#view-map')).toHaveClass(/active/);
   await expect(page.locator('#areaPill')).toContainText('Corlaer');
   await expect(page.locator('input[type=email]')).toHaveCount(1);
