@@ -38,6 +38,8 @@ test.beforeEach(async({page})=>{await stubBackend(page);await page.goto('/');awa
 
 test('starts directly on the map without account UI',async({page})=>{
   await expect(page.locator('#view-home')).not.toHaveClass(/active/);
+  await expect(page.locator('#view-home')).toBeHidden();
+  await expect(page.locator('#view-map')).toBeVisible();
   await expect(page.locator('[data-view="map"]')).toHaveAttribute('aria-current','page');
   await expect(page.locator('#map .leaflet-map-pane')).toHaveCount(1);
   await expect(page.locator('#view-map')).toHaveClass(/active/);
