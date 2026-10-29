@@ -18,7 +18,7 @@ async function boot(){
  client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
  const {data}=await client.auth.getSession(); if(data.session) user=data.session.user;
  if(!user){const r=await client.auth.signInAnonymously();if(r.error){console.warn(r.error);toast("Veilige toestelsessie kon niet starten");return}user=r.data.user}
- initMap(); bind(); showView("home"); syncPushUi(); applyProfile();
+ initMap(); bind(); showView("map"); syncPushUi(); applyProfile();
  await refreshReports().catch(err=>console.warn("Meldingen laden",err));
  await refreshGiveaways().catch(err=>console.warn("Weggeefhoek laden",err));
  await refreshMine().catch(err=>console.warn("Mijn Whatsup laden",err));
@@ -315,7 +315,7 @@ async function refreshReports(){
  }
 }
 function focusLatestOwnActiveReport(rows){
- // Home is the first screen: defer map bounds and centering until the map is visible.
+ // Defer map bounds and centering until the map is visible and has a measured size.
  if(initialReportFocusDone||!map||!$("#view-map")?.classList.contains("active"))return;
  const container=map.getContainer();
  if(!container?.clientWidth||!container?.clientHeight)return;
