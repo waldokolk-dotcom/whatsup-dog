@@ -132,7 +132,7 @@ test('primary navigation uses five modern app tabs',async({page})=>{
 });
 
 test('modern design layer provides calm tokens, large targets and reduced motion',async({page})=>{
-  const response=await page.request.get('/modern-2026.css?v=1');
+  const response=await page.request.get('/modern-2026.css?v=2');
   expect(response.ok()).toBeTruthy();
   const css=await response.text();
   expect(css).toContain('--wd-brand:#087864');
@@ -244,6 +244,14 @@ test('update banner opens version notes before worker activation',async({page})=
   await page.locator('#applyUpdateButton').click();
   await expect(page.locator('#updateNotesDialog')).toBeVisible();
   await expect(page.locator('#updateBanner')).not.toHaveClass(/hidden/);
+});
+
+test('update banner stays compact and does not cover the central report action',async({page})=>{
+  await page.evaluate(()=>document.querySelector('#updateBanner').classList.remove('hidden'));
+  const banner=await page.locator('#updateBanner').boundingBox();
+  const fab=await page.locator('#pawFab').boundingBox();
+  expect(banner.height).toBeLessThanOrEqual(72);
+  expect(banner.y+banner.height).toBeLessThanOrEqual(fab.y+2);
 });
 
 test('giveaway contact banner uses a fixed SVG mail icon at full size',async({page})=>{
