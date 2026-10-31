@@ -21,6 +21,10 @@ test('tabs and map filters work after backend initialization',async({page})=>{
   });
   await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>window.__wdTestClient};'}));
   await page.goto('/');
+  await expect(page.locator('#view-map')).toHaveClass(/active/);
+  await expect(page.locator('#view-home')).not.toHaveClass(/active/);
+  await expect(page.locator('#onboarding')).not.toBeVisible();
+  await page.locator('[data-view="home"]').click();
   await expect(page.locator('#view-home')).toHaveClass(/active/);
   await page.locator('[data-view="map"]').click();
   await expect(page.locator('#view-map')).toHaveClass(/active/);
