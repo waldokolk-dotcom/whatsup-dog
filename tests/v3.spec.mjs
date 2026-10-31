@@ -717,6 +717,7 @@ test('premium Home appears and is functional',async({page})=>{
  await expect(page.locator('#view-home')).toHaveClass(/active/);
  await expect(page.locator('#view-home')).toContainText('Goed op pad.');
  await expect(page.locator('#wdHomeMap')).toBeVisible();
+ await expect(page.locator('#wdHomeReports')).toContainText('zonder account');
  await page.locator('#wdHomeMap').click();
  await expect(page.locator('#view-map')).toHaveClass(/active/);
  await expect(page.locator('.wd-map-filterbar .wd-filter')).toHaveCount(5);

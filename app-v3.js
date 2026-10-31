@@ -110,7 +110,7 @@ function renderPremiumHome(rows){
  const host=$("#wdHomeReports");if(!host)return;
  const entries=validActiveReports(rows).slice().sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0)).slice(0,4);
  host.replaceChildren();
- if(!entries.length){const empty=document.createElement("div");empty.className="wd-empty";empty.textContent="Nog geen actieve meldingen in jouw buurt. Bekijk de kaart of deel zelf een nuttige melding.";host.append(empty);return;}
+ if(!entries.length){const empty=document.createElement("div");empty.className="wd-empty";empty.textContent="Nog geen actieve meldingen in jouw buurt. Bekijk de kaart of deel zonder account zelf een nuttige melding.";host.append(empty);return;}
  const shortTime=d=>{try{return new Date(d).toLocaleDateString("nl-NL",{day:"numeric",month:"short"})}catch{return "Recent"}};
  for(const r of entries){
   const item=document.createElement("button");item.type="button";item.className="wd-report-card";
