@@ -50,3 +50,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .give-list.modern-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.sheet{width:min(680px,calc(100vw - 40px));border-radius:var(--wd-radius-lg);margin:auto}.nav{left:50%;right:auto;width:min(720px,70vw);transform:translateX(-50%);bottom:12px;border:1px solid var(--wd-border);border-radius:20px;padding:6px}.paw-fab{bottom:94px}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* Map-first mobile shell: avoid double subtraction of the bottom navigation. */
+.app{height:100dvh;min-height:0}
+#view-map.map-view{height:calc(100dvh - 86px);min-height:0;padding:0;overflow:hidden;background:#eaf2ec}
+#view-map .map{height:100%;min-height:0;width:100%;background:#eaf2ec}
+#view-map.active{display:block}
+.nav{z-index:800}
+.paw-fab{z-index:810;min-width:58px;min-height:58px;touch-action:manipulation}
+#locateBtn,.wd-filter,.report-type,.nav button{touch-action:manipulation}
+@media(max-width:600px){.wd-map-filterbar{max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:none}.wd-map-filterbar::-webkit-scrollbar{display:none}}

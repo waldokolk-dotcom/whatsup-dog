@@ -265,7 +265,7 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=30');
+  expect(app).toMatch(/app-v3\.js\?v=\d+/);
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
@@ -299,8 +299,8 @@ test('all report categories expose distinct subtype icons',async({page})=>{
 
 test('active own reports distinguish status from actions',async({page})=>{
   const script=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(script).toContain('v=30');
-  const response=await page.request.get('/app-v3.js?v=30');
+  expect(script).toMatch(/app-v3\.js\?v=\d+/);
+  const response=await page.request.get('/app-v3.js?v=31');
   const source=await response.text();
   expect(source).toContain('Markeer als opgelost');
   expect(source).toContain('Verwijder melding');
@@ -333,7 +333,7 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
 });
 
 test('resolve and delete remove markers from map immediately',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=30');
+  const response=await page.request.get('/app-v3.js?v=31');
   const source=await response.text();
   expect(source).toContain('function removeReportMarker');
   expect(source).toContain('function deleteOwnReport');
@@ -351,7 +351,7 @@ test('email icon is centered inside its square',async({page})=>{
 });
 
 test('map view forces report resync',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=30');
+  const response=await page.request.get('/app-v3.js?v=31');
   const source=await response.text();
   expect(source).toContain('if(v==="map")');
   expect(source).toContain('refreshReports().catch');
@@ -614,7 +614,7 @@ test('dense nearby reports are clustered into a calm mobile map view',async({pag
 });
 
 test('marker implementation keeps report icons and adds zoom-aware density control',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=30')).text();
+  const js=await (await page.request.get('/app-v3.js?v=31')).text();
   const css=await (await page.request.get('/app-v3.css?v=22')).text();
   expect(js).toContain('function markerSizeForZoom');
   expect(js).toContain('function clusterReportGroups');
@@ -625,7 +625,7 @@ test('marker implementation keeps report icons and adds zoom-aware density contr
 
 
 test('cold start report refresh does not call catch on Supabase rpc builder',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=30')).text();
+  const js=await (await page.request.get('/app-v3.js?v=31')).text();
   expect(js).not.toContain('client.rpc("archive_expired_reports").catch');
   expect(js).toContain('const expiry=await client.rpc("archive_expired_reports")');
   expect(js).toContain('const rows=await fetchActiveReports()');
@@ -674,7 +674,7 @@ test('report detail offers one calm context-aware reaction and privacy-safe shar
   await expect(page.locator('.reaction-love-icon')).toBeVisible();
   await expect(page.locator('.reaction-seen-icon')).toBeHidden();
   await expect(page.locator('#detailShare')).toBeVisible();
-  const js=await (await page.request.get('/app-v3.js?v=30')).text();
+  const js=await (await page.request.get('/app-v3.js?v=31')).text();
   expect(js).toContain('window.open(facebook,"_blank","noopener,noreferrer")');
   expect(js).toContain('SOCIAL_LINKS.facebook');
 });
@@ -690,7 +690,7 @@ test('update button opens plain-language version notes',async({page})=>{
 
 
 test('giveaway like implementation is present and uses the shared love language',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=30')).text();
+  const js=await (await page.request.get('/app-v3.js?v=31')).text();
   expect(js).toContain('get_giveaway_reaction_summary');
   expect(js).toContain('toggle_giveaway_reaction');
   expect(js).toContain('give-like reaction-button love');
@@ -698,7 +698,7 @@ test('giveaway like implementation is present and uses the shared love language'
 });
 
 test('pending update button opens notes before applying update',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=30')).text();
+  const js=await (await page.request.get('/app-v3.js?v=31')).text();
   expect(js).toContain('$("#applyUpdateButton")?.addEventListener("click",openUpdateNotes)');
   await page.evaluate(()=>document.querySelector('#updateBanner').classList.remove('hidden'));
   await page.locator('#applyUpdateButton').click();

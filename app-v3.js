@@ -14,11 +14,15 @@ const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat
 const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2400)};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 async function boot(){
- if(!window.supabase||!CFG.url||!CFG.publishableKey){toast("Backend niet beschikbaar");return}
+ // Render the primary product experience immediately, independent of network/auth latency.
+ initMap(); bind(); showView("map");
+ if(!window.supabase||!CFG.url||!CFG.publishableKey){toast("Meldingen tijdelijk niet beschikbaar; kaart blijft bruikbaar");return}
  client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
- const {data}=await client.auth.getSession(); if(data.session) user=data.session.user;
- if(!user){const r=await client.auth.signInAnonymously();if(r.error){console.warn(r.error);toast("Veilige toestelsessie kon niet starten");return}user=r.data.user}
- initMap(); bind(); showView("home"); syncPushUi(); applyProfile();
+ try{
+   const {data}=await client.auth.getSession(); if(data.session) user=data.session.user;
+   if(!user){const r=await client.auth.signInAnonymously();if(r.error)throw r.error;user=r.data.user}
+ }catch(err){console.warn("Anonieme sessie",err);toast("Meldingen tijdelijk niet beschikbaar; probeer later opnieuw");return}
+ syncPushUi(); applyProfile();
  await refreshReports().catch(err=>console.warn("Meldingen laden",err));
  await refreshGiveaways().catch(err=>console.warn("Weggeefhoek laden",err));
  await refreshMine().catch(err=>console.warn("Mijn Whatsup laden",err));
@@ -29,7 +33,7 @@ async function boot(){
  document.addEventListener("visibilitychange",resync);
  clearInterval(reportSyncTimer);
  reportSyncTimer=setInterval(resync,30000);
- if(!localStorage.getItem("wd_v3_onboarded")) $("#onboarding").showModal();
+ // Onboarding is voluntary: the map and reporting must never be gated by a modal.
  const qp=new URLSearchParams(location.search).get("report");if(qp)setTimeout(()=>openReportById(qp),700);
 }
 function bind(){
