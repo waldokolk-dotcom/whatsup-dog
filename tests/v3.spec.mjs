@@ -102,6 +102,33 @@ test('selected report photo can be previewed and removed before upload',async({p
   await expect(page.locator('#reportPhoto')).toHaveValue('');
 });
 
+test('GPS denial offers map pin fallback without losing report details',async({page})=>{
+  await page.evaluate(()=>{
+    Object.defineProperty(navigator,'geolocation',{configurable:true,value:{
+      getCurrentPosition(_success,fail){fail({code:1,message:'Permission denied'})}
+    }});
+  });
+  await page.locator('#pawFab').click();
+  await page.locator('#pawReport').click();
+  await page.locator('.report-type[data-cat="danger"]').click();
+  await page.locator('#reportText').fill('Glas naast het hondenveld');
+  await page.locator('#reportPhoto').setInputFiles({name:'glas.png',mimeType:'image/png',buffer:Buffer.from('fake-image')});
+  await page.locator('#reportReview').click();
+  await page.locator('#reportSubmit').click();
+  await expect(page.locator('#reportStep2')).toBeVisible();
+  await expect(page.locator('#reportLocationMapWrap')).toBeVisible();
+  await expect(page.locator('#reportChooseMap')).toHaveClass(/active/);
+  await expect(page.locator('#reportText')).toHaveValue('Glas naast het hondenveld');
+  await expect(page.locator('#reportPhotoName')).toHaveText('glas.png');
+  await expect.poll(async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('wd_v3_report_draft')||'null')?.locationMode)).toBe('map');
+  await page.locator('#reportPhotoRemove').click();
+  await page.locator('#reportReview').click();
+  await expect(page.locator('#reportSummary')).toContainText('Gekozen plek op de kaart');
+  await page.locator('#reportSubmit').click();
+  await expect(page.locator('#reportDialog')).toBeHidden();
+  await expect(page.locator('#toast')).toContainText('Melding staat op de kaart');
+});
+
 test('giveaway is accountless and uses private mail contact',async({page})=>{
   await page.locator('[data-view="giveaway"]').click();
   await expect(page.locator('#view-giveaway')).toHaveClass(/active/);
