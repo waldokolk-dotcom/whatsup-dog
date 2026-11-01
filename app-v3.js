@@ -560,7 +560,7 @@ function chooseReportLocationOnMap(){
 }
 async function compress(file){if(!file)return null;if(file.size>7*1024*1024)throw new Error("Foto te groot");const bmp=await createImageBitmap(file),scale=Math.min(1,1400/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);bmp.close?.();return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("foto")),"image/jpeg",.82))}
 async function submitReport(e){
- e.preventDefault();if(!user||!reportState.type)return;const btn=$("#reportSubmit");btn.disabled=true;
+ e.preventDefault();if(!reportState.type){toast("Kies eerst een soort melding");return}if(!client||!user){toast("Meldingen tijdelijk niet beschikbaar; probeer later opnieuw");return}const btn=$("#reportSubmit");btn.disabled=true;
  try{let loc;
  if(reportState.locationMode==="map"&&reportState.location){loc=reportState.location}
  else if(navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{timeout:6000,maximumAge:30000}))}
@@ -579,7 +579,17 @@ async function submitReport(e){
  map.setView([loc.lat,loc.lng],17);
  client.functions.invoke("dispatch-nearby-push",{body:{reportId:id}}).catch(()=>{});
  toast("Melding staat op de kaart")}
- catch(err){console.warn(err);toast("Plaatsen lukt nu niet")}finally{btn.disabled=false}
+ catch(err){
+  console.warn(err);
+  const gpsFailed=reportState.locationMode==="gps"&&(err?.code===1||err?.code===2||err?.code===3||err?.message==="location-unavailable");
+  if(gpsFailed){
+   // Keep the description and selected photo: only location needs another input.
+   $("#reportStep3").hidden=true;$("#reportStep2").hidden=false;
+   chooseReportLocationOnMap();
+   toast("Locatie niet beschikbaar. Kies een plek op de kaart.");
+   $("#reportChooseMap")?.focus();
+  }else toast("Plaatsen lukt nu niet");
+ }finally{btn.disabled=false}
 }
 async function refreshGiveaways(){
  const list=$("#giveList");if(!list||!client)return;list.innerHTML='<div class="empty">Laden…</div>';const {data,error}=await client.from("giveaway_listings").select("id,owner_id,title,description,category,kind,town,image_path,status,created_at").eq("status","actief").order("created_at",{ascending:false}).limit(80);if(error){list.innerHTML='<div class="empty">Ophalen lukt nu niet.</div>';return}
