@@ -157,6 +157,14 @@ function initMap(){
  map.on("moveend",()=>{const center=map.getCenter();write(MAPVIEWKEY,{lat:center.lat,lng:center.lng,zoom:map.getZoom()})});
  // Marker sizes and clustering depend on zoom; refresh immediately without a backend request.
  map.on("zoomend",()=>renderReportMarkers());
+ // Leaflet can retain a stale tile viewport when iOS changes the visual viewport
+ // (browser chrome, standalone PWA, orientation). Observe the actual map box.
+ if(typeof ResizeObserver!=="undefined"){
+   const mapResizeObserver=new ResizeObserver(()=>map?.invalidateSize({animate:false,pan:false}));
+   mapResizeObserver.observe($("#map"));
+ }
+ window.visualViewport?.addEventListener("resize",()=>map?.invalidateSize({animate:false,pan:false}));
+ window.addEventListener("orientationchange",()=>setTimeout(()=>map?.invalidateSize({animate:false,pan:false}),250));
  $("#areaPill").textContent=s.areaLabel+" ▾";
  const enabled=localStorage.getItem("wd_v3_offleash")!=="0";
  const toggle=$("#offleashToggle");if(toggle)toggle.checked=enabled;
