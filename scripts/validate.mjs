@@ -27,7 +27,7 @@ assert.match(html,/id="radius"/,'Push radius control missing');
 assert.match(html,/Contact e-mail/,'Giveaway mail contact missing');
 assert.match(html,/Geen account.*geen wachtwoord/i,'Accountless onboarding copy missing');
 assert.doesNotMatch(html,/account-login\.js|account-onboarding\.js|community-chat\.js|id="view-chat"/,'Legacy account/chat UI must not ship');
-assert.match(html,/app-v3\.js\?v=31/,'Map-first app controller not wired');
+assert.match(html,/app-v3\.js\?v=32/,'Map-first app controller not wired');
 assert.match(html,/modern-2026\.css\?v=2/,'Map-first design layer not wired');
 assert.match(html,/app-v3\.css\?v=27/,'V3 visual system not wired');
 
@@ -90,7 +90,7 @@ assert.match(css,/\.paw-fab/,'One-hand PawWheel styling missing');
 assert.match(css,/\.offleash-control/,'Losloopgebieden control styling missing');
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
-assert.match(sw,/app-v3\.js\?v=31/,'Offline cache missing map-first app');
+assert.match(sw,/app-v3\.js\?v=32/,'Offline cache missing map-first app');
 assert.match(sw,/modern-2026\.css\?v=2/,'Offline cache missing map-first design layer');
 assert.match(app,/initMap\(\); bind\(\); showView\("map"\)/,'Map must open before backend authentication');
 assert.doesNotMatch(app,/\$\("#onboarding"\)\.showModal\(\)/,'Onboarding must not block map-first startup');
