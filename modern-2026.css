@@ -60,3 +60,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .paw-fab{z-index:810;min-width:58px;min-height:58px;touch-action:manipulation}
 #locateBtn,.wd-filter,.report-type,.nav button{touch-action:manipulation}
 @media(max-width:600px){.wd-map-filterbar{max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:none}.wd-map-filterbar::-webkit-scrollbar{display:none}}
+
+/* P0 iPhone: map fills the space above the fixed navigation, with no blank strip.
+   Keep the action above the navigation and the location control above that action. */
+@media(max-width:839px){
+  .app{height:100dvh;min-height:0;overflow:hidden}
+  #view-map.map-view.active{position:absolute;inset:0 0 calc(var(--wd-nav-height) + env(safe-area-inset-bottom)) 0;height:auto!important;min-height:0!important;padding:0!important;overflow:hidden}
+  #view-map .map{position:absolute;inset:0;width:100%;height:100%!important;min-height:0!important}
+  .nav{height:calc(var(--wd-nav-height) + env(safe-area-inset-bottom));bottom:0}
+  .paw-fab{position:absolute;bottom:calc(var(--wd-nav-height) + env(safe-area-inset-bottom) + 12px);width:72px;height:72px;z-index:810}
+  #view-map .map-locate{bottom:calc(96px + env(safe-area-inset-bottom));z-index:550}
+}
