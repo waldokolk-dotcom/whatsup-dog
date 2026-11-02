@@ -503,7 +503,10 @@ function restoreReportDraft(){
 function discardReportDraft(){localStorage.removeItem(REPORTDRAFTKEY);clearReportPhoto();$("#reportDialog").close();toast("Concept gewist")}
 function clearReportPhoto(){if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);reportPhotoUrl=null;const input=$("#reportPhoto");if(input)input.value="";const preview=$("#reportPhotoPreview");if(preview){preview.classList.add("hidden");preview.hidden=true;preview.style.removeProperty("display")}const img=$("#reportPhotoImage");if(img)img.removeAttribute("src")}
 function renderReportPhotoPreview(){
- const file=$("#reportPhoto")?.files?.[0];if(!file)return clearReportPhoto();const preview=$("#reportPhotoPreview");$("#reportPhotoName").textContent=file.name;preview.hidden=false;preview.classList.remove("hidden");preview.style.display="grid";if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);reportPhotoUrl=URL.createObjectURL(file);$("#reportPhotoImage").src=reportPhotoUrl
+ const file=$("#reportPhoto")?.files?.[0];if(!file)return clearReportPhoto();
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type)){clearReportPhoto();toast("Kies een JPG-, PNG- of WebP-foto.");return}
+ if(file.size>7*1024*1024){clearReportPhoto();toast("Foto te groot: maximaal 7 MB.");return}
+ const preview=$("#reportPhotoPreview");$("#reportPhotoName").textContent=file.name;preview.hidden=false;preview.classList.remove("hidden");preview.style.display="grid";if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);reportPhotoUrl=URL.createObjectURL(file);$("#reportPhotoImage").src=reportPhotoUrl
 }
 function openReportReview(){
  const text=$("#reportText").value.trim();if(text.length<3){toast("Beschrijf kort wat mensen moeten weten");$("#reportText").focus();return}
@@ -558,7 +561,29 @@ function chooseReportLocationOnMap(){
  saveReportDraft();
  setTimeout(()=>reportLocationMap.invalidateSize(),50);
 }
-async function compress(file){if(!file)return null;if(file.size>7*1024*1024)throw new Error("Foto te groot");const bmp=await createImageBitmap(file),scale=Math.min(1,1400/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);bmp.close?.();return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("foto")),"image/jpeg",.82))}
+async function compress(file){
+ if(!file)return null;
+ if(file.size>7*1024*1024)throw new Error("photo-too-large");
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type))throw new Error("photo-unsupported");
+ let bmp;
+ if(typeof createImageBitmap==="function"){try{bmp=await createImageBitmap(file)}catch(err){console.warn("Fotodecodering via canvas niet beschikbaar",err)}}
+ if(!bmp){
+   // Some mobile Safari versions cannot decode every supported camera image via createImageBitmap.
+   bmp=await new Promise((resolve,reject)=>{
+     const url=URL.createObjectURL(file),img=new Image();
+     img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};
+     img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("photo-decode"))};
+     img.src=url;
+   });
+ }
+ const width=bmp.width||bmp.naturalWidth,height=bmp.height||bmp.naturalHeight;
+ if(!width||!height){bmp.close?.();throw new Error("photo-decode")}
+ const scale=Math.min(1,1400/Math.max(width,height)),canvas=document.createElement("canvas");
+ canvas.width=Math.max(1,Math.round(width*scale));canvas.height=Math.max(1,Math.round(height*scale));
+ try{canvas.getContext("2d").drawImage(bmp,0,0,canvas.width,canvas.height)}
+ finally{bmp.close?.()}
+ return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("photo-decode")),"image/jpeg",.82))
+}
 async function submitReport(e){
  e.preventDefault();if(!reportState.type){toast("Kies eerst een soort melding");return}if(!client||!user){toast("Meldingen tijdelijk niet beschikbaar; probeer later opnieuw");return}const btn=$("#reportSubmit");btn.disabled=true;
  try{let loc;
@@ -566,7 +591,7 @@ async function submitReport(e){
  else if(navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{timeout:6000,maximumAge:30000}))}
  else{throw new Error("location-unavailable")}
  const id=crypto.randomUUID(),p=profile();let photo_path=null,file=$("#reportPhoto").files[0];
- if(file){const blob=await compress(file);photo_path=user.id+"/"+id+".jpg";const up=await client.storage.from("report-photos").upload(photo_path,blob,{contentType:"image/jpeg",upsert:false});if(up.error)throw up.error}
+ if(file){const blob=await compress(file);photo_path=user.id+"/"+id+".jpg";const up=await client.storage.from("report-photos").upload(photo_path,blob,{contentType:"image/jpeg",upsert:false});if(up.error){console.warn("Foto-upload mislukt",up.error);throw new Error("photo-upload")}}
  const row={id,user_id:user.id,author_name:(p.name||"Buurtgenoot").slice(0,40),author_avatar:p.avatar||"🐾",type:reportState.type,subtype:reportState.subtype||null,text:($("#reportText").value.trim()||reportState.subtype||"Nieuwe melding").slice(0,220),lat:loc.lat,lng:loc.lng,photo_path,species:p.species||"both"};
  const {error}=await client.from("reports").insert(row);if(error)throw error;
  localStorage.removeItem(REPORTDRAFTKEY);clearReportPhoto();$("#reportDialog").close();
@@ -588,7 +613,10 @@ async function submitReport(e){
    chooseReportLocationOnMap();
    toast("Locatie niet beschikbaar. Kies een plek op de kaart.");
    $("#reportChooseMap")?.focus();
-  }else toast("Plaatsen lukt nu niet");
+  }else if(err?.message==="photo-too-large")toast("Foto te groot: maximaal 7 MB.");
+  else if(err?.message==="photo-unsupported"||err?.message==="photo-decode")toast("Deze foto kan niet worden verwerkt. Kies een andere JPG-, PNG- of WebP-foto.");
+  else if(err?.message==="photo-upload")toast("Foto uploaden lukt niet. Je melding is bewaard als concept; probeer opnieuw.");
+  else toast("Plaatsen lukt nu niet. Je concept blijft bewaard.");
  }finally{btn.disabled=false}
 }
 async function refreshGiveaways(){
