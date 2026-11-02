@@ -102,6 +102,69 @@ test('selected report photo can be previewed and removed before upload',async({p
   await expect(page.locator('#reportPhoto')).toHaveValue('');
 });
 
+test('oversized report photo is rejected immediately without losing the description',async({page})=>{
+  await page.locator('#pawFab').click();
+  await page.locator('#pawReport').click();
+  await page.locator('.report-type[data-cat="danger"]').click();
+  await page.locator('#reportText').fill('Glas bij de ingang van het park');
+  await page.locator('#reportPhoto').setInputFiles({name:'te-groot.jpg',mimeType:'image/jpeg',buffer:Buffer.alloc(7*1024*1024+1)});
+  await expect(page.locator('#toast')).toContainText('Foto te groot: maximaal 7 MB.');
+  await expect(page.locator('#reportPhoto')).toHaveValue('');
+  await expect(page.locator('#reportPhotoPreview')).toBeHidden();
+  await expect(page.locator('#reportText')).toHaveValue('Glas bij de ingang van het park');
+});
+
+test('mobile photo fallback uploads JPEG and completes a report without createImageBitmap',async({page})=>{
+  await page.evaluate(()=>{
+    window.createImageBitmap=undefined;
+    window.__wdTestClient.storage.from=()=>({
+      upload:async(path,blob)=>{window.__wdPhotoUpload={path,type:blob.type,size:blob.size};return {error:null}},
+      createSignedUrl:async()=>({data:null,error:null})
+    });
+  });
+  await page.locator('#pawFab').click();
+  await page.locator('#pawReport').click();
+  await page.locator('.report-type[data-cat="danger"]').click();
+  await page.locator('#reportText').fill('Glas bij het hondenveld');
+  await page.locator('#reportChooseMap').click();
+  await page.locator('#reportPhoto').setInputFiles({
+    name:'bewijs.png',mimeType:'image/png',
+    buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGOsOJHCwMDAxMDAwMDAAAAT7gGovvSxigAAAABJRU5ErkJggg==','base64')
+  });
+  await page.locator('#reportReview').click();
+  await page.locator('#reportSubmit').click();
+  await expect(page.locator('#reportDialog')).toBeHidden();
+  await expect(page.locator('#toast')).toContainText('Melding staat op de kaart');
+  const uploaded=await page.evaluate(()=>window.__wdPhotoUpload);
+  expect(uploaded.type).toBe('image/jpeg');
+  expect(uploaded.size).toBeGreaterThan(0);
+  expect(uploaded.path).toMatch(/^device-user\\/.+\\.jpg$/);
+});
+
+test('failed photo upload keeps the report and photo ready for retry',async({page})=>{
+  await page.evaluate(()=>{
+    window.__wdTestClient.storage.from=()=>({
+      upload:async()=>({error:{message:'network offline'}}),
+      createSignedUrl:async()=>({data:null,error:null})
+    });
+  });
+  await page.locator('#pawFab').click();
+  await page.locator('#pawReport').click();
+  await page.locator('.report-type[data-cat="danger"]').click();
+  await page.locator('#reportText').fill('Glas bij de parkeerplaats');
+  await page.locator('#reportChooseMap').click();
+  await page.locator('#reportPhoto').setInputFiles({
+    name:'bewijs.png',mimeType:'image/png',
+    buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGOsOJHCwMDAxMDAwMDAAAAT7gGovvSxigAAAABJRU5ErkJggg==','base64')
+  });
+  await page.locator('#reportReview').click();
+  await page.locator('#reportSubmit').click();
+  await expect(page.locator('#reportDialog')).toBeVisible();
+  await expect(page.locator('#toast')).toContainText('Foto uploaden lukt niet');
+  await expect(page.locator('#reportPhotoName')).toHaveText('bewijs.png');
+  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('wd_v3_report_draft')||'null')?.text)).toBe('Glas bij de parkeerplaats');
+});
+
 test('GPS denial offers map pin fallback without losing report details',async({page})=>{
   await page.evaluate(()=>{
     Object.defineProperty(navigator,'geolocation',{configurable:true,value:{
