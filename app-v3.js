@@ -46,7 +46,7 @@ function bind(){
  $("#wdHomeAll")?.addEventListener("click",()=>showView("alerts"));
  $$("[data-mapfilter]").forEach(b=>b.addEventListener("click",()=>{premiumMapFilter=b.dataset.mapfilter;syncPremiumMapFilter()}));
  $$("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
- $("#pawFab").addEventListener("click",()=>$("#pawDialog").showModal());
+ $("#pawFab").addEventListener("click",openReport);
  $("#pawReport").addEventListener("click",()=>{$("#pawDialog").close();openReport()});
  $("#pawGive").addEventListener("click",()=>{$("#pawDialog").close();showView("giveaway")});
  $("#pawArea").addEventListener("click",()=>{$("#pawDialog").close();$("#areaDialog").showModal()});
