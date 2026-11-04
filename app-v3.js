@@ -148,7 +148,23 @@ function initMap(){
  const s=settings(),saved=read(MAPVIEWKEY,null);
  const start=saved&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng))?saved:{lat:s.lat,lng:s.lng,zoom:14};
  map=L.map("map",{zoomControl:false,attributionControl:true}).setView([Number(start.lat),Number(start.lng)],Number(start.zoom)||14);
- L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+ const tiles=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+ // A failed tile connection must not leave an unexplained blank map.
+ const mapStatus=document.createElement("button");
+ mapStatus.type="button";
+ mapStatus.className="wd-map-retry";
+ mapStatus.textContent="Kaart niet geladen · opnieuw proberen";
+ mapStatus.hidden=true;
+ mapStatus.setAttribute("aria-label","Kaart opnieuw laden");
+ $("#view-map").append(mapStatus);
+ let tileFailures=0;
+ tiles.on("tileerror",()=>{if(++tileFailures>=3)mapStatus.hidden=false});
+ tiles.on("tileload",()=>{tileFailures=0;mapStatus.hidden=true});
+ mapStatus.addEventListener("click",()=>{
+   tileFailures=0;mapStatus.hidden=true;
+   map.invalidateSize({animate:false,pan:false});
+   tiles.redraw();
+ });
  const reportPane=map.createPane("reportMarkersPane");
  reportPane.style.zIndex="720";
  reportPane.style.pointerEvents="auto";
