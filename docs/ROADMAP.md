@@ -66,3 +66,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Livegang NIET bewezen. Geen productie- of preview-URL geverifieerd. Echte Supabase-upload/verwijderen en fysieke iPhone-acceptatie blijven open.
 - Sinds 4 november 2026 is de eigenaar akkoord met autonome productiepublicatie NA groene vereiste tests, beveiligingscontroles, reviews en binnen hostingrechten. Geen kosten, secrets, migraties of productiegegevensmutaties zonder afzonderlijke toestemming. Dit vervangt uitsluitend het oudere verbod op automatische release hierboven.
 - Volgende uitvoerder: controleer Actions op head `68d74c7`; herstel resterende testfouten; voer browser-acceptance en mobile viewport-tests uit; maak geautoriseerde bereikbare preview; verifieer live deployment vóór melding van oplevering.
+
+## Kwaliteitscontrole 4 november 2026, 22:56 CET
+- Head `916ccca6`: alle vier GitHub Actions-controles groen: [browser-acceptance #41911463226](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41911463226), [validate #41911463220](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41911463220), [map regression #41911463270](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41911463270), [daily quality watch #41911463297](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41911463297).
+- PR #71 van draft naar **ready for review** gezet; dit is GEEN merge of deploy.
+- Open releasegates: echte backend upload/herladen/verwijderen, geverifieerde iPhone/Android-preview en hosting/deploy-autorisatie/reviews. Niet publiceren totdat die voorwaarden aantoonbaar voldaan zijn.
+- Volgende cyclus: zoek bestaande geautoriseerde preview/deployroute, test de bereikbare app, herstel resterende P0 UX-regressies en rond review/release af.
