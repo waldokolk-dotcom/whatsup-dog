@@ -33,3 +33,15 @@ test('tabs and map filters work after backend initialization',async({page})=>{
   await page.locator('[data-view="giveaway"]').click();
   await expect(page.locator('#view-giveaway')).toHaveClass(/active/);
 });
+
+test('compact map controls do not overlap on a narrow phone',async({page})=>{
+  await page.setViewportSize({width:375,height:667});
+  await page.goto('/');
+  const selectors=['#areaPill','#offleashControl','.wd-map-filterbar'];
+  const boxes=await Promise.all(selectors.map(selector=>page.locator(selector).boundingBox()));
+  for(const box of boxes)expect(box).not.toBeNull();
+  const [area,offleash,filters]=boxes;
+  expect(area.x+area.width).toBeLessThanOrEqual(offleash.x+1);
+  expect(Math.min(area.y+area.height,offleash.y+offleash.height)).toBeLessThanOrEqual(filters.y+1);
+  expect(filters.x+filters.width).toBeLessThanOrEqual(375);
+});
