@@ -98,3 +98,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
  #view-map .wd-filter{min-height:40px;padding:8px 13px;font-size:12px;box-shadow:0 2px 8px rgba(20,47,40,.10)}
  #view-map .map-locate{right:14px;width:48px;height:48px}
 }
+
+/* Mobile map control hierarchy: one header row, one utility row, one filter row.
+   Explicitly separate controls from the Leaflet surface on narrow devices. */
+@media(max-width:600px){
+ #view-map.map-view.active{isolation:isolate}
+ #view-map .map-brand{position:absolute;top:calc(12px + env(safe-area-inset-top));left:14px;right:72px;max-width:calc(100% - 92px);z-index:520;white-space:nowrap;pointer-events:none}
+ #view-map #mapAlerts{position:absolute;top:calc(10px + env(safe-area-inset-top));right:12px;left:auto;z-index:530;width:46px;height:46px}
+ #view-map #areaPill{position:absolute;top:calc(66px + env(safe-area-inset-top));left:12px;right:auto;width:calc(45% - 16px);max-width:none;min-width:0;height:44px;z-index:530;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ #view-map #offleashControl{position:absolute;top:calc(66px + env(safe-area-inset-top));right:12px;left:auto;width:calc(55% - 16px);max-width:none;min-width:0;height:44px;z-index:530;display:flex;align-items:center;justify-content:space-between;box-sizing:border-box}
+ #view-map .wd-map-filterbar{position:absolute;top:calc(122px + env(safe-area-inset-top));left:12px;right:12px;width:auto;max-width:none;z-index:530;display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:none}
+ #view-map .wd-map-filterbar .wd-filter{flex:0 0 auto;min-height:40px}
+ #view-map #locateBtn{position:absolute;right:14px;bottom:calc(98px + env(safe-area-inset-bottom))!important;z-index:550}
+ .paw-fab{bottom:calc(var(--wd-nav-height) + env(safe-area-inset-bottom) + 12px)!important}
+}
