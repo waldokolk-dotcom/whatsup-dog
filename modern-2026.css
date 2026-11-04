@@ -81,3 +81,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .paw-fab small{font-size:15px!important;line-height:1!important;font-weight:800!important}
   #view-map .map-locate{bottom:calc(164px + env(safe-area-inset-bottom))!important}
 }
+
+/* Accessible retry action when OpenStreetMap tiles cannot be loaded. */
+#view-map .wd-map-retry{position:absolute;z-index:600;top:50%;left:50%;transform:translate(-50%,-50%);max-width:calc(100% - 36px);padding:14px 18px;border:2px solid #087864;border-radius:16px;background:#fff;color:#075c4e;font-weight:800;box-shadow:0 8px 30px #0002;cursor:pointer}
+#view-map .wd-map-retry[hidden]{display:none!important}
