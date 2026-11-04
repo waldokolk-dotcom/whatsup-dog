@@ -90,8 +90,12 @@ assert.match(css,/\.paw-fab/,'One-hand PawWheel styling missing');
 assert.match(css,/\.offleash-control/,'Losloopgebieden control styling missing');
 assert.match(css,/backdrop-filter/,'Modern layered app styling missing');
 
-assert.match(sw,/app-v3\.js\?v=32/,'Offline cache missing map-first app');
-assert.match(sw,/modern-2026\.css\?v=2/,'Offline cache missing map-first design layer');
+const appAsset=html.match(/src="\.\/(app-v3\.js\?v=\d+)"/)?.[1];
+assert.ok(appAsset,'Versioned app script missing from HTML');
+assert.ok(sw.includes("'./"+appAsset+"'"),'Offline cache must include the current HTML app version');
+const cssAsset=html.match(/href="\.\/(modern-2026\.css\?v=\d+)"/)?.[1];
+assert.ok(cssAsset,'Versioned mobile stylesheet missing from HTML');
+assert.ok(sw.includes("'./"+cssAsset+"'"),'Offline cache must include the current mobile stylesheet version');
 assert.match(app,/initMap\(\); bind\(\); showView\("map"\)/,'Map must open before backend authentication');
 assert.doesNotMatch(app,/\$\("#onboarding"\)\.showModal\(\)/,'Onboarding must not block map-first startup');
 assert.match(sw,/app-v3\.css\?v=27/,'Offline cache missing V3 CSS');
