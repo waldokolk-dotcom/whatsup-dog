@@ -44,14 +44,12 @@ test('opens the map without account UI',async({page})=>{
   await expect(page.getByText('Inloggen')).toHaveCount(0);
 });
 
-test('PawWheel is thumb reachable and starts report flow',async({page})=>{
+test('Melding maken is thumb reachable and opens report directly',async({page})=>{
   await expect(page.locator('#pawFab')).toBeVisible();
   const box=await page.locator('#pawFab').boundingBox();
   const vp=page.viewportSize();
   expect(box.y).toBeGreaterThan(vp.height*0.55);
   await page.locator('#pawFab').click();
-  await expect(page.locator('#pawDialog')).toBeVisible();
-  await page.locator('#pawReport').click();
   await expect(page.locator('#reportDialog')).toBeVisible();
   await expect(page.locator('#reportStep1 .report-progress')).toContainText('1 van 3 · Soort');
   await page.locator('.report-type[data-cat="danger"]').click();
@@ -69,14 +67,12 @@ test('PawWheel is thumb reachable and starts report flow',async({page})=>{
 
 test('report draft resumes and review shows exactly what will be published',async({page})=>{
   await page.locator('#pawFab').click();
-  await page.locator('#pawReport').click();
   await page.locator('.report-type[data-cat="animal"]').click();
   await page.locator('#reportSubs .chip',{hasText:'Vermist dier'}).click();
   await page.locator('#reportText').fill('Bruine hond met blauwe halsband');
   await expect.poll(async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('wd_v3_report_draft')||'null')?.text)).toBe('Bruine hond met blauwe halsband');
   await page.locator('#reportDialog [data-close]').click();
   await page.locator('#pawFab').click();
-  await page.locator('#pawReport').click();
   await expect(page.locator('#reportDraftStatus')).toContainText('Concept van eerder hervat');
   await expect(page.locator('#reportSubs .chip.active')).toContainText('Vermist dier');
   await expect(page.locator('#reportText')).toHaveValue('Bruine hond met blauwe halsband');
@@ -92,7 +88,6 @@ test('report draft resumes and review shows exactly what will be published',asyn
 
 test('selected report photo can be previewed and removed before upload',async({page})=>{
   await page.locator('#pawFab').click();
-  await page.locator('#pawReport').click();
   await page.locator('.report-type[data-cat="fun"]').click();
   await page.locator('#reportPhoto').setInputFiles({name:'hondenveld.png',mimeType:'image/png',buffer:Buffer.from('fake-image')});
   await expect(page.locator('#reportPhotoPreview')).toBeVisible();
@@ -104,7 +99,6 @@ test('selected report photo can be previewed and removed before upload',async({p
 
 test('oversized report photo is rejected immediately without losing the description',async({page})=>{
   await page.locator('#pawFab').click();
-  await page.locator('#pawReport').click();
   await page.locator('.report-type[data-cat="danger"]').click();
   await page.locator('#reportText').fill('Glas bij de ingang van het park');
   await page.locator('#reportPhoto').setInputFiles({name:'te-groot.jpg',mimeType:'image/jpeg',buffer:Buffer.alloc(7*1024*1024+1)});
@@ -123,7 +117,6 @@ test('mobile photo fallback uploads JPEG and completes a report without createIm
     });
   });
   await page.locator('#pawFab').click();
-  await page.locator('#pawReport').click();
   await page.locator('.report-type[data-cat="danger"]').click();
   await page.locator('#reportText').fill('Glas bij het hondenveld');
   await page.locator('#reportChooseMap').click();
@@ -149,7 +142,6 @@ test('failed photo upload keeps the report and photo ready for retry',async({pag
     });
   });
   await page.locator('#pawFab').click();
-  await page.locator('#pawReport').click();
   await page.locator('.report-type[data-cat="danger"]').click();
   await page.locator('#reportText').fill('Glas bij de parkeerplaats');
   await page.locator('#reportChooseMap').click();
@@ -172,7 +164,6 @@ test('GPS denial offers map pin fallback without losing report details',async({p
     }});
   });
   await page.locator('#pawFab').click();
-  await page.locator('#pawReport').click();
   await page.locator('.report-type[data-cat="danger"]').click();
   await page.locator('#reportText').fill('Glas naast het hondenveld');
   await page.locator('#reportPhoto').setInputFiles({name:'glas.png',mimeType:'image/png',buffer:Buffer.from('fake-image')});
@@ -360,7 +351,6 @@ test('desktop push repair code is present and test button can re-register',async
 
 test('report can switch from current location to a chosen map location',async({page})=>{
   await page.locator('#pawFab').click();
-  await page.locator('#pawReport').click();
   await page.locator('.report-type[data-cat="danger"]').click();
   await expect(page.locator('#reportUseGps')).toHaveClass(/active/);
   await page.locator('#reportChooseMap').click();
