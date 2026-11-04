@@ -112,3 +112,21 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
  #view-map #locateBtn{position:absolute;right:14px;bottom:calc(98px + env(safe-area-inset-bottom))!important;z-index:550}
  .paw-fab{bottom:calc(var(--wd-nav-height) + env(safe-area-inset-bottom) + 12px)!important}
 }
+
+/* P0 mobile control rail: keep the entire map usable on 320–430px phones.
+   Each row has an independent hit target; filters scroll horizontally. */
+@media (max-width:600px){
+ #view-map .map-brand{font-size:clamp(13px,3.8vw,17px);line-height:1.2;max-width:calc(100% - 96px)}
+ #view-map #areaPill,#view-map #offleashControl{top:calc(64px + env(safe-area-inset-top));height:44px;min-height:44px;box-sizing:border-box}
+ #view-map #areaPill{width:calc(44% - 16px);padding-inline:10px;font-size:12px}
+ #view-map #offleashControl{width:calc(56% - 16px);padding-inline:8px}
+ #view-map .wd-map-filterbar{top:calc(116px + env(safe-area-inset-top));padding-bottom:8px;gap:6px}
+ #view-map .wd-map-filterbar .wd-filter{min-height:42px;font-size:12px}
+ #view-map #locateBtn{bottom:calc(88px + env(safe-area-inset-bottom))!important}
+ .paw-fab{bottom:calc(var(--wd-nav-height) + env(safe-area-inset-bottom) + 10px)!important}
+}
+@media (max-width:360px){
+ #view-map #areaPill{width:calc(42% - 16px)}
+ #view-map #offleashControl{width:calc(58% - 16px)}
+ #view-map .offleash-control .offleash-copy b{font-size:11px}
+}
