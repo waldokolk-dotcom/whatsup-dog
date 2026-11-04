@@ -130,3 +130,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
  #view-map #offleashControl{width:calc(58% - 16px)}
  #view-map .offleash-control .offleash-copy b{font-size:11px}
 }
+
+/* Mobile map controls: preserve keyboard focus and prevent a horizontal filter rail
+   from trapping vertical page gestures on small touchscreens. */
+@media (max-width:600px){
+ #view-map .wd-map-filterbar{touch-action:pan-x;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+ #view-map .wd-map-filterbar .wd-filter:focus-visible,
+ #view-map #areaPill:focus-visible,
+ #view-map #locateBtn:focus-visible,
+ #view-map .paw-fab:focus-visible{outline:3px solid #0f7a67;outline-offset:3px}
+}
