@@ -58,3 +58,11 @@ Hondenbezitters missen één laagdrempelige plek voor actuele lokale gevaren (gl
 
 ## Beslisregel
 Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, eenvoud behoudt, aantoonbaar getest kan worden en geen onaanvaardbare privacy-/kostenimpact heeft.
+
+
+## Uitvoeringslog 4 november 2026 — PR #71
+- Head `fca552a`: map-regression groen ([run 41903083628](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41903083628)); validate en browser-acceptance rood door 14–15 browsercases die de verborgen `#pawInfo` proberen te klikken na de gewijzigde FAB-flow.
+- Commit `68d74c7`: vijf tests in `tests/v3.spec.mjs` navigeren voortaan via zichtbare tab Mijn Whatsup → Gebruik & veiligheid (`#myInfoLink`). Nieuwe CI-resultaten afwachten en alle resterende fouten uit logs herstellen.
+- Livegang NIET bewezen. Geen productie- of preview-URL geverifieerd. Echte Supabase-upload/verwijderen en fysieke iPhone-acceptatie blijven open.
+- Sinds 4 november 2026 is de eigenaar akkoord met autonome productiepublicatie NA groene vereiste tests, beveiligingscontroles, reviews en binnen hostingrechten. Geen kosten, secrets, migraties of productiegegevensmutaties zonder afzonderlijke toestemming. Dit vervangt uitsluitend het oudere verbod op automatische release hierboven.
+- Volgende uitvoerder: controleer Actions op head `68d74c7`; herstel resterende testfouten; voer browser-acceptance en mobile viewport-tests uit; maak geautoriseerde bereikbare preview; verifieer live deployment vóór melding van oplevering.
