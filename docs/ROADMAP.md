@@ -72,3 +72,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - PR #71 van draft naar **ready for review** gezet; dit is GEEN merge of deploy.
 - Open releasegates: echte backend upload/herladen/verwijderen, geverifieerde iPhone/Android-preview en hosting/deploy-autorisatie/reviews. Niet publiceren totdat die voorwaarden aantoonbaar voldaan zijn.
 - Volgende cyclus: zoek bestaande geautoriseerde preview/deployroute, test de bereikbare app, herstel resterende P0 UX-regressies en rond review/release af.
+
+## Uitvoeringscyclus 4 november 2026 — mobiele kaartbediening
+- Head vóór wijziging `253b212`: vier Actions groen: [map regression](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41920802816), [browser acceptance](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41920802788), [daily quality watch](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41920803160), [validate](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41920802846).
+- Concrete UX-verbetering op dezelfde featurebranch: mobiele kaartfilterrail ondersteunt expliciete horizontale swipe en zichtbare toetsenbordfocus op kaartbediening (`d2c4e95`). HTML en offline PWA-cache zijn samen opgehoogd naar stylesheet `modern-2026.css?v=8`, cache `v106` (`2ce1b62`, `d038ca4`).
+- Nieuwe CI voor `d038ca4` nog niet bevestigd bij controle. **Niet mergen of deployen** zonder groene CI, geautoriseerde hosting/reviews en echte mobiele preview-/backendverificatie. Geen productie-URL geclaimd.
+- Volgende run: controleer CI van `d038ca4`, herstel eventuele fouten, inspecteer bestaande deploymentconfiguratie en verifieer preview op iPhone-afmetingen; daarna echte opslag/verwijderen en toegestane release.
