@@ -85,3 +85,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 /* Accessible retry action when OpenStreetMap tiles cannot be loaded. */
 #view-map .wd-map-retry{position:absolute;z-index:600;top:50%;left:50%;transform:translate(-50%,-50%);max-width:calc(100% - 36px);padding:14px 18px;border:2px solid #087864;border-radius:16px;background:#fff;color:#075c4e;font-weight:800;box-shadow:0 8px 30px #0002;cursor:pointer}
 #view-map .wd-map-retry[hidden]{display:none!important}
+
+/* Compact map controls for narrow phones. */
+@media(max-width:600px){
+ #view-map .map-brand{max-width:calc(100% - 84px);overflow:hidden;text-overflow:ellipsis}
+ #view-map .top-pill{left:12px;top:calc(66px + env(safe-area-inset-top));max-width:37%;min-height:44px}
+ #view-map .offleash-control{right:12px;top:calc(66px + env(safe-area-inset-top));width:auto;max-width:57%;min-height:44px;padding:6px 9px;gap:6px}
+ #view-map .offleash-control .offleash-copy{min-width:0;overflow:hidden}
+ #view-map .offleash-control .offleash-copy b{font-size:12px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #view-map .offleash-control .offleash-copy small,#view-map .offleash-control .offleash-icon{display:none}
+ #view-map .wd-map-filterbar{left:12px;right:12px;top:calc(120px + env(safe-area-inset-top));max-width:none;gap:7px;padding:2px 0 8px;overscroll-behavior-x:contain}
+ #view-map .wd-filter{min-height:40px;padding:8px 13px;font-size:12px;box-shadow:0 2px 8px rgba(20,47,40,.10)}
+ #view-map .map-locate{right:14px;width:48px;height:48px}
+}
