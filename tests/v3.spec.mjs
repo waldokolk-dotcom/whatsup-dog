@@ -370,7 +370,6 @@ test('all report categories expose distinct subtype icons',async({page})=>{
     await page.locator('#reportDialog').evaluate(el=>{ if(el.open) el.close(); });
     await page.evaluate(()=>localStorage.removeItem('wd_v3_report_draft'));
     await page.locator('#pawFab').click();
-    await page.locator('#pawReport').click();
     await page.locator('.report-type[data-cat="'+cat+'"]').click();
     const texts=await page.locator('#reportSubs .chip-icon').allTextContents();
     expect(texts).toEqual(icons);
