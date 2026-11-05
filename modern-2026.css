@@ -140,3 +140,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
  #view-map #locateBtn:focus-visible,
  #view-map .paw-fab:focus-visible{outline:3px solid #0f7a67;outline-offset:3px}
 }
+
+/* Accessible mobile map: visible focus for every primary control, without hiding the map. */
+@media (max-width:600px){
+ #view-map #mapAlerts:focus-visible,
+ #view-map #offleashControl:focus-visible,
+ #view-map .wd-map-filterbar:focus-visible,
+ #view-map .wd-map-filterbar .wd-filter:focus-visible{outline:3px solid #0f7a67;outline-offset:3px}
+ #view-map .wd-map-filterbar{scroll-padding-inline:12px}
+ #view-map .wd-map-filterbar .wd-filter{scroll-margin-inline:8px}
+}
+@media (max-width:600px) and (orientation:landscape) and (max-height:440px){
+ #view-map .map-brand{top:calc(6px + env(safe-area-inset-top))}
+ #view-map #mapAlerts{top:calc(4px + env(safe-area-inset-top))}
+ #view-map #areaPill,#view-map #offleashControl{top:calc(54px + env(safe-area-inset-top));height:38px;min-height:38px}
+ #view-map .wd-map-filterbar{top:calc(98px + env(safe-area-inset-top))}
+ #view-map .wd-map-filterbar .wd-filter{min-height:36px}
+}
