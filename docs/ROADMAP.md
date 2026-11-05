@@ -149,3 +149,10 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productwijziging `1fbf1ed`: interactieve kaart is nu een benoemde toegankelijke regio; kaartfilters zijn expliciete `type=button` bedieningselementen zodat zij niet onbedoeld een formulier indienen. Bestaande kaart- en filterhandlers blijven behouden.
 - Direct na commit waren nog geen GitHub Actions-runs beschikbaar. Deze wijziging is daarom nog niet als getest aangemerkt.
 - Open: publiek bereikbare preview, echte backend opslag/verwijdering, fysieke iPhone-proef en vereiste PR-review; geen productiepublicatie uitgevoerd.
+
+
+## Zelfcontrole 5 november 2026, 10:52 CET — kaartknoppen
+- Head `d4a5f241`: vier GitHub Actions geslaagd: [map regression](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41998756873), [browser acceptance](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41998756980), [validate](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41998756930), [quality watch](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41998756876). PR #71 heeft nog geen ingediende reviews.
+- Nieuwe codewijziging `35f60b3`: kaartgebiedkeuze, meldingenknop en locatieknop hebben expliciet `type=button` gekregen, zodat deze bedieningselementen geen formulier kunnen indienen. Zelfde featurebranch, geen nieuwe PR.
+- Direct na de wijziging waren nog geen Actions-runs beschikbaar; de nieuwe commit is niet groen verklaard. Hosted preview, fysieke iPhone/Android-test, echte backend-opslag/herladen/eigenaarsverwijdering en review blijven open. Geen merge of deploy uitgevoerd.
+- Volgende cyclus: CI voor `35f60b3` inspecteren, bij failures logs herstellen; geautoriseerde publieke preview en echte backend-E2E verifiëren vóór productie.
