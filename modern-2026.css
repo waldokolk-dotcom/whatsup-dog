@@ -63,7 +63,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 /* P0 iPhone: map fills the space above the fixed navigation, with no blank strip.
    Keep the action above the navigation and the location control above that action. */
-@media(max-width:839px){
+@media(max-width:950px){
   .app{height:100dvh;min-height:0;overflow:hidden}
   #view-map.map-view.active{position:absolute;inset:0 0 calc(var(--wd-nav-height) + env(safe-area-inset-bottom)) 0;height:auto!important;min-height:0!important;padding:0!important;overflow:hidden}
   #view-map .map{position:absolute;inset:0;width:100%;height:100%!important;min-height:0!important}
@@ -73,7 +73,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 
 /* P0: always visible primary action, map-to-navigation layout and safe-area spacing. */
-@media(max-width:839px){
+@media(max-width:950px){
   #view-map.map-view.active{bottom:calc(var(--wd-nav-height) + env(safe-area-inset-bottom));height:auto!important}
   #view-map .map{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;height:100%!important;width:100%!important}
   .paw-fab{left:50%;bottom:calc(var(--wd-nav-height) + env(safe-area-inset-bottom) + 14px)!important;width:auto!important;min-width:174px!important;height:56px!important;min-height:56px!important;padding:0 20px!important;display:flex!important;flex-direction:row;align-items:center;justify-content:center;gap:9px;border-radius:28px!important;white-space:nowrap;z-index:900!important}
@@ -160,7 +160,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 /* Compact landscape phones (601–839 CSS px): retain the same uncluttered
    three-row map hierarchy as portrait instead of falling back to desktop offsets. */
-@media (min-width:601px) and (max-width:839px) and (orientation:landscape) and (max-height:440px){
+@media (min-width:601px) and (max-width:950px) and (orientation:landscape) and (max-height:440px){
  #view-map .map-brand{position:absolute;top:calc(8px + env(safe-area-inset-top));bottom:auto;height:auto;min-height:0;max-height:40px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;left:calc(14px + env(safe-area-inset-left));right:70px;max-width:calc(100% - 100px);font-size:17px;z-index:520;white-space:nowrap;pointer-events:none}
  #view-map #mapAlerts{position:absolute;top:calc(5px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));left:auto;width:44px;height:44px;z-index:530}
  #view-map #areaPill,#view-map #offleashControl{position:absolute;top:calc(55px + env(safe-area-inset-top));height:44px;min-height:44px;min-width:0;max-width:none;box-sizing:border-box;z-index:530}
@@ -184,7 +184,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 /* Short-screen landscape: keep the map as the primary surface rather than
    letting three tool rows consume the entire usable viewport. */
-@media (max-width:839px) and (orientation:landscape) and (max-height:440px){
+@media (max-width:950px) and (orientation:landscape) and (max-height:440px){
  #view-map .map-brand{font-size:14px;max-height:28px}
  #view-map #areaPill,#view-map #offleashControl{top:calc(43px + env(safe-area-inset-top));min-height:44px;height:44px}
  #view-map .wd-map-filterbar{top:calc(92px + env(safe-area-inset-top));padding-bottom:4px;scroll-snap-type:x proximity}
@@ -194,7 +194,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 /* iPhone landscape notch: utility controls share only the actual safe content width.
    Percent widths previously ignored left/right cutouts and could collide. */
-@media (max-width:839px) and (orientation:landscape){
+@media (max-width:950px) and (orientation:landscape){
  #view-map #areaPill{width:calc((100% - env(safe-area-inset-left) - env(safe-area-inset-right) - 32px) * .44);max-width:none;min-width:0}
  #view-map #offleashControl{width:calc((100% - env(safe-area-inset-left) - env(safe-area-inset-right) - 32px) * .56);max-width:none;min-width:0}
  #view-map #areaPill,#view-map #offleashControl{overflow:hidden}
@@ -204,7 +204,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 /* Landscape phone: recover map height by removing the decorative brand row.
    Keep alerts, area, off-leash and filters reachable without overlapping. */
-@media (max-width:839px) and (orientation:landscape) and (max-height:440px){
+@media (max-width:950px) and (orientation:landscape) and (max-height:440px){
  #view-map .map-brand{display:none!important}
  #view-map #mapAlerts{top:calc(5px + env(safe-area-inset-top))}
  #view-map #areaPill,#view-map #offleashControl{top:calc(5px + env(safe-area-inset-top));height:44px;min-height:44px}
