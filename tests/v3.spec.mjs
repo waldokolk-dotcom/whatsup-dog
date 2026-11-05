@@ -844,3 +844,19 @@ test('compact landscape map keeps header, area and filters separated',async({pag
     await expect(page.locator('#pawFab')).toBeVisible();
   }
 });
+
+
+test('dynamic neighborhood lists announce updates without interrupting navigation',async({page})=>{
+  const regions=[
+    {view:'home',selector:'#wdHomeReports'},
+    {view:'alerts',selector:'#alertsList'},
+    {view:'give',selector:'#giveList'}
+  ];
+  for(const {view,selector} of regions){
+    await page.locator('[data-view="'+view+'"]').click();
+    const region=page.locator(selector);
+    await expect(region).toHaveAttribute('aria-live','polite');
+    await expect(region).toHaveAttribute('aria-relevant','additions text');
+  }
+  await expect(page.locator('#alertsList')).toHaveAttribute('role','status');
+});
