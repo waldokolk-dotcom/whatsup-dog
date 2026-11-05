@@ -62,5 +62,6 @@ jobs:
           for asset in app-v3.css modern-2026.css backend-config.js app-v3.js; do
             curl --fail --silent --show-error --location --max-time 15 "${PAGE_URL%/}/$asset" -o "/tmp/whatsup-$asset"
             test -s "/tmp/whatsup-$asset" || { echo "Empty hosted asset: $asset"; exit 1; }
+            cmp -s "dist/$asset" "/tmp/whatsup-$asset" || { echo "Deployed asset differs from current build: $asset"; exit 1; }
           done
           echo "PASS: deployed HTML matches expected CSS version and four essential assets are nonempty"
