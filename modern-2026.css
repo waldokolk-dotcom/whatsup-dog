@@ -181,3 +181,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
  #view-map .wd-map-filterbar .wd-filter{min-height:44px}
  #view-map #locateBtn{right:calc(14px + env(safe-area-inset-right))}
 }
+
+/* Short-screen landscape: keep the map as the primary surface rather than
+   letting three tool rows consume the entire usable viewport. */
+@media (max-width:839px) and (orientation:landscape) and (max-height:440px){
+ #view-map .map-brand{font-size:14px;max-height:28px}
+ #view-map #areaPill,#view-map #offleashControl{top:calc(43px + env(safe-area-inset-top));min-height:44px;height:44px}
+ #view-map .wd-map-filterbar{top:calc(92px + env(safe-area-inset-top));padding-bottom:4px;scroll-snap-type:x proximity}
+ #view-map .wd-map-filterbar .wd-filter{scroll-snap-align:start}
+ #view-map #locateBtn{bottom:calc(72px + env(safe-area-inset-bottom))!important}
+}
