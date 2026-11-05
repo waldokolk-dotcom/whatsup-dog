@@ -162,3 +162,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Commit `3cd39df`: de dynamisch geladen buurtmeldingen op startscherm en meldingenoverzicht, plus de weggeefhoek, melden inhoudswijzigingen nu aan ondersteunende technologie via `aria-live=polite`; het meldingenoverzicht gebruikt ook `role=status`. Geen nieuwe backendclaims.
 - Controleer de Actions op deze nieuwe head, inclusief mobiele browseracceptatie; groene resultaten van oudere commits tellen niet als vrijgave van deze wijziging.
 - Productie niet uitgerold: een afzonderlijk bereikbare preview, echte backend-E2E (plaatsen/herladen/eigen verwijderen), mobiele apparaatacceptatie en eventuele vereiste reviews blijven te verifiëren. Bestaande releasebeveiliging niet omzeilen.
+
+
+## Zelfcontrole 5 november 2026, 12:50 CET — dynamische meldingen
+- De vier CI-controles voor head `43e1047` zijn groen: [kaartregressie](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42014165157), [validate](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42014165179), [mobiele browseracceptatie](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42014165177) en [quality watch](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42014165240).
+- Extra browseracceptatietest toegevoegd op dezelfde PR-branch voor `aria-live=polite` en `aria-relevant=additions text` op startscherm, meldingenoverzicht en weggeefhoek; controleert tevens `role=status` voor meldingen. Commits `2f79c5e`, `b124e3d` (correcte navigatieroute `giveaway`).
+- Nieuwe head nog niet groen bevestigd. Geen publieke preview, echte Supabase-E2E of productie-deploy bewezen; eerst nieuwe CI en toegestane releasegates controleren.
