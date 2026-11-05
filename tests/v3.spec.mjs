@@ -820,3 +820,27 @@ test('premium Home appears and is functional',async({page})=>{
  await page.locator('[data-mapfilter="lost"]').click();
  await expect(page.locator('[data-mapfilter="lost"]')).toHaveClass(/active/);
 });
+
+
+test('compact landscape map keeps header, area and filters separated',async({page})=>{
+  for(const width of [667,812]){
+    await page.setViewportSize({width,height:375});
+    await page.reload();
+    await page.locator('[data-view="map"]').click();
+    const selectors=['.map-brand','#areaPill','#offleashControl','.wd-map-filterbar'];
+    const boxes=[];
+    for(const selector of selectors){
+      const el=page.locator(selector);
+      await expect(el).toBeVisible();
+      const box=await el.boundingBox();
+      expect(box.x,selector+' left').toBeGreaterThanOrEqual(0);
+      expect(box.x+box.width,selector+' right').toBeLessThanOrEqual(width+1);
+      boxes.push({selector,...box});
+    }
+    const intersects=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
+    for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
+      expect(intersects(boxes[i],boxes[j]),width+'px: '+boxes[i].selector+' overlaps '+boxes[j].selector).toBe(false);
+    }
+    await expect(page.locator('#pawFab')).toBeVisible();
+  }
+});
