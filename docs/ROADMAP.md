@@ -207,3 +207,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - HTML stylesheetversie `v13` en serviceworker-cache `v109` zijn synchroon bijgewerkt (`cd2c34f`, `f1e1245`).
 - Direct na laatste commit gaf de commit-workflow-API nog geen runs terug; **geen groene tests voor deze wijziging bevestigd**. PR #71 heeft geen ingediende reviews.
 - Geen publieke preview of hosted backend-E2E bewezen. Niet gemerged of naar productie gepubliceerd. Volgende run: Actions voor head `f1e1245` controleren, mobiele landscape-regressie inclusief echte browserpreview verifiëren, daarna geïsoleerde hosted meldroute toetsen.
+
+## Uitvoeringscyclus 5 november 2026, 20:52 CET — landscape safe-area
+- PR #71 / bestaande branch `feature/map-first-mobile-20261030`: CSS-fix `70644a4` voorkomt dat de gebiedskeuze en losloopknop op iPhones in landscape met notch buiten de veilige schermbreedte vallen of elkaar overlappen. De breedte houdt nu rekening met linker- en rechter-safe-area; lange labels worden afgekapt.
+- Cache-busting in `index.html` (`2d172c2`) en serviceworker (`e8e7b78`): stylesheet v14, PWA-cache v110.
+- Directe workflowquery voor `e8e7b78` leverde nog geen runs op. Geen groene CI, fysieke iPhone-acceptatie, publiek bereikbare preview of echte backend-E2E voor deze head geverifieerd. Geen merge of productiepublicatie uitgevoerd.
+- Volgende cyclus: controleer actuele CI, inspecteer iPhone landscape (incl. notch), publiceer uitsluitend na vereiste reviews en bewezen gehoste accountloze meldroute.
