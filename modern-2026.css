@@ -170,3 +170,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
  #view-map .wd-map-filterbar .wd-filter{flex:0 0 auto;min-height:44px}
  #view-map #locateBtn{right:calc(14px + env(safe-area-inset-right));bottom:calc(88px + env(safe-area-inset-bottom))!important;z-index:550}
 }
+
+/* Respect iPhone landscape cutouts on narrow CSS viewports; preserve 44px filter targets. */
+@media (max-width:600px){
+ #view-map .map-brand{left:calc(14px + env(safe-area-inset-left));right:calc(72px + env(safe-area-inset-right))}
+ #view-map #mapAlerts{right:calc(12px + env(safe-area-inset-right))}
+ #view-map #areaPill{left:calc(12px + env(safe-area-inset-left))}
+ #view-map #offleashControl{right:calc(12px + env(safe-area-inset-right))}
+ #view-map .wd-map-filterbar{left:calc(12px + env(safe-area-inset-left));right:calc(12px + env(safe-area-inset-right))}
+ #view-map .wd-map-filterbar .wd-filter{min-height:44px}
+ #view-map #locateBtn{right:calc(14px + env(safe-area-inset-right))}
+}
