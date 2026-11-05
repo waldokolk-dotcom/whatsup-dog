@@ -92,3 +92,11 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Nieuwe Playwright-regressietest toegevoegd aan `tests/v3.spec.mjs` (commits `40a938b`, `dcb0e72`): controleert op smalle schermen dat gebiedskeuze, losloopknop en filterbalk niet overlappen of buiten viewport vallen en dat de meldingknop boven de ondernavigatie blijft. Dit is testdekking, nog geen bewezen visuele reparatie; nieuwe CI-uitkomst vereist.
 - Productie-URL `https://waldokolk-dotcom.github.io/whatsup-dog/` vanaf runner niet bereikbaar: DNS-resolutie mislukt (`curl: Could not resolve host`). Niet als live geverifieerd claimen.
 - Release blijft geblokkeerd op hosted backend-E2E, bereikbaarheidscontrole en benodigde reviews/autorisatie. Volgende run: inspecteer nieuwe browseracceptatie; repareer eventuele layoutfailures en herhaal tests.
+
+
+## Zelfcontrole 5 november 2026, 02:52 CET — nieuwe mobiele layouttest groen
+- PR #71 head `0ac5dda5c434431a8f00328b67a88268d03fa223` is open en ready for review.
+- Vier controles op deze head zijn geslaagd: [kaartregressie #41944599126](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41944599126), [validate #41944599125](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41944599125), [browseracceptatie #41944599093](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41944599093), [quality watch #41944599191](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41944599191). De nieuwe mobiele layoutregressietest valt binnen browseracceptatie.
+- De Pages-workflow `.github/workflows/pages.yml` publiceert uitsluitend vanaf `main` of via handmatige dispatch en voert vooraf validatie en browserjourneys uit. Er is geen automatisch publiek preview-deploypad voor deze featurebranch vastgesteld. Geen productie- of previewpublicatie uitgevoerd.
+- Releasevoorwaarden blijven: geautoriseerde merge/reviews volgens branch protection, echte gehoste accountloze upload/herladen/verwijderen en bereikbare mobiele preview/productiecontrole. Simulatie in Playwright is geen bewijs van echte Supabase-persistentie.
+- Volgende cyclus: inspecteer review-/branch protection en bestaande deployautorisatie; maak veilige publieke preview waar geautoriseerd; test hosted klantreis, herstel issues, merge/deploy alleen na geslaagde gates.
