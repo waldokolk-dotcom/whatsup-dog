@@ -227,3 +227,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Playwright browseracceptatie uitgebreid met 844×390 en 932×390, inclusief controle dat gebiedskeuze, losloopknop, meldknop en filters niet overlappen. Testcommit `fdef490`.
 - Eerste CI-peiling op `fdef490`: map regression geslaagd; validate en browseracceptatie nog actief, daily quality wachtend. Geen groene volledige suite geclaimd.
 - Nog geen publieke preview of backend-E2E bewezen; geen productiepublicatie. Volgende run: CI-failures herstellen en preview/backend daadwerkelijk valideren.
+
+### 2026-11-05 23:50 CET — CI-regressie hersteld
+- Geconstateerd op head `f4a3c46`: map regression groen; validate, browser acceptance en daily quality rood. Uit joblogs blijkt dat de compacte-landscape-test `.map-brand` zichtbaar verwachtte, terwijl de bewust verbeterde map-first CSS deze decoratieve regel op korte landscape-schermen verbergt. Dezelfde fout veroorzaakte drie viewport-failures (180/183 overige browserchecks groen).
+- Test `tests/v3.spec.mjs` aangepast in `eaa00a5`: verifieert nu expliciet dat decoratieve branding verborgen is, en controleert juist de zichtbare meldknop, gebiedskeuze, losloopbediening en filters op schermgrenzen en onderlinge overlap. Product-CSS ongewijzigd.
+- Nieuwe CI voor `eaa00a5` moet groen worden bevestigd; geen hosted backend-E2E of publieke featurepreview bewezen, geen release. Eerst nieuwe Actions en eventuele aanvullende failures afhandelen.
