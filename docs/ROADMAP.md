@@ -213,3 +213,11 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Cache-busting in `index.html` (`2d172c2`) en serviceworker (`e8e7b78`): stylesheet v14, PWA-cache v110.
 - Directe workflowquery voor `e8e7b78` leverde nog geen runs op. Geen groene CI, fysieke iPhone-acceptatie, publiek bereikbare preview of echte backend-E2E voor deze head geverifieerd. Geen merge of productiepublicatie uitgevoerd.
 - Volgende cyclus: controleer actuele CI, inspecteer iPhone landscape (incl. notch), publiceer uitsluitend na vereiste reviews en bewezen gehoste accountloze meldroute.
+
+
+## Uitvoeringscyclus 5 november 2026, 21:56 CET — landscape mapruimte
+- Voorafgaande head `3142a58`: vier Actions geslaagd (validate, browser-acceptance, map regression, daily quality); geen ingediende PR-reviews.
+- Productwijziging `5919ea4`: op liggende telefoons tot 440px hoogte vervalt alleen de decoratieve merkregel op de kaart. Gebiedskeuze, losloopbediening en meldingenknop staan in één compacte bovenste rij; filters schuiven omhoog. Dit wint circa 36px kaartoppervlak terug zonder primaire bediening te verbergen.
+- `7c880f0` en `e724904`: stylesheet v15 en offline cache v111. CI voor nieuwe head en echte mobiele visuele verificatie nog vereist.
+- Geen productiepublicatie of publieke branchpreview geclaimd. Hosted accountloze melding plaatsen/herladen/eigen melding verwijderen blijft onbewezen; geen productiegegevens gemuteerd.
+- Volgende run: inspecteer Actions voor head, herstel eventuele failures, verifieer een geautoriseerde publieke featurepreview en echte geïsoleerde backend-E2E. Publiceer uitsluitend na releasegates en vereiste reviews.
