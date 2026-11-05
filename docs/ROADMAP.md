@@ -156,3 +156,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Nieuwe codewijziging `35f60b3`: kaartgebiedkeuze, meldingenknop en locatieknop hebben expliciet `type=button` gekregen, zodat deze bedieningselementen geen formulier kunnen indienen. Zelfde featurebranch, geen nieuwe PR.
 - Direct na de wijziging waren nog geen Actions-runs beschikbaar; de nieuwe commit is niet groen verklaard. Hosted preview, fysieke iPhone/Android-test, echte backend-opslag/herladen/eigenaarsverwijdering en review blijven open. Geen merge of deploy uitgevoerd.
 - Volgende cyclus: CI voor `35f60b3` inspecteren, bij failures logs herstellen; geautoriseerde publieke preview en echte backend-E2E verifiëren vóór productie.
+
+
+## Uitvoeringscyclus 5 november 2026 — toegankelijke actuele inhoud
+- Commit `3cd39df`: de dynamisch geladen buurtmeldingen op startscherm en meldingenoverzicht, plus de weggeefhoek, melden inhoudswijzigingen nu aan ondersteunende technologie via `aria-live=polite`; het meldingenoverzicht gebruikt ook `role=status`. Geen nieuwe backendclaims.
+- Controleer de Actions op deze nieuwe head, inclusief mobiele browseracceptatie; groene resultaten van oudere commits tellen niet als vrijgave van deze wijziging.
+- Productie niet uitgerold: een afzonderlijk bereikbare preview, echte backend-E2E (plaatsen/herladen/eigen verwijderen), mobiele apparaatacceptatie en eventuele vereiste reviews blijven te verifiëren. Bestaande releasebeveiliging niet omzeilen.
