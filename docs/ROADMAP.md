@@ -232,3 +232,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Geconstateerd op head `f4a3c46`: map regression groen; validate, browser acceptance en daily quality rood. Uit joblogs blijkt dat de compacte-landscape-test `.map-brand` zichtbaar verwachtte, terwijl de bewust verbeterde map-first CSS deze decoratieve regel op korte landscape-schermen verbergt. Dezelfde fout veroorzaakte drie viewport-failures (180/183 overige browserchecks groen).
 - Test `tests/v3.spec.mjs` aangepast in `eaa00a5`: verifieert nu expliciet dat decoratieve branding verborgen is, en controleert juist de zichtbare meldknop, gebiedskeuze, losloopbediening en filters op schermgrenzen en onderlinge overlap. Product-CSS ongewijzigd.
 - Nieuwe CI voor `eaa00a5` moet groen worden bevestigd; geen hosted backend-E2E of publieke featurepreview bewezen, geen release. Eerst nieuwe Actions en eventuele aanvullende failures afhandelen.
+
+
+### 2026-11-06 00:53 CET — CI groen en portrait-regressie toegevoegd
+- Head `0d97e62` gecontroleerd: alle vier Actions geslaagd (validate, browser acceptance, map regression, daily quality). De eerder herstelde landscape-regressie is dus door CI bevestigd.
+- Nieuwe testcommit `b24e47e` op dezelfde PR #71: Playwright controleert op 375×667 en 390×844 dat gebiedskeuze, meldingen, losloopbediening, filters en meldknop binnen het viewport blijven en de meldknop niet afdekken. Nieuwe commit moet nog door CI; geen groen resultaat voor deze test geclaimd.
+- Publieke featurepreview en echte gehoste plaatsing → herladen → veilige eigenaarsverwijdering blijven niet aangetoond. Geen productiepublicatie; geen productiegegevensmutatie. Prioriteit: geautoriseerde featurepreview en geïsoleerde backend-E2E, niet meer releaseworkflow-cosmetica.
