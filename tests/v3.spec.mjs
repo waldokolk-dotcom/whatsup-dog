@@ -883,3 +883,30 @@ test('portrait phones keep the report action clear of bottom navigation',async({
     await expect(page.locator('#pawFab')).toBeAttached();
   }
 });
+
+
+test('portrait map controls stay inside screen and clear of the reporting action',async({page})=>{
+  for(const {width,height} of [{width:375,height:667},{width:390,height:844}]){
+    await page.setViewportSize({width,height});
+    await page.reload();
+    await page.locator('[data-view="map"]').click();
+    const controls=['#areaPill','#mapAlerts','#offleashControl','.wd-map-filterbar','#pawFab'];
+    const boxes=[];
+    for(const selector of controls){
+      const el=page.locator(selector);
+      await expect(el).toBeVisible();
+      const box=await el.boundingBox();
+      expect(box,selector+' has geometry').not.toBeNull();
+      expect(box.x,selector+' left').toBeGreaterThanOrEqual(0);
+      expect(box.x+box.width,selector+' right').toBeLessThanOrEqual(width+1);
+      expect(box.y,selector+' top').toBeGreaterThanOrEqual(0);
+      expect(box.y+box.height,selector+' bottom').toBeLessThanOrEqual(height+1);
+      boxes.push({selector,...box});
+    }
+    const fab=boxes.find(b=>b.selector==='#pawFab');
+    for(const control of boxes.filter(b=>b!==fab)){
+      const overlaps=control.x<fab.x+fab.width&&control.x+control.width>fab.x&&control.y<fab.y+fab.height&&control.y+control.height>fab.y;
+      expect(overlaps,control.selector+' must not cover reporting action').toBe(false);
+    }
+  }
+});
