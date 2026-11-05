@@ -56,7 +56,7 @@ jobs:
             sleep 5
           done
           # Ensure the hosted HTML references the exact CSS version built from this commit.
-          expected_css=$(grep -oE 'modern-2026\\.css\\?v=[0-9]+' index.html | head -n 1)
+          expected_css=$(grep -oE 'modern-2026\.css\?v=[0-9]+' index.html | head -n 1)
           test -n "$expected_css"
           grep -Fq "$expected_css" /tmp/whatsup-live.html || { echo "Deployed HTML has stale stylesheet version"; exit 1; }
           for asset in app-v3.css modern-2026.css backend-config.js app-v3.js; do
