@@ -44,6 +44,24 @@ test('opens the map without account UI',async({page})=>{
   await expect(page.getByText('Inloggen')).toHaveCount(0);
 });
 
+test('mobile map controls stay inside viewport and do not overlap',async({page})=>{
+  const vp=page.viewportSize();
+  if(vp.width>600)return;
+  const ids=['#areaPill','#offleashControl','.wd-map-filterbar','#pawFab'];
+  const boxes=[];
+  for(const id of ids){
+    const el=page.locator('#view-map '+id);
+    await expect(el).toBeVisible();
+    const box=await el.boundingBox();
+    expect(box.x, id+' left edge').toBeGreaterThanOrEqual(0);
+    expect(box.x+box.width, id+' right edge').toBeLessThanOrEqual(vp.width+1);
+    boxes.push({id,...box});
+  }
+  const intersects=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
+  for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)expect(intersects(boxes[i],boxes[j]),boxes[i].id+' overlaps '+boxes[j].id).toBe(false);
+  expect(boxes[3].y, 'report button must remain above bottom navigation').toBeLessThan(vp.height-65);
+});
+
 test('Melding maken is thumb reachable and opens report directly',async({page})=>{
   await expect(page.locator('#pawFab')).toBeVisible();
   const box=await page.locator('#pawFab').boundingBox();
