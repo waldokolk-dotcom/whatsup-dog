@@ -850,7 +850,7 @@ test('dynamic neighborhood lists announce updates without interrupting navigatio
   const regions=[
     {view:'home',selector:'#wdHomeReports'},
     {view:'alerts',selector:'#alertsList'},
-    {view:'give',selector:'#giveList'}
+    {view:'giveaway',selector:'#giveList'}
   ];
   for(const {view,selector} of regions){
     await page.locator('[data-view="'+view+'"]').click();
