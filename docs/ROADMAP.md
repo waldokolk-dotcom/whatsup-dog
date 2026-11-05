@@ -221,3 +221,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - `7c880f0` en `e724904`: stylesheet v15 en offline cache v111. CI voor nieuwe head en echte mobiele visuele verificatie nog vereist.
 - Geen productiepublicatie of publieke branchpreview geclaimd. Hosted accountloze melding plaatsen/herladen/eigen melding verwijderen blijft onbewezen; geen productiegegevens gemuteerd.
 - Volgende run: inspecteer Actions voor head, herstel eventuele failures, verifieer een geautoriseerde publieke featurepreview en echte geïsoleerde backend-E2E. Publiceer uitsluitend na releasegates en vereiste reviews.
+
+### 2026-11-05 — landscape iPhone XL
+- CSS compact-landscape grens uitgebreid van 839 naar 950px; behoudt kaartbediening op bredere liggende iPhones. Stylesheet v16, PWA cache v112.
+- Playwright browseracceptatie uitgebreid met 844×390 en 932×390, inclusief controle dat gebiedskeuze, losloopknop, meldknop en filters niet overlappen. Testcommit `fdef490`.
+- Eerste CI-peiling op `fdef490`: map regression geslaagd; validate en browseracceptatie nog actief, daily quality wachtend. Geen groene volledige suite geclaimd.
+- Nog geen publieke preview of backend-E2E bewezen; geen productiepublicatie. Volgende run: CI-failures herstellen en preview/backend daadwerkelijk valideren.
