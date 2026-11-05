@@ -45,3 +45,17 @@ test('compact map controls do not overlap on a narrow phone',async({page})=>{
   expect(Math.min(area.y+area.height,offleash.y+offleash.height)).toBeLessThanOrEqual(filters.y+1);
   expect(filters.x+filters.width).toBeLessThanOrEqual(375);
 });
+
+for(const width of [844,932]){
+  test(`landscape map controls remain separate at ${width}px`,async({page})=>{
+    await page.setViewportSize({width,height:390});
+    await page.goto('/');
+    const controls=['#areaPill','#offleashControl','#mapAlerts','.wd-map-filterbar'];
+    const [area,offleash,alerts,filters]=await Promise.all(controls.map(s=>page.locator(s).boundingBox()));
+    for(const box of [area,offleash,alerts,filters])expect(box).not.toBeNull();
+    expect(area.x+area.width).toBeLessThanOrEqual(offleash.x+2);
+    expect(offleash.x+offleash.width).toBeLessThanOrEqual(alerts.x+2);
+    expect(Math.max(area.y+area.height,offleash.y+offleash.height)).toBeLessThanOrEqual(filters.y+2);
+    expect(filters.x+filters.width).toBeLessThanOrEqual(width+1);
+  });
+}
