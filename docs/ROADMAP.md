@@ -134,3 +134,11 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - PR #71 head `057b921`: map regression groen, maar validate, browser-acceptance en quality rood. De concrete Playwright-fout op 667×375 is `.map-brand overlaps #areaPill`; 168 van 171 tests slaagden in validate/browser, drie viewport-projecten faalden op dezelfde testcase. [Validate](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41976557200), [browser](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41976557305).
 - Gerichte CSS-reparatie op dezelfde PR-branch: `.map-brand` in compacte landscape krijgt expliciet `bottom:auto`, intrinsieke hoogte en begrensde headerhoogte om overerving van de map-shell niet tot overlap te laten leiden. Commit `f21e05c`.
 - Resultaat van nieuwe GitHub Actions nog niet bevestigd. Geen merge of productiepublicatie zolang de layouttest rood blijft; hosted preview en backend-E2E blijven onbewezen.
+
+## Uitvoeringscyclus 5 november 2026, 08:56 CET — iPhone safe areas
+- PR #71 head bij start: `ccf3058`, open, mergeable, ready for review, 0 ingediende reviews.
+- Vier Actions op die head succesvol: map regression #41983219264, daily quality #41983219394, browser acceptance #41983219405, validate #41983219346.
+- Mobiele kaartbediening aangepast voor linker/rechter iPhone-safe-area bij smalle viewports: kaarttitel, waarschuwingen, gebiedskeuze, losloopknop, filterrail en locatieknop respecteren de uitsparing; filters minimaal 44px hoog. Commit `3c97e3c`.
+- CSS-cache in index.html verhoogd naar v12 (`ccf8dc9`); PWA serviceworker verhoogd naar v108 en stylesheet v12 (`0200278`).
+- Nieuwe Actions voor head `0200278` moeten nog slagen; dit is geen bevestigde browser- of toestelacceptatie. Geen live- of previewdeployment uitgevoerd. Echte hosted opslag, herladen, eigenaarsverwijdering en vereiste reviews blijven open.
+- Volgende cyclus: controleer CI van `0200278`, herstel failures, test iPhone-landscape met safe-area in browser en controleer geautoriseerde preview/publicatieroute. Geen nieuwe branch aanmaken.
