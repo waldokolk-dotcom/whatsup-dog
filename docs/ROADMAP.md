@@ -201,3 +201,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Commit `420946ac`: Pages-deploy controleert nu niet alleen dat vier gehoste assets bestaan, maar vergelijkt de daadwerkelijke bytes met de build via `cmp`. Een oude CSS/JS/backend-config bij HTTP 200 kan hierdoor niet meer stilzwijgend als geslaagde publicatie gelden.
 - Nieuwe head moet opnieuw door CI; de post-deployvergelijking is nog niet in een daadwerkelijke deployment bewezen. Geen merge/deploy uitgevoerd.
 - Openstaande P0-releasevoorwaarden: publiek bereikbare featurepreview, echte hosted accountloze upload/herladen/eigen verwijdering, mobiele toestelacceptatie en eventuele verplichte review. Volgende run: controleer CI voor deze head; richt daarna inspanning op echte preview en hosted E2E in plaats van aanvullende cosmetische controles.
+
+## Uitvoeringscyclus 5 november 2026, 19:53 CET — korte landscape-schermen
+- Op PR #71 zijn de map-controls op liggende telefoons met maximaal 440px schermhoogte compacter geplaatst: gebied/losloop op 43px, filters op 92px en locatietoets hoger in het bruikbare kaartgebied; filters ondersteunen scroll snap. Product-CSS commit `337ea75`.
+- HTML stylesheetversie `v13` en serviceworker-cache `v109` zijn synchroon bijgewerkt (`cd2c34f`, `f1e1245`).
+- Direct na laatste commit gaf de commit-workflow-API nog geen runs terug; **geen groene tests voor deze wijziging bevestigd**. PR #71 heeft geen ingediende reviews.
+- Geen publieke preview of hosted backend-E2E bewezen. Niet gemerged of naar productie gepubliceerd. Volgende run: Actions voor head `f1e1245` controleren, mobiele landscape-regressie inclusief echte browserpreview verifiëren, daarna geïsoleerde hosted meldroute toetsen.
