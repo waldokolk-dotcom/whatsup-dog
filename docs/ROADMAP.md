@@ -122,3 +122,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Nieuwe productwijziging `2a05b65`: ook liggende telefoons van 601–839 CSS-pixels breed en maximaal 440 hoog krijgen een gescheiden kopregel, gebied/loslooprij en horizontaal schuivende filters; minimaal 44px aanraakdoelen. CSS-cache v11 en serviceworker-cache v108 via `fe523d7`, `38b9c14`.
 - CI op nieuwe head moet opnieuw slagen; hosted preview, echte accountloze backend-persistentie en eigenaarverwijdering zijn niet geverifieerd. Geen merge of productiepublicatie uitgevoerd.
 - Volgende cyclus: browseracceptatie inclusief landscape viewport controleren; indien fout joblogs lezen en repareren; geautoriseerde hosted preview en backend-E2E blijft P0.
+
+
+## Uitvoeringscyclus 5 november 2026, 06:49 CET — landscape browserregressie
+- Head `b57873b`: alle vier Actions geslaagd: [map 41970951359](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41970951359), [validate 41970951364](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41970951364), [browser 41970951435](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41970951435), [quality 41970951380](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41970951380).
+- Commit `56ddc66`: Playwright-test voor compacte landscape-viewports 667×375 en 812×375 toegevoegd. Controleert dat kaartmerk, gebiedskeuze, losloopregeling en filterbalk binnen viewport liggen en elkaar niet overlappen; meldknop zichtbaar. Hiermee wordt de nieuwe landscape-CSS ook bij volgende wijzigingen afgedwongen.
+- Bij directe controle nog geen workflowruns gekoppeld aan nieuwe commit; testuitkomst is dus **onbevestigd**. Volgende run: CI inspecteren, bij falen joblogs lezen en oorzaak repareren. Geen preview of hosted backendpersistentie bewezen, geen productiepublicatie.
