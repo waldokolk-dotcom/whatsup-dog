@@ -115,3 +115,10 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - HTML en serviceworker refereren nu aan `modern-2026.css?v=10`; offline cache verhoogd naar v107. Commits `d65536b`, `6900e2e`, `a600815`.
 - Nieuwe head vereist opnieuw vier groene CI-controles; gehoste preview, echte backend-persistentie en productie zijn niet geverifieerd. Niet mergen of publiceren vóór vereiste checks en reviews.
 - Volgende run: CI-resultaten inspecteren en falende tests herstellen; daarna echte hosted accountloze melding/upload/herladen/eigenaarsverwijdering testen en preview-bereikbaarheid aantonen.
+
+
+## Uitvoeringscyclus 5 november 2026, 05:56 CET — compacte landscape-kaart
+- Vorige head `9f7eb70`: vier CI-workflows groen: validate [41964230801](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41964230801), browseracceptatie [41964230814](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41964230814), kwaliteitscontrole [41964230806](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41964230806), kaartregressie [41964230812](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41964230812). Geen PR-reviews ingediend.
+- Nieuwe productwijziging `2a05b65`: ook liggende telefoons van 601–839 CSS-pixels breed en maximaal 440 hoog krijgen een gescheiden kopregel, gebied/loslooprij en horizontaal schuivende filters; minimaal 44px aanraakdoelen. CSS-cache v11 en serviceworker-cache v108 via `fe523d7`, `38b9c14`.
+- CI op nieuwe head moet opnieuw slagen; hosted preview, echte accountloze backend-persistentie en eigenaarverwijdering zijn niet geverifieerd. Geen merge of productiepublicatie uitgevoerd.
+- Volgende cyclus: browseracceptatie inclusief landscape viewport controleren; indien fout joblogs lezen en repareren; geautoriseerde hosted preview en backend-E2E blijft P0.
