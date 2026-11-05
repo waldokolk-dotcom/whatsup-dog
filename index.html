@@ -29,7 +29,7 @@
  <div class="wd-section-head"><h2>Snel naar</h2></div>
  <div class="wd-shortcuts"><button class="wd-shortcut" id="wdHomeDanger"><svg class="wd-icon" aria-hidden="true"><use href="#wd-alert"></use></svg>Waarschuwingen</button><button class="wd-shortcut" id="wdHomeLost"><svg class="wd-icon" aria-hidden="true"><use href="#wd-heart"></use></svg>Vermist</button><button class="wd-shortcut" id="wdHomeOffleash"><svg class="wd-icon" aria-hidden="true"><use href="#wd-map"></use></svg>Losloopplekken</button></div>
  <div class="wd-section-head"><h2>Actueel in de buurt</h2><button type="button" id="wdHomeAll">Bekijk alles →</button></div>
- <div id="wdHomeReports" class="wd-report-list"><div class="wd-empty">Je buurtmeldingen worden geladen.</div></div>
+ <div id="wdHomeReports" class="wd-report-list" aria-live="polite" aria-relevant="additions text"><div class="wd-empty">Je buurtmeldingen worden geladen.</div></div>
  <p class="wd-safe">Privacyvriendelijk • Lokaal • Samen opletten</p>
 </section>
 
@@ -83,7 +83,7 @@
     </article>
 
     <div class="section-title"><div><span class="section-kicker">ACTUEEL</span><h2>Recente meldingen</h2></div></div>
-    <div id="alertsList" class="activity-list"><div class="empty">Nog geen meldingen in beeld.</div></div><p class="cleanup-note">Meldingen verdwijnen automatisch wanneer ze verlopen. De maker kan een melding ook direct als opgelost markeren.</p>
+    <div id="alertsList" class="activity-list" role="status" aria-live="polite" aria-relevant="additions text"><div class="empty">Nog geen meldingen in beeld.</div></div><p class="cleanup-note">Meldingen verdwijnen automatisch wanneer ze verlopen. De maker kan een melding ook direct als opgelost markeren.</p>
   </section>
 
   <section id="view-giveaway" class="view">
@@ -102,7 +102,7 @@
       <div><b>Contact loopt via e-mail</b><span>Je e-mailadres staat niet openbaar in de advertentielijst.</span></div>
     </div>
 
-    <div class="section-title giveaway-list-title"><div><span class="section-kicker">IN JOUW BUURT</span><h2>Beschikbaar</h2></div></div><div id="giveList" class="give-list modern-grid"></div>
+    <div class="section-title giveaway-list-title"><div><span class="section-kicker">IN JOUW BUURT</span><h2>Beschikbaar</h2></div></div><div id="giveList" class="give-list modern-grid" aria-live="polite" aria-relevant="additions text"></div>
   </section>
 
   <section id="view-my" class="view">
