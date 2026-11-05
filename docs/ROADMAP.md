@@ -107,3 +107,11 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Concrete verbetering: kaartbediening heeft nu zichtbare focus op meldingenknop, losloopregeling en filters; compactere rijen voor mobiele landscape-schermen met weinig hoogte (`701815b`). Stylesheet v9 en PWA-cache synchroon opgehoogd (`66d785b`, `f90dc27`).
 - Direct na commit nog geen CI-runs teruggegeven; groen resultaat van de nieuwe head mag niet worden aangenomen. Geen geautoriseerde publiek bereikbare featurepreview of echte hosted opslag/verwijdertest bewezen; PR #71 niet gemerged of gedeployed.
 - Volgende run: controleer CI op nieuwste head, herstel regressies, test gehoste klantreis en verkrijg vereiste releasechecks voordat live wordt gepubliceerd.
+
+
+## Uitvoeringscyclus 5 november 2026, 04:51 CET — mobiele landscape-aanraakdoelen
+- Voorafgaande head `5161be7`: vier GitHub Actions geslaagd (validate, browser acceptance, map regression, quality watch). PR #71 heeft nog geen ingediende reviews.
+- Productwijziging: mobiele kaartknoppen in landscape behouden minimaal 44px aanraakhoogte (voorheen 38px/36px); filterrij 6px lager om overlap te voorkomen. Commit `9bd511d`.
+- HTML en serviceworker refereren nu aan `modern-2026.css?v=10`; offline cache verhoogd naar v107. Commits `d65536b`, `6900e2e`, `a600815`.
+- Nieuwe head vereist opnieuw vier groene CI-controles; gehoste preview, echte backend-persistentie en productie zijn niet geverifieerd. Niet mergen of publiceren vóór vereiste checks en reviews.
+- Volgende run: CI-resultaten inspecteren en falende tests herstellen; daarna echte hosted accountloze melding/upload/herladen/eigenaarsverwijdering testen en preview-bereikbaarheid aantonen.
