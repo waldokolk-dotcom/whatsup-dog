@@ -153,7 +153,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 @media (max-width:600px) and (orientation:landscape) and (max-height:440px){
  #view-map .map-brand{top:calc(6px + env(safe-area-inset-top))}
  #view-map #mapAlerts{top:calc(4px + env(safe-area-inset-top))}
- #view-map #areaPill,#view-map #offleashControl{top:calc(54px + env(safe-area-inset-top));height:38px;min-height:38px}
- #view-map .wd-map-filterbar{top:calc(98px + env(safe-area-inset-top))}
- #view-map .wd-map-filterbar .wd-filter{min-height:36px}
+ #view-map #areaPill,#view-map #offleashControl{top:calc(54px + env(safe-area-inset-top));height:44px;min-height:44px}
+ #view-map .wd-map-filterbar{top:calc(104px + env(safe-area-inset-top))}
+ #view-map .wd-map-filterbar .wd-filter{min-height:44px}
 }
