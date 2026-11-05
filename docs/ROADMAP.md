@@ -100,3 +100,10 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - De Pages-workflow `.github/workflows/pages.yml` publiceert uitsluitend vanaf `main` of via handmatige dispatch en voert vooraf validatie en browserjourneys uit. Er is geen automatisch publiek preview-deploypad voor deze featurebranch vastgesteld. Geen productie- of previewpublicatie uitgevoerd.
 - Releasevoorwaarden blijven: geautoriseerde merge/reviews volgens branch protection, echte gehoste accountloze upload/herladen/verwijderen en bereikbare mobiele preview/productiecontrole. Simulatie in Playwright is geen bewijs van echte Supabase-persistentie.
 - Volgende cyclus: inspecteer review-/branch protection en bestaande deployautorisatie; maak veilige publieke preview waar geautoriseerd; test hosted klantreis, herstel issues, merge/deploy alleen na geslaagde gates.
+
+
+## Uitvoeringscyclus 5 november 2026, 03:54 CET — mobiele bediening
+- Voorafgaande PR-head `eceb2bb`: vier controles geslaagd: [validate](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41951471778), [map regression](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41951471595), [browser acceptance](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41951471593), [quality](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41951471606).
+- Concrete verbetering: kaartbediening heeft nu zichtbare focus op meldingenknop, losloopregeling en filters; compactere rijen voor mobiele landscape-schermen met weinig hoogte (`701815b`). Stylesheet v9 en PWA-cache synchroon opgehoogd (`66d785b`, `f90dc27`).
+- Direct na commit nog geen CI-runs teruggegeven; groen resultaat van de nieuwe head mag niet worden aangenomen. Geen geautoriseerde publiek bereikbare featurepreview of echte hosted opslag/verwijdertest bewezen; PR #71 niet gemerged of gedeployed.
+- Volgende run: controleer CI op nieuwste head, herstel regressies, test gehoste klantreis en verkrijg vereiste releasechecks voordat live wordt gepubliceerd.
