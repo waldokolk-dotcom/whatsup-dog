@@ -827,7 +827,9 @@ test('compact landscape map keeps header, area and filters separated',async({pag
     await page.setViewportSize({width,height:375});
     await page.reload();
     await page.locator('[data-view="map"]').click();
-    const selectors=['.map-brand','#areaPill','#offleashControl','.wd-map-filterbar'];
+    // The decorative brand is intentionally hidden on short landscape screens to free map space.
+    await expect(page.locator('.map-brand')).toBeHidden();
+    const selectors=['#mapAlerts','#areaPill','#offleashControl','.wd-map-filterbar'];
     const boxes=[];
     for(const selector of selectors){
       const el=page.locator(selector);
