@@ -860,3 +860,24 @@ test('dynamic neighborhood lists announce updates without interrupting navigatio
   }
   await expect(page.locator('#alertsList')).toHaveAttribute('role','status');
 });
+
+
+test('portrait phones keep the report action clear of bottom navigation',async({page})=>{
+  for(const {width,height} of [{width:375,height:667},{width:390,height:844},{width:320,height:568}]){
+    await page.setViewportSize({width,height});
+    await page.reload();
+    await page.locator('[data-view="map"]').click();
+    const action=page.locator('#pawFab');
+    await expect(action).toBeVisible();
+    const box=await action.boundingBox();
+    expect(box,'report button has a visible hit area').not.toBeNull();
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x+box.width).toBeLessThanOrEqual(width+1);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y+box.height).toBeLessThanOrEqual(height+1);
+    await action.click();
+    await expect(page.locator('#pawFab')).toBeAttached();
+  }
+});
