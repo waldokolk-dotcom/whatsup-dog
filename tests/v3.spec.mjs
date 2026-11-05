@@ -50,7 +50,7 @@ test('mobile map controls stay inside viewport and do not overlap',async({page})
   const ids=['#areaPill','#offleashControl','.wd-map-filterbar','#pawFab'];
   const boxes=[];
   for(const id of ids){
-    const el=page.locator('#view-map '+id);
+    const el=page.locator(id);
     await expect(el).toBeVisible();
     const box=await el.boundingBox();
     expect(box.x, id+' left edge').toBeGreaterThanOrEqual(0);
