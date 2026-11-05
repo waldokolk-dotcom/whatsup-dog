@@ -191,3 +191,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
  #view-map .wd-map-filterbar .wd-filter{scroll-snap-align:start}
  #view-map #locateBtn{bottom:calc(72px + env(safe-area-inset-bottom))!important}
 }
+
+/* iPhone landscape notch: utility controls share only the actual safe content width.
+   Percent widths previously ignored left/right cutouts and could collide. */
+@media (max-width:839px) and (orientation:landscape){
+ #view-map #areaPill{width:calc((100% - env(safe-area-inset-left) - env(safe-area-inset-right) - 32px) * .44);max-width:none;min-width:0}
+ #view-map #offleashControl{width:calc((100% - env(safe-area-inset-left) - env(safe-area-inset-right) - 32px) * .56);max-width:none;min-width:0}
+ #view-map #areaPill,#view-map #offleashControl{overflow:hidden}
+ #view-map #offleashControl .offleash-copy{min-width:0;overflow:hidden}
+ #view-map #offleashControl .offleash-copy b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
