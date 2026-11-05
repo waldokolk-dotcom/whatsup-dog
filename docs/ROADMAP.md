@@ -174,3 +174,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - PR #71 head `dd209a8`: alle vier GitHub Actions groen: map regression #42022226448, quality #42022226677, browser acceptance #42022226598, validate #42022226614. Reviews: 0.
 - Commit `fc4f21d` voegt mobiele Playwright-regressie toe voor de centrale meldknop op 320×568, 375×667 en 390×844: zichtbaarheid, minimaal 44×44 aanraakvlak, binnen viewport en klikbaarheid. Dit is testdekking, geen nieuw opgeleverde productfunctie.
 - CI op `fc4f21d` nog niet bevestigd. Hosted preview, echte backend-opslag/herladen/eigenaarsverwijdering en productieacceptatie blijven onbewezen. Niet mergen of publiceren zonder actuele groene checks en toepasselijke releasevoorwaarden.
+
+
+## Zelfcontrole 5 november 2026, 14:53 CET — snelkoppelingen startscherm
+- Head `0bf6010`: vier GitHub Actions geslaagd: [validate #42031570110](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42031570110), [kaartregressie #42031570005](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42031570005), [browseracceptatie #42031569950](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42031569950), [quality watch #42031569825](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42031569825). Reviews: geen.
+- Concrete codewijziging `17da5e4`: drie startscherm-snelkoppelingen (Waarschuwingen, Vermist, Losloopplekken) hebben expliciet `type=button`, zodat zij nooit onbedoeld een formulier indienen. Bestaande eventhandlers behouden.
+- Nieuwe CI op gewijzigde head nog te verifiëren. Hosted preview, fysieke toestelacceptatie, echte backendpersistentie en eigenaarsverwijdering blijven onbewezen. Geen merge/deploy. Volgende cyclus: CI op deze head controleren; daarna prioriteit aan gehoste end-to-end meldroute en bereikbare preview.
