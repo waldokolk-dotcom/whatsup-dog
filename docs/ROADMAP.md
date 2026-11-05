@@ -85,3 +85,10 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - README vermeldt GitHub Pages productiepad `https://waldokolk-dotcom.github.io/whatsup-dog/` en bestaande handmatige Pages-publicatie, maar daadwerkelijke HTTP-bereikbaarheid kon vanuit deze run niet worden bevestigd (DNS/netwerk niet beschikbaar). Dit is dus geen geverifieerde preview of live release.
 - Release blijft geblokkeerd door ontbrekend bewijs van hosted upload/herladen/eigenaarsverwijdering, apparaatacceptatie, hostingautorisatie en eventuele vereiste review. Geen merge, deploy, migratie of productiegegevensmutatie uitgevoerd.
 - Volgende run: inspecteer Pages-workflow en geautoriseerde previewroute; voer echte hosted E2E uit met bestaande beschermde workflow zodra bevoegd, controleer mobiele preview en reviewstatus; pas dan publiceren.
+
+
+## Zelfcontrole 5 november 2026, 01:52 CET — mobiele regressiedekking
+- Head vóór wijziging `513eeb9`: vier Actions geslaagd: [map](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41937783440), [validate](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41937783467), [quality](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41937783434), [browser](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41937783465). Geen ingediende reviews.
+- Nieuwe Playwright-regressietest toegevoegd aan `tests/v3.spec.mjs` (commits `40a938b`, `dcb0e72`): controleert op smalle schermen dat gebiedskeuze, losloopknop en filterbalk niet overlappen of buiten viewport vallen en dat de meldingknop boven de ondernavigatie blijft. Dit is testdekking, nog geen bewezen visuele reparatie; nieuwe CI-uitkomst vereist.
+- Productie-URL `https://waldokolk-dotcom.github.io/whatsup-dog/` vanaf runner niet bereikbaar: DNS-resolutie mislukt (`curl: Could not resolve host`). Niet als live geverifieerd claimen.
+- Release blijft geblokkeerd op hosted backend-E2E, bereikbaarheidscontrole en benodigde reviews/autorisatie. Volgende run: inspecteer nieuwe browseracceptatie; repareer eventuele layoutfailures en herhaal tests.
