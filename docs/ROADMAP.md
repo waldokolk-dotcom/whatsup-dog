@@ -168,3 +168,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - De vier CI-controles voor head `43e1047` zijn groen: [kaartregressie](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42014165157), [validate](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42014165179), [mobiele browseracceptatie](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42014165177) en [quality watch](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42014165240).
 - Extra browseracceptatietest toegevoegd op dezelfde PR-branch voor `aria-live=polite` en `aria-relevant=additions text` op startscherm, meldingenoverzicht en weggeefhoek; controleert tevens `role=status` voor meldingen. Commits `2f79c5e`, `b124e3d` (correcte navigatieroute `giveaway`).
 - Nieuwe head nog niet groen bevestigd. Geen publieke preview, echte Supabase-E2E of productie-deploy bewezen; eerst nieuwe CI en toegestane releasegates controleren.
+
+
+## Zelfcontrole 5 november 2026, 13:56 CET — portrait-meldknop
+- PR #71 head `dd209a8`: alle vier GitHub Actions groen: map regression #42022226448, quality #42022226677, browser acceptance #42022226598, validate #42022226614. Reviews: 0.
+- Commit `fc4f21d` voegt mobiele Playwright-regressie toe voor de centrale meldknop op 320×568, 375×667 en 390×844: zichtbaarheid, minimaal 44×44 aanraakvlak, binnen viewport en klikbaarheid. Dit is testdekking, geen nieuw opgeleverde productfunctie.
+- CI op `fc4f21d` nog niet bevestigd. Hosted preview, echte backend-opslag/herladen/eigenaarsverwijdering en productieacceptatie blijven onbewezen. Niet mergen of publiceren zonder actuele groene checks en toepasselijke releasevoorwaarden.
