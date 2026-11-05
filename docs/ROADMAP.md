@@ -142,3 +142,10 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - CSS-cache in index.html verhoogd naar v12 (`ccf8dc9`); PWA serviceworker verhoogd naar v108 en stylesheet v12 (`0200278`).
 - Nieuwe Actions voor head `0200278` moeten nog slagen; dit is geen bevestigde browser- of toestelacceptatie. Geen live- of previewdeployment uitgevoerd. Echte hosted opslag, herladen, eigenaarsverwijdering en vereiste reviews blijven open.
 - Volgende cyclus: controleer CI van `0200278`, herstel failures, test iPhone-landscape met safe-area in browser en controleer geautoriseerde preview/publicatieroute. Geen nieuwe branch aanmaken.
+
+
+## 5 november 2026 — kaarttoegankelijkheid en CI-status
+- Vier checks op voorgaande head `c8928a0` bevestigd groen: [map regression](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41990917723), [validate](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41990917834), [browser acceptance](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41990917732), [quality watch](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/41990917819).
+- Productwijziging `1fbf1ed`: interactieve kaart is nu een benoemde toegankelijke regio; kaartfilters zijn expliciete `type=button` bedieningselementen zodat zij niet onbedoeld een formulier indienen. Bestaande kaart- en filterhandlers blijven behouden.
+- Direct na commit waren nog geen GitHub Actions-runs beschikbaar. Deze wijziging is daarom nog niet als getest aangemerkt.
+- Open: publiek bereikbare preview, echte backend opslag/verwijdering, fysieke iPhone-proef en vereiste PR-review; geen productiepublicatie uitgevoerd.
