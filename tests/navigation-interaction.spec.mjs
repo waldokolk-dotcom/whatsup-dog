@@ -32,6 +32,11 @@ test('tabs and map filters work after backend initialization',async({page})=>{
   await expect(page.locator('[data-mapfilter="danger"]')).toHaveClass(/active/);
   await page.locator('[data-view="giveaway"]').click();
   await expect(page.locator('#view-giveaway')).toHaveClass(/active/);
+  // Returning from the giveaway corner must restore the map without losing the chosen filter.
+  await page.locator('[data-view="map"]').click();
+  await expect(page.locator('#view-map')).toHaveClass(/active/);
+  await expect(page.locator('#view-giveaway')).not.toHaveClass(/active/);
+  await expect(page.locator('[data-mapfilter="danger"]')).toHaveClass(/active/);
 });
 
 test('compact map controls do not overlap on a narrow phone',async({page})=>{
