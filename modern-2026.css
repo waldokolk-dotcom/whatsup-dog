@@ -253,3 +253,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
  #view-map .wd-map-filterbar{top:calc(108px + env(safe-area-inset-top));max-height:52px;align-items:center}
  #view-map .wd-map-filterbar .wd-filter{min-height:44px}
 }
+
+/* Keep the reporting action above the home indicator and the map controls. */
+@media (max-width:600px) and (orientation:portrait){
+ #view-map #pawFab{touch-action:manipulation;min-height:52px;max-width:calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right))}
+ #view-map #locateBtn{touch-action:manipulation;min-width:44px;min-height:44px}
+ #view-map .wd-map-filterbar{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+}
