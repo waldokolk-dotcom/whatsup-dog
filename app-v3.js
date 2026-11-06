@@ -618,11 +618,12 @@ async function compress(file){
  return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("photo-decode")),"image/jpeg",.82))
 }
 async function submitReport(e){
- e.preventDefault();if(!reportState.type){toast("Kies eerst een soort melding");return}if(!client||!user){toast("Meldingen tijdelijk niet beschikbaar; probeer later opnieuw");return}const btn=$("#reportSubmit");btn.disabled=true;
+ e.preventDefault();if(!reportState.type){toast("Kies eerst een soort melding");return}if(!client||!user){toast("Meldingen tijdelijk niet beschikbaar; probeer later opnieuw");return}const btn=$("#reportSubmit");if(btn.disabled)return;btn.disabled=true;btn.setAttribute("aria-busy","true");
  try{let loc;
  if(reportState.locationMode==="map"&&reportState.location){loc=reportState.location}
  else if(navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{timeout:6000,maximumAge:30000}))}
  else{throw new Error("location-unavailable")}
+ if(!Number.isFinite(Number(loc?.lat))||!Number.isFinite(Number(loc?.lng))||Math.abs(Number(loc.lat))>90||Math.abs(Number(loc.lng))>180){throw new Error("location-invalid")}
  let uploadedPhotoPath=null;
  const id=crypto.randomUUID(),p=profile();let photo_path=null,file=$("#reportPhoto").files[0];
  if(file){const blob=await compress(file);photo_path=user.id+"/"+id+".jpg";const up=await client.storage.from("report-photos").upload(photo_path,blob,{contentType:"image/jpeg",upsert:false});if(up.error){console.warn("Foto-upload mislukt",up.error);throw new Error("photo-upload")}uploadedPhotoPath=photo_path}
@@ -660,7 +661,7 @@ async function submitReport(e){
  toast(confirmed?"Melding staat op de kaart":"Melding verzonden; zichtbaarheid nog niet bevestigd. Vernieuw de kaart.")}
  catch(err){
   console.warn(err);
-  const gpsFailed=reportState.locationMode==="gps"&&(err?.code===1||err?.code===2||err?.code===3||err?.message==="location-unavailable");
+  const gpsFailed=reportState.locationMode==="gps"&&(err?.code===1||err?.code===2||err?.code===3||err?.message==="location-unavailable"||err?.message==="location-invalid");
   if(gpsFailed){
    // Keep the description and selected photo: only location needs another input.
    $("#reportStep3").hidden=true;$("#reportStep2").hidden=false;
@@ -671,7 +672,7 @@ async function submitReport(e){
   else if(err?.message==="photo-unsupported"||err?.message==="photo-decode")toast("Deze foto kan niet worden verwerkt. Kies een andere JPG-, PNG- of WebP-foto.");
   else if(err?.message==="photo-upload")toast("Foto uploaden lukt niet. Je melding is bewaard als concept; probeer opnieuw.");
   else toast("Plaatsen lukt nu niet. Je concept blijft bewaard.");
- }finally{btn.disabled=false}
+ }finally{btn.disabled=false;btn.removeAttribute("aria-busy")}
 }
 async function refreshGiveaways(){
  const list=$("#giveList");if(!list||!client)return;list.innerHTML='<div class="empty">Laden…</div>';const {data,error}=await client.from("giveaway_listings").select("id,owner_id,title,description,category,kind,town,image_path,status,created_at").eq("status","actief").order("created_at",{ascending:false}).limit(80);if(error){list.innerHTML='<div class="empty">Ophalen lukt nu niet.</div>';return}
