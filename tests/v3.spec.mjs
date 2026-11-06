@@ -8,17 +8,22 @@ async function stubBackend(page){
     localStorage.setItem('wd_v3_onboarded','1');
     localStorage.setItem('wd_v3_profile',JSON.stringify({name:'Waldo',petName:'Bowie',breed:'Friese stabij',avatar:'🐶',species:'dog'}));
     localStorage.setItem('wd_v3_settings',JSON.stringify({areaLabel:'Corlaer',lat:52.21,lng:5.48,radius:2000,categories:['danger','lost','animal'],push:false}));
-    const chain=(data=[])=>({
-      select(){return this},eq(){return this},gt(){return this},order(){return this},
-      limit(){return Promise.resolve({data,error:null})},
-      maybeSingle(){return Promise.resolve({data:null,error:null})},
-      insert(){return Promise.resolve({data:null,error:null})},
+    // The test backend must behave like a persisted report table, not a write-only mock.
+    const chain=(table)=>({
+      filters:[],
+      select(){return this},
+      eq(key,value){this.filters.push([key,value]);return this},
+      gt(){return this},order(){return this},
+      rows(){const data=table==='reports'?(window.__wdReports||[]):[];return data.filter(row=>this.filters.every(([key,value])=>row[key]===value))},
+      limit(n){return Promise.resolve({data:this.rows().slice(0,n),error:null})},
+      maybeSingle(){return Promise.resolve({data:this.rows()[0]||null,error:null})},
+      insert(row){if(table==='reports'){const rows=Array.isArray(row)?row:[row];window.__wdReports.push(...rows.map(x=>({...x,status:'active',created_at:new Date().toISOString()})));localStorage.setItem('__wd_test_reports',JSON.stringify(window.__wdReports))}return Promise.resolve({data:null,error:null})},
       update(){return this},delete(){return this},
-      then(resolve){return Promise.resolve({data,error:null}).then(resolve)}
+      then(resolve){return Promise.resolve({data:this.rows(),error:null}).then(resolve)}
     });
     const client={
       auth:{getSession:async()=>({data:{session:{user:{id:'device-user',is_anonymous:true}}}}),signInAnonymously:async()=>({data:{user:{id:'device-user',is_anonymous:true}},error:null})},
-      from:(table)=>chain(table==='reports'?(window.__wdReports||[]):[]),
+      from:(table)=>chain(table),
       rpc:async(name)=>{
         if(name==='get_active_reports'){
           if(window.__wdFailActiveReports)return {data:null,error:{message:'temporary feed failure'}};
