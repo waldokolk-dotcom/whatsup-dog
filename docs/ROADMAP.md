@@ -297,3 +297,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcode commit `5fc060d`: het meldformulier negeert een tweede submit zolang de eerste bezig is, markeert de knop `aria-busy`, en valideert GPS/kaartcoördinaten vóór foto-upload en database-insert. Ongeldige locatie leidt naar de bestaande handmatige kaartkeuze, met behoud van concept.
 - Publieke PR-featurepreview ontbreekt; Pages-workflow publiceert alleen `main` en handmatige dispatch zou bestaande Pages-productie kunnen vervangen. Niet uitgevoerd. Review, gehoste backend-E2E en gecontroleerde release blijven open.
 - Volgende run: CI op nieuwe head controleren, daarna veilige previewroute of geautoriseerde merge met echte geïsoleerde backendtest en eigenaarsrechten aantonen.
+
+## Uitvoeringscyclus 7 november 2026, 00:59 CET — push alleen na bevestigde publicatie
+- Voorafgaande head `e497df9`: alle vier GitHub Actions groen (validate, browseracceptatie, kaartregressie, kwaliteitscontrole). Geen gehoste backend-E2E bewezen.
+- Productcommit `9e75344`: buurtpush wordt alleen aangeroepen nadat de opgeslagen melding werkelijk actief en leesbaar is bevestigd. Onbevestigde meldingen veroorzaken geen potentieel misleidende pushnotificatie.
+- Nieuwe CI voor productcommit nog controleren. Featurepreview ontbreekt: bestaande Pages-workflow deployt naar de productieomgeving en mag niet voor een branch-preview worden misbruikt. Geen merge of productiegegevens gewijzigd.
+- Volgende: nieuwe CI en hostingrechten controleren; geïsoleerde echte backend-create/reload/owner-delete-test en publieke featurepreview via afzonderlijke geautoriseerde hosting.
