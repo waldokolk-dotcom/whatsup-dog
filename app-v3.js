@@ -732,7 +732,33 @@ function applyProfile(){
  const town=$("#giveForm [name=\"town\"]"); if(town)town.value=s.areaLabel||"";
 }
 async function saveArea(e){e.preventDefault();const q=$("#areaSearch").value.trim();if(!q)return;try{const res=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(q));const arr=await res.json();if(!arr[0])return toast("Gebied niet gevonden");const s=settings();s.areaLabel=arr[0].display_name.split(",")[0];s.lat=Number(arr[0].lat);s.lng=Number(arr[0].lon);write(SKEY,s);$("#areaPill").textContent=s.areaLabel+" ▾";map.setView([s.lat,s.lng],14);$("#areaDialog").close();syncPushUi();applyProfile();toast("Gebied aangepast")}catch{toast("Zoeken lukt nu niet")}}
-function locate(){navigator.geolocation?.getCurrentPosition(p=>{map.setView([p.coords.latitude,p.coords.longitude],16);L.circleMarker([p.coords.latitude,p.coords.longitude],{radius:8,color:"#176fa8",fillColor:"#7dc4ff",fillOpacity:1,weight:3}).addTo(map)},()=>toast("Locatie niet gedeeld"),{timeout:6000,maximumAge:30000})}
+let currentLocationMarker=null;
+function locate(){
+ const button=$("#locateBtn");
+ if(!navigator.geolocation){
+  toast("Locatie niet beschikbaar. Kies je gebied via de gebiedsknop.");
+  return;
+ }
+ if(button){button.disabled=true;button.setAttribute("aria-busy","true")}
+ const release=()=>{if(button){button.disabled=false;button.removeAttribute("aria-busy")}};
+ navigator.geolocation.getCurrentPosition(
+  position=>{
+   const lat=position.coords.latitude,lng=position.coords.longitude;
+   if(!Number.isFinite(lat)||!Number.isFinite(lng)){toast("Locatie ongeldig. Kies je gebied handmatig.");release();return}
+   const point=[lat,lng];
+   if(currentLocationMarker)currentLocationMarker.setLatLng(point);
+   else currentLocationMarker=L.circleMarker(point,{radius:8,color:"#176fa8",fillColor:"#7dc4ff",fillOpacity:1,weight:3,interactive:false}).addTo(map);
+   map.setView(point,16);
+   toast("Je locatie staat op de kaart.");release();
+  },
+  error=>{
+   const message=error?.code===1?"Locatietoegang geweigerd. Kies je gebied handmatig.":error?.code===3?"Locatie bepalen duurde te lang. Probeer opnieuw of kies je gebied.":"Locatie niet gevonden. Kies je gebied handmatig.";
+   toast(message);release();
+  },
+  {enableHighAccuracy:false,timeout:8000,maximumAge:30000}
+ );
+
+}
 function urlB64(s){const pad="=".repeat((4-s.length%4)%4),b=(s+pad).replace(/-/g,"+").replace(/_/g,"/"),raw=atob(b);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
 function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)}
 function isStandalone(){return window.matchMedia?.("(display-mode: standalone)")?.matches||window.navigator.standalone===true}
