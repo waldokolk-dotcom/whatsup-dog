@@ -267,3 +267,10 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Voorafgaande head `d32e6d2`: vier Actions groen: [map regression](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42170915032), [browser acceptance](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42170915038), [daily quality](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42170915058), [validate](https://github.com/waldokolk-dotcom/whatsup-dog/actions/runs/42170915143).
 - Op bestaande PR #71 een extra Playwright-test voor horizontale pagina-overflow bij 320x568, 375x667 en 390x844 toegevoegd: commit `59d512a`. Deze nieuwe test is nog NIET groen bewezen; bij directe check nog geen workflowruns gevonden.
 - PR heeft nog geen reviews; publieke featurepreview en echte gehoste accountloze create/reload/owner-delete blijven onbewezen. Geen merge/deploy. Volgende cyclus: nieuwe CI beoordelen en falende viewporttest zo nodig met CSS-fix herstellen; vervolgens geïsoleerde backend-E2E en preview realiseren.
+
+
+## Uitvoeringscyclus 6 november 2026, 14:53 CET — PWA cache-regressie hersteld
+- CI op head `529134d` had browseracceptatie groen, maar validate, map regression en daily quality rood. De joblogs tonen één gedeelde oorzaak: `Offline cache must include the current mobile stylesheet version` (`scripts/validate.mjs:98`).
+- `index.html` verwijst naar `modern-2026.css?v=27`, terwijl `sw.js` nog `v=17` cachete. In commit `1bc2710` is de serviceworker aangepast naar stylesheet v27 en cache v114. Geen productiedata, secrets of migraties gewijzigd.
+- Direct na de fix waren er nog geen workflowruns voor commit `1bc2710`; geen groen resultaat of release geclaimd. Volgende run: vier Actions voor de actuele head controleren en eventuele fouten uit joblogs herstellen.
+- Pages publiceert alleen main/handmatige dispatch; geïsoleerde publieke featurepreview en echte gehoste accountloze create/reload/owner-delete zijn niet bewezen. Geen merge of productiepublicatie tot releasegates zijn gehaald.
