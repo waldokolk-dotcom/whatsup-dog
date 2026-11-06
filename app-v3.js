@@ -614,10 +614,16 @@ async function submitReport(e){
  if(reportState.locationMode==="map"&&reportState.location){loc=reportState.location}
  else if(navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{timeout:6000,maximumAge:30000}))}
  else{throw new Error("location-unavailable")}
+ let uploadedPhotoPath=null;
  const id=crypto.randomUUID(),p=profile();let photo_path=null,file=$("#reportPhoto").files[0];
- if(file){const blob=await compress(file);photo_path=user.id+"/"+id+".jpg";const up=await client.storage.from("report-photos").upload(photo_path,blob,{contentType:"image/jpeg",upsert:false});if(up.error){console.warn("Foto-upload mislukt",up.error);throw new Error("photo-upload")}}
+ if(file){const blob=await compress(file);photo_path=user.id+"/"+id+".jpg";const up=await client.storage.from("report-photos").upload(photo_path,blob,{contentType:"image/jpeg",upsert:false});if(up.error){console.warn("Foto-upload mislukt",up.error);throw new Error("photo-upload")}uploadedPhotoPath=photo_path}
  const row={id,user_id:user.id,author_name:(p.name||"Buurtgenoot").slice(0,40),author_avatar:p.avatar||"🐾",type:reportState.type,subtype:reportState.subtype||null,text:($("#reportText").value.trim()||reportState.subtype||"Nieuwe melding").slice(0,220),lat:loc.lat,lng:loc.lng,photo_path,species:p.species||"both"};
- const {error}=await client.from("reports").insert(row);if(error)throw error;
+ const {error}=await client.from("reports").insert(row);
+ if(error){
+  // A failed database insert must not leave an orphaned private photo behind.
+  if(uploadedPhotoPath){try{const cleanup=await client.storage.from("report-photos").remove([uploadedPhotoPath]);if(cleanup.error)console.warn("Foto opruimen na mislukte melding",cleanup.error)}catch(cleanupError){console.warn("Foto opruimen na mislukte melding",cleanupError)}}
+  throw error;
+ }
  localStorage.removeItem(REPORTDRAFTKEY);clearReportPhoto();$("#reportDialog").close();
  showView("map");
  map.setView([loc.lat,loc.lng],17);
