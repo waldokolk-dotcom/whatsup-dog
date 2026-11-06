@@ -62,6 +62,19 @@ test('mobile map controls stay inside viewport and do not overlap',async({page})
   expect(boxes[3].y, 'report button must remain above bottom navigation').toBeLessThan(vp.height-65);
 });
 
+test('mobile map and report dialog do not cause horizontal page overflow',async({page})=>{
+  const vp=page.viewportSize();
+  if(vp.width>600)return;
+  const check=async(stage)=>{
+    const width=await page.evaluate(()=>document.documentElement.scrollWidth);
+    expect(width,stage+' horizontal overflow').toBeLessThanOrEqual(vp.width+1);
+  };
+  await check('map');
+  await page.locator('#pawFab').click();
+  await expect(page.locator('#reportDialog')).toBeVisible();
+  await check('report dialog');
+});
+
 test('Melding maken is thumb reachable and opens report directly',async({page})=>{
   await expect(page.locator('#pawFab')).toBeVisible();
   const box=await page.locator('#pawFab').boundingBox();
