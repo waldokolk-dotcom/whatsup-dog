@@ -939,3 +939,22 @@ test('small portrait viewport keeps the map free from horizontal page scrolling'
     await expect(page.locator('#pawFab')).toBeVisible();
   }
 });
+
+
+test('compact portrait location control does not obscure report action',async({page})=>{
+  for(const {width,height} of [{width:320,height:568},{width:375,height:667},{width:390,height:844}]){
+    await page.setViewportSize({width,height});
+    await page.reload();
+    await page.locator('[data-view="map"]').click();
+    const locate=page.locator('#locateBtn');
+    const report=page.locator('#pawFab');
+    await expect(locate).toBeVisible();
+    await expect(report).toBeVisible();
+    const a=await locate.boundingBox();
+    const b=await report.boundingBox();
+    expect(a).not.toBeNull();
+    expect(b).not.toBeNull();
+    const overlap=a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
+    expect(overlap,width+'px: locate button obscures report button').toBe(false);
+  }
+});
