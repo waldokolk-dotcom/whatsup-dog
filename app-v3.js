@@ -657,7 +657,9 @@ async function submitReport(e){
   if(active)confirmed=active;
  }
  map.setView([loc.lat,loc.lng],17);
- client.functions.invoke("dispatch-nearby-push",{body:{reportId:id}}).catch(()=>{});
+ // Only notify neighbours after the persisted report is confirmed visible.
+ // An unverified insert must never trigger a potentially misleading alert.
+ if(confirmed)client.functions.invoke("dispatch-nearby-push",{body:{reportId:id}}).catch(err=>console.warn("Buurtmelding versturen",err));
  toast(confirmed?"Melding staat op de kaart":"Melding verzonden; zichtbaarheid nog niet bevestigd. Vernieuw de kaart.")}
  catch(err){
   console.warn(err);
