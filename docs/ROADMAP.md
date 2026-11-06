@@ -274,3 +274,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - `index.html` verwijst naar `modern-2026.css?v=27`, terwijl `sw.js` nog `v=17` cachete. In commit `1bc2710` is de serviceworker aangepast naar stylesheet v27 en cache v114. Geen productiedata, secrets of migraties gewijzigd.
 - Direct na de fix waren er nog geen workflowruns voor commit `1bc2710`; geen groen resultaat of release geclaimd. Volgende run: vier Actions voor de actuele head controleren en eventuele fouten uit joblogs herstellen.
 - Pages publiceert alleen main/handmatige dispatch; geïsoleerde publieke featurepreview en echte gehoste accountloze create/reload/owner-delete zijn niet bewezen. Geen merge of productiepublicatie tot releasegates zijn gehaald.
+
+## Uitvoeringscyclus 6 november 2026 — compacte mobiele kaart
+- Productcode commit `3aade087`: in portretweergave verdwijnt de decoratieve kaartkop; meldingenactie, gebied/losloopbediening en filterrail staan op compacte, veilige schermposities. Meer kaartoppervlak zonder verlies van knoppen.
+- PWA-cache: `11e385d` laadt stylesheet v28, `34ccfee` cachet v28 met cache v115.
+- Vorige head `6b4efe2`: validate, browser acceptance, map regression en quality watch groen; CI voor nieuwe head `34ccfee` opnieuw verifiëren. Geen live release geclaimd.
+- Releasegates blijven: publiek bereikbare featurepreview, echte geïsoleerde backend-E2E met eigenaarsverwijdering, vereiste review/hostingautorisatie en actuele groene checks. Geen productiedata gebruikt.
