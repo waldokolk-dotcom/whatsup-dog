@@ -250,3 +250,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Oorzaak: `index.html` verwijst naar `modern-2026.css?v=17`, maar `sw.js` pre-cachete nog `v=16` en gebruikte cache `v112`.
 - Fix `6051d8f`: `sw.js` cachet nu stylesheet v17 en gebruikt cache v113, zodat nieuwe PWA-installaties de actuele mobile CSS ontvangen. CI voor deze nieuwe commit moet nog bevestigd worden.
 - Geen productie-deploy; publiek bereikbare featurepreview en echte gehoste accountloze backend-E2E blijven onbewezen. Volgende run: controleer CI voor `6051d8f`, inspecteer logs bij failures en werk aan preview/hosted klantreis zonder productiegegevens te muteren.
+
+## Zelfcontrole 6 november 2026, 04:54 CET — actuele releasegates
+- Head `e85b70fd4667d31ac49c89d3c87a61cf538d789e`: vier Actions bevestigd **success**: map regression, validate accountless V3, browser accountless V3 acceptance, daily quality watch. De stylesheet-v17/PWA-cache-v113 reparatie is daarmee door CI gevalideerd.
+- `.github/workflows/pages.yml` gecontroleerd: Pages deployt alleen vanuit `main` of via `workflow_dispatch`; er is geen branch-previewdeploy in deze workflow. Niet handmatig naar productie dispatchen zonder gehoste backend-E2E en vereiste reviews.
+- Browseracceptatie blijft een gesimuleerde backend; echte accountloze melding plaatsen → herladen → eigenaarsverwijdering op een geïsoleerde publieke host is nog niet aangetoond. Geen productiegegevens muteren om dit te testen.
+- Geen productiepublicatie of publiek bereikbare featurepreview geclaimd. Volgende productstap: geautoriseerde afgescheiden preview en echte E2E; pas daarna release.
