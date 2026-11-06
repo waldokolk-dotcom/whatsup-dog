@@ -649,6 +649,12 @@ async function submitReport(e){
  }
  setTimeout(()=>map?.invalidateSize(),50);
  await Promise.allSettled([refreshReports(),refreshMine()]);
+ // A freshly inserted report can appear in the active feed after the initial read.
+ // Confirm from that refreshed server feed before showing the final success state.
+ if(!confirmed){
+  const active=lastActiveReports.find(r=>String(r.id)===String(id)&&r.status==="active"&&r.user_id===user.id);
+  if(active)confirmed=active;
+ }
  map.setView([loc.lat,loc.lng],17);
  client.functions.invoke("dispatch-nearby-push",{body:{reportId:id}}).catch(()=>{});
  toast(confirmed?"Melding staat op de kaart":"Melding verzonden; zichtbaarheid nog niet bevestigd. Vernieuw de kaart.")}
