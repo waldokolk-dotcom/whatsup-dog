@@ -280,3 +280,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - PWA-cache: `11e385d` laadt stylesheet v28, `34ccfee` cachet v28 met cache v115.
 - Vorige head `6b4efe2`: validate, browser acceptance, map regression en quality watch groen; CI voor nieuwe head `34ccfee` opnieuw verifiëren. Geen live release geclaimd.
 - Releasegates blijven: publiek bereikbare featurepreview, echte geïsoleerde backend-E2E met eigenaarsverwijdering, vereiste review/hostingautorisatie en actuele groene checks. Geen productiedata gebruikt.
+
+## Uitvoeringscyclus 6 november 2026, 21:52 CET — bevestigde publicatie in de kaart
+- Actuele PR #71 had op head `d64211f` vier groene GitHub Actions: map regression, daily quality watch, validate en browser acceptance. Dit is CI-bewijs, geen gehoste backend-E2E.
+- Productcode commit `3816e4a`: na succesvolle insert controleert de app of de melding werkelijk als actieve rij via de backend terug te lezen is. Alleen dan toont hij direct een bevestigde marker en de melding `Melding staat op de kaart`. Als teruglezen niet bevestigd kan worden, meldt de app eerlijk dat zichtbaarheid nog niet bevestigd is. Dit voorkomt een misleidende optimistische succesweergave.
+- CI voor nieuwe head nog controleren; publieke featurepreview en geïsoleerde gehoste backend-E2E zijn niet bewezen. Geen merge of productiepublicatie. Volgende cyclus: CI-fouten herstellen en via toegestane hosting een echte mobiele preview plus geïsoleerde create/reload/owner-delete verificatie realiseren.
