@@ -923,3 +923,19 @@ test('portrait map controls stay inside screen and clear of the reporting action
     }
   }
 });
+
+
+test('small portrait viewport keeps the map free from horizontal page scrolling',async({page})=>{
+  for(const {width,height} of [{width:320,height:568},{width:375,height:667},{width:390,height:844}]){
+    await page.setViewportSize({width,height});
+    await page.reload();
+    await page.locator('[data-view="map"]').click();
+    const geometry=await page.evaluate(()=>({
+      viewport:document.documentElement.clientWidth,
+      document:document.documentElement.scrollWidth,
+      body:document.body.scrollWidth
+    }));
+    expect(geometry.document, width+'px: page should not scroll sideways').toBeLessThanOrEqual(geometry.viewport+1);
+    await expect(page.locator('#pawFab')).toBeVisible();
+  }
+});
