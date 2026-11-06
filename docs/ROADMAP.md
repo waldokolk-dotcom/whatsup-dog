@@ -244,3 +244,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productwijziging `cb7ed8e`: op portraittelefoons met schermhoogte tot 700px de locatieknop hoger geplaatst zodat hij de centrale meldactie niet bedekt; filterrail krijgt scroll snap. `92469e2` verhoogt stylesheetquery naar v17.
 - Nieuwe CI voor head `92469e2` nog niet zichtbaar bij directe controle; wijziging dus niet bewezen door browseracceptatie. Preview en echte backend-E2E blijven onbewezen. Geen deploy of merge uitgevoerd.
 - Volgende cyclus: verifieer de actuele CI, inspecteer daadwerkelijke layout op 375×667 en 390×844, bevestig PWA-cacheverversing, realiseer geautoriseerde preview en test echte accountloze opslag/herladen/eigenaarsverwijdering.
+
+## Zelfcontrole 6 november 2026, 02:49 CET — PWA-cache/CI gerepareerd
+- PR #71 head `e88e88c`: browseracceptatie groen; validate, map regression en daily quality rood. Joblogs bevestigen dezelfde oorzaak: `Offline cache must include the current mobile stylesheet version` in `scripts/validate.mjs:98`.
+- Oorzaak: `index.html` verwijst naar `modern-2026.css?v=17`, maar `sw.js` pre-cachete nog `v=16` en gebruikte cache `v112`.
+- Fix `6051d8f`: `sw.js` cachet nu stylesheet v17 en gebruikt cache v113, zodat nieuwe PWA-installaties de actuele mobile CSS ontvangen. CI voor deze nieuwe commit moet nog bevestigd worden.
+- Geen productie-deploy; publiek bereikbare featurepreview en echte gehoste accountloze backend-E2E blijven onbewezen. Volgende run: controleer CI voor `6051d8f`, inspecteer logs bij failures en werk aan preview/hosted klantreis zonder productiegegevens te muteren.
