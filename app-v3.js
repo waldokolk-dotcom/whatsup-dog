@@ -633,16 +633,25 @@ async function submitReport(e){
   if(uploadedPhotoPath){try{const cleanup=await client.storage.from("report-photos").remove([uploadedPhotoPath]);if(cleanup.error)console.warn("Foto opruimen na mislukte melding",cleanup.error)}catch(cleanupError){console.warn("Foto opruimen na mislukte melding",cleanupError)}}
   throw error;
  }
+ // Verify the persisted row before presenting it as a published map marker.
+ // A successful insert alone does not prove the report is readable after reload.
+ let confirmed=null;
+ try{
+  const result=await client.from("reports").select("*").eq("id",id).eq("user_id",user.id).maybeSingle();
+  if(result.error)console.warn("Melding controleren",result.error);
+  else if(result.data?.status==="active")confirmed=result.data;
+ }catch(verifyError){console.warn("Melding controleren",verifyError)}
  localStorage.removeItem(REPORTDRAFTKEY);clearReportPhoto();$("#reportDialog").close();
  showView("map");
  map.setView([loc.lat,loc.lng],17);
- const optimistic={...row,status:"active",created_at:new Date().toISOString(),expires_at:new Date(Date.now()+7*24*60*60*1000).toISOString()};
- L.marker([loc.lat,loc.lng],{icon:markerIcon(optimistic),pane:"reportMarkersPane",zIndexOffset:1200,reportId:id,reportData:optimistic,riseOnHover:true}).addTo(markers).on("click",()=>openReportDetail(optimistic));
+ if(confirmed){
+  L.marker([loc.lat,loc.lng],{icon:markerIcon(confirmed),pane:"reportMarkersPane",zIndexOffset:1200,reportId:id,reportData:confirmed,riseOnHover:true}).addTo(markers).on("click",()=>openReportDetail(confirmed));
+ }
  setTimeout(()=>map?.invalidateSize(),50);
  await Promise.allSettled([refreshReports(),refreshMine()]);
  map.setView([loc.lat,loc.lng],17);
  client.functions.invoke("dispatch-nearby-push",{body:{reportId:id}}).catch(()=>{});
- toast("Melding staat op de kaart")}
+ toast(confirmed?"Melding staat op de kaart":"Melding verzonden; zichtbaarheid nog niet bevestigd. Vernieuw de kaart.")}
  catch(err){
   console.warn(err);
   const gpsFailed=reportState.locationMode==="gps"&&(err?.code===1||err?.code===2||err?.code===3||err?.message==="location-unavailable");
