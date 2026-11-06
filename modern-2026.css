@@ -220,3 +220,26 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
  #view-map .wd-map-filterbar{scroll-snap-type:x proximity}
  #view-map .wd-map-filterbar .wd-filter{scroll-snap-align:start}
 }
+
+/* Compact portrait: the area selector and off-leash switch must not collide.
+   Give each half of the usable safe-area width its own flex-free column. */
+@media (max-width:360px) and (orientation:portrait){
+ #view-map #areaPill{
+  left:calc(10px + env(safe-area-inset-left));
+  width:calc((100% - env(safe-area-inset-left) - env(safe-area-inset-right) - 28px) * .42);
+  max-width:none;min-width:0;box-sizing:border-box;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ }
+ #view-map #offleashControl{
+  right:calc(10px + env(safe-area-inset-right));
+  width:calc((100% - env(safe-area-inset-left) - env(safe-area-inset-right) - 28px) * .58);
+  max-width:none;min-width:0;box-sizing:border-box;overflow:hidden;
+ }
+ #view-map #offleashControl .offleash-copy{min-width:0;overflow:hidden}
+ #view-map #offleashControl .offleash-copy b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ #view-map .wd-map-filterbar{
+  left:calc(10px + env(safe-area-inset-left));
+  right:calc(10px + env(safe-area-inset-right));
+  max-width:none;box-sizing:border-box;
+ }
+}
