@@ -389,3 +389,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Vorige head `b979f77`: vijf Actions geslaagd (map regression 42388879642, preview artifact 42388879812, browser acceptance 42388879676, validate 42388879731, quality 42388879738). Nieuwe head vereist eigen CI-verificatie.
 - De bestaande `.github/workflows/pages.yml` publiceert naar de productie-Pages-omgeving, niet naar een geïsoleerde featurepreview. Zonder geautoriseerde afzonderlijke hostingroute wordt Pages niet vanuit de featurebranch gestart. Geen productiegegevens of secrets gewijzigd.
 - Open: publieke HTTPS-featurepreview, gehoste geïsoleerde backend-E2E inclusief eigenaarsverwijdering, toepasselijke reviews en mobiele toestelacceptatie. Geen release.
+
+## Uitvoering 7 november 2026 — onboarding GPS-fallback
+- Productcommit `dcb7ceae543e540f8f7083daac88e69a2535db26`: onboarding-locatieknop geeft nu ook zonder geolocation-API, bij ongeldige GPS-coördinaten, geweigerde toestemming of niet-beschikbare lokale opslag een duidelijke handmatige terugval met focus op plaatsinvoer. GPS krijgt een timeout van 8 seconden; bestaande backend en gebruikersdata blijven ongemoeid.
+- Publieke featurepreview nog niet geverifieerd: Pages-workflow publiceert uitsluitend `main` naar productie; PR-previewworkflow levert uitsluitend een artifact. Geen afzonderlijke previewhosting geautoriseerd. Geen merge zonder reviews, groene CI en geïsoleerde backendacceptatie.
+- Controleer CI op product-SHA en huidige PR-head; verifieer HTTPS en volledige meldroute voordat release wordt geclaimd.
