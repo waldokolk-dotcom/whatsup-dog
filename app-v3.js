@@ -577,8 +577,9 @@ function saveReportDraft(){
  const saved=write(REPORTDRAFTKEY,{savedAt:Date.now(),category:reportState.category,type:reportState.type,subtype:reportState.subtype,locationMode:reportState.locationMode,location:reportState.location,text:$("#reportText")?.value.slice(0,220)||""});
  if(!saved){const status=$("#reportDraftStatus");if(status){status.textContent="Concept kan niet op dit apparaat worden bewaard. Houd dit scherm open.";status.classList.remove("hidden")}}
 }
+function removeReportDraft(){try{localStorage.removeItem(REPORTDRAFTKEY);return true}catch(err){console.warn("Meldconcept wissen niet beschikbaar",err);return false}}
 function restoreReportDraft(){
- const draft=read(REPORTDRAFTKEY,null);if(!draft||!draft.savedAt||Date.now()-draft.savedAt>REPORT_DRAFT_TTL){localStorage.removeItem(REPORTDRAFTKEY);return false}
+ const draft=read(REPORTDRAFTKEY,null);if(!draft||!draft.savedAt||Date.now()-draft.savedAt>REPORT_DRAFT_TTL){removeReportDraft();return false}
  if(!["danger","animal","handy","fun"].includes(draft.category))return false;
  reportState={category:draft.category,type:draft.type||null,subtype:draft.subtype||null,locationMode:draft.locationMode==="map"?"map":"gps",location:draft.location||null};
  $("#reportText").value=String(draft.text||"").slice(0,220);
@@ -587,7 +588,7 @@ function restoreReportDraft(){
  if(reportState.locationMode==="map")chooseReportLocationOnMap();else useCurrentReportLocation();
  return true
 }
-function discardReportDraft(){localStorage.removeItem(REPORTDRAFTKEY);clearReportPhoto();$("#reportDialog").close();toast("Concept gewist")}
+function discardReportDraft(){removeReportDraft();clearReportPhoto();$("#reportDialog").close();toast("Concept gewist")}
 function clearReportPhoto(){if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);reportPhotoUrl=null;const input=$("#reportPhoto");if(input)input.value="";const preview=$("#reportPhotoPreview");if(preview){preview.classList.add("hidden");preview.hidden=true;preview.style.removeProperty("display")}const img=$("#reportPhotoImage");if(img)img.removeAttribute("src")}
 function renderReportPhotoPreview(){
  const file=$("#reportPhoto")?.files?.[0];if(!file)return clearReportPhoto();
@@ -697,7 +698,7 @@ async function submitReport(e){
   if(result.error)console.warn("Melding controleren",result.error);
   else if(result.data?.status==="active")confirmed=result.data;
  }catch(verifyError){console.warn("Melding controleren",verifyError)}
- localStorage.removeItem(REPORTDRAFTKEY);clearReportPhoto();$("#reportDialog").close();
+ removeReportDraft();clearReportPhoto();$("#reportDialog").close();
  showView("map");
  map.setView([loc.lat,loc.lng],17);
  // refreshReports owns the marker layer. Avoid adding a second pin for the
