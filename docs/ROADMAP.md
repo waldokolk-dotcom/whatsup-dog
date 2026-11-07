@@ -329,3 +329,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 ### Uitvoeringscontrole 7 november 2026 — mobiele feedback
 - Productcommit `0a541d192e88e743bae8d9f28117ee1ca9f68522`: statusmeldingen toegankelijk voor schermlezers (`role=status`, `aria-live=polite`); sluitknop van meldvenster heeft expliciet toegankelijk label.
 - Publieke featurepreview en geïsoleerde backendacceptatie blijven releasegates; geen productiedeploy uitgevoerd.
+
+## Uitvoeringsrun 7 november 2026 — GPS-fallback naar gebiedskeuze
+- Productcommit `28a35dc7f4162a7f96d0944e8d76b7775e32aeab`: mobiele kaart-GPS opent bij ontbrekende geolocatie of GPS-fout direct de bestaande handmatige gebiedskeuze; geen backend, gebruikersdata of productie gewijzigd.
+- Branch-preview via GitHub Pages blijft niet geautoriseerd: `pages.yml` deployt naar `github-pages` op `main`; niet vanuit deze featurebranch uitvoeren.
+- Releasegate: CI op nieuwe head, gehoste mobiele klantreis en geïsoleerde backend-eigenaarscontrole moeten nog worden bewezen. Geen liveclaim.
