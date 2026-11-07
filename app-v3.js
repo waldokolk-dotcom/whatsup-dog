@@ -790,7 +790,8 @@ function locate(){
  const button=$("#locateBtn");
  if(button?.disabled)return;
  if(!navigator.geolocation){
-  toast("Locatie niet beschikbaar. Kies je gebied via de gebiedsknop.");
+  toast("Locatie niet beschikbaar. Kies een gebied op de kaart.");
+  $("#areaDialog")?.showModal();
   return;
  }
  if(button){button.disabled=true;button.setAttribute("aria-busy","true")}
@@ -814,6 +815,8 @@ function locate(){
    error=>{
     const message=error?.code===1?"Locatietoegang geweigerd. Kies je gebied handmatig.":error?.code===3?"Locatie bepalen duurde te lang. Probeer opnieuw of kies je gebied.":"Locatie niet gevonden. Kies je gebied handmatig.";
     toast(message);release();
+    // Offer the existing manual area selector immediately after GPS fails.
+    if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal();
    },
    {enableHighAccuracy:false,timeout:8000,maximumAge:30000}
   );
