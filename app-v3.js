@@ -99,7 +99,16 @@ function bind(){
  });
  $("#applyUpdateButton")?.addEventListener("click",openUpdateNotes);
  $("#onboardForm").addEventListener("submit",finishOnboarding);
- $("#onboardLocate").addEventListener("click",()=>navigator.geolocation?.getCurrentPosition(async p=>{const s=settings();s.lat=p.coords.latitude;s.lng=p.coords.longitude;s.areaLabel="Mijn locatie";write(SKEY,s);$("#onboardPlace").value="Mijn locatie";toast("Locatie gekozen")},()=>toast("Locatie niet gedeeld")));
+ $("#onboardLocate").addEventListener("click",()=>{
+  if(!navigator.geolocation){toast("Locatie niet beschikbaar; kies handmatig een plaats");$("#onboardPlace").focus();return}
+  navigator.geolocation.getCurrentPosition(p=>{
+    const {latitude:lat,longitude:lng}=p.coords||{};
+    if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){toast("Ongeldige locatie; kies handmatig een plaats");$("#onboardPlace").focus();return}
+    const s=settings();s.lat=lat;s.lng=lng;s.areaLabel="Mijn locatie";
+    if(!write(SKEY,s)){toast("Locatie kon niet worden opgeslagen; kies handmatig een plaats");$("#onboardPlace").focus();return}
+    $("#onboardPlace").value="Mijn locatie";toast("Locatie gekozen");
+  },()=>{toast("Locatie niet gedeeld; kies handmatig een plaats");$("#onboardPlace").focus()},{timeout:8000,maximumAge:30000});
+});
  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
 }
 
