@@ -319,3 +319,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Voorafgaande head `5765249`: vier GitHub Actions groen (map regression, browser acceptance, quality watch, validate).
 - Productcode `9df4242`: GPS-knop voorkomt dubbele aanvragen, controleert ook geografische coördinaten buiten geldige grenzen, herstelt de knop na uitzonderingen bij kaartweergave en geeft een handmatige gebiedsfallback. Geen echte gebruikersdata gewijzigd.
 - Nieuwe head CI moet opnieuw groen bevestigd worden; publieke featurepreview en echte geïsoleerde backend-E2E blijven onbewezen. Bestaande Pages-workflow raakt productie; geen Pages-preview of merge gestart.
+
+## Uitvoeringscyclus 7 november 2026, 04:57 CET — verlopen kaartlinks afgehandeld
+- Productcommit `fa53edf`: openen van een melding via een directe kaartlink controleert nu serverfouten, actieve status en geldige coördinaten. Verlopen/verwijderde meldingen geven een duidelijke melding en verversen de kaart in plaats van een lege of kapotte detailweergave.
+- CI voor de nieuwe productcommit is direct bevraagd: nog geen workflowruns teruggegeven. Groen testen is daarom niet geclaimd.
+- Publieke featurepreview en echte geïsoleerde backendacceptatie blijven onbewezen. Bestaande Pages-productie niet gewijzigd. Volgende run: CI hercontroleren en geautoriseerde HTTPS-preview realiseren.
