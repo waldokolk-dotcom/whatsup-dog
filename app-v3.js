@@ -407,8 +407,22 @@ function renderAlerts(rows){
  }).join("");
  list.querySelectorAll("[data-alert-id]").forEach(btn=>btn.onclick=async()=>{
    const id=btn.dataset.alertId;
-   const {data}=await client.from("reports").select("*").eq("id",id).maybeSingle();
-   if(data)openReportDetail(data);
+   const cached=lastActiveReports.find(r=>String(r.id)===String(id));
+   if(!client||!user){
+     if(cached)openReportDetail(cached);
+     else toast("Melding tijdelijk niet beschikbaar");
+     return;
+   }
+   try{
+     const {data,error}=await client.from("reports").select("*").eq("id",id).maybeSingle();
+     if(error)throw error;
+     if(data?.status==="active")openReportDetail(data);
+     else toast("Deze melding is niet meer beschikbaar");
+   }catch(err){
+     console.warn("Melding uit lijst openen mislukt",err);
+     if(cached)openReportDetail(cached);
+     else toast("Melding tijdelijk niet beschikbaar");
+   }
  });
 }
 function removeReportMarker(id){
@@ -510,7 +524,7 @@ function renderReportReaction(kind,summary={}){
 async function configureReportReaction(r){
  const box=$("#detailReaction"),btn=$("#detailReactionButton");
  if(!box||!btn)return;
- if(r?.status!=="active"){box.classList.add("hidden");return}
+ if(r?.status!=="active"||!client||!user){box.classList.add("hidden");return}
  const kind=reactionKindForReport(r);
  box.classList.remove("hidden");
  renderReportReaction(kind,{});
