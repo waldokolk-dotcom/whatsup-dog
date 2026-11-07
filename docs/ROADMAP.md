@@ -399,3 +399,7 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `f50710a53542bf5f1620929576b3c20d40ed3846`: wanneer anonieme authenticatie offline faalt, herlaadt de PWA eenmalig zodra de verbinding terugkeert. Dit herstart de bestaande anonieme sessie en meldroute zonder handmatig herladen; het bestaande lokaal bewaarde meldconcept blijft behouden. Geen backend-, secret- of productiegegevenswijziging.
 - CI op de vorige head `60b39e6`: vijf workflows groen (validate, browser acceptance, map regression, preview artifact, quality). Nieuwe head moet afzonderlijk groen worden.
 - Releasegates blijven: geen afzonderlijke publieke HTTPS-previewhost geautoriseerd; PR #71 heeft geen reviews; geïsoleerde gehoste backend-E2E en toestelacceptatie ontbreken. Niet mergen of productie deployen.
+
+## Uitvoering 7 november 2026, 20:54 CET — expliciete meldlocatie
+- Productcommit `fbf780f77f5de719bda39169aff62c6d475f7df0`: bij handmatige locatiekeuze wordt het midden van de kaart niet langer stilzwijgend als bevestigde meldlocatie gebruikt. De gebruiker moet op de kaart tikken of de pin verslepen. Zonder bevestiging blokkeert publiceren veilig, met een begrijpelijke melding en terugkeer naar de kaartkeuze. Eerder bewust gekozen locatie blijft behouden. Geen backend- of productiegegevens gewijzigd.
+- CI op deze commit: nog geen workflowruns teruggegeven bij controle. Publieke HTTPS-featurepreview en geïsoleerde backendacceptatie nog niet aangetoond; PR-reviews ontbreken. Geen merge of productiepublicatie.
