@@ -429,8 +429,15 @@ async function deleteOwnReport(id){
  await Promise.allSettled([refreshMine(),refreshReports()]);
 }
 async function resolveOwnReport(id){
+ if(!client||!user)throw new Error("Meldingenservice niet beschikbaar");
+ const {data:owned,error:ownerError}=await client.from("reports").select("id,user_id").eq("id",id).eq("user_id",user.id).maybeSingle();
+ if(ownerError)throw ownerError;
+ if(!owned)throw new Error("Deze melding hoort niet bij jouw sessie of bestaat niet meer");
  const {error}=await client.rpc("resolve_own_report",{target:id});
  if(error)throw error;
+ const {data:remaining,error:verifyError}=await client.from("reports").select("id,status").eq("id",id).maybeSingle();
+ if(verifyError)throw verifyError;
+ if(remaining&&remaining.status==="active")throw new Error("Melding is nog actief op de server");
  removeReportMarker(id);
  await Promise.allSettled([refreshMine(),refreshReports()]);
 }
