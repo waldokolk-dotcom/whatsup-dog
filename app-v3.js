@@ -639,7 +639,7 @@ async function compress(file){
  return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("photo-decode")),"image/jpeg",.82))
 }
 async function submitReport(e){
- e.preventDefault();if(!reportState.type){toast("Kies eerst een soort melding");return}if(!client||!user){toast("Meldingen tijdelijk niet beschikbaar; probeer later opnieuw");return}const btn=$("#reportSubmit");if(btn.disabled)return;btn.disabled=true;btn.setAttribute("aria-busy","true");
+ e.preventDefault();if(!reportState.type){toast("Kies eerst een soort melding");return}if(!client||!user){toast("Meldingen tijdelijk niet beschikbaar; probeer later opnieuw");return}if(navigator.onLine===false){saveReportDraft();toast("Je bent offline. Je concept blijft bewaard; probeer opnieuw zodra je verbinding hebt.");return}const btn=$("#reportSubmit");if(btn.disabled)return;btn.disabled=true;btn.setAttribute("aria-busy","true");
  try{let loc;
  if(reportState.locationMode==="map"&&reportState.location){loc=reportState.location}
  else if(navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{timeout:6000,maximumAge:30000}))}
