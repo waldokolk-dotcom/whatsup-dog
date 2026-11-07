@@ -156,6 +156,7 @@ test('mobile photo fallback uploads JPEG and completes a report without createIm
   await page.locator('.report-type[data-cat="danger"]').click();
   await page.locator('#reportText').fill('Glas bij het hondenveld');
   await page.locator('#reportChooseMap').click();
+  await page.locator('#reportLocationMap').click({position:{x:80,y:80}});
   await page.locator('#reportPhoto').setInputFiles({
     name:'bewijs.png',mimeType:'image/png',
     buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGOsOJHCwMDAxMDAwMDAAAAT7gGovvSxigAAAABJRU5ErkJggg==','base64')
@@ -181,6 +182,7 @@ test('failed photo upload keeps the report and photo ready for retry',async({pag
   await page.locator('.report-type[data-cat="danger"]').click();
   await page.locator('#reportText').fill('Glas bij de parkeerplaats');
   await page.locator('#reportChooseMap').click();
+  await page.locator('#reportLocationMap').click({position:{x:80,y:80}});
   await page.locator('#reportPhoto').setInputFiles({
     name:'bewijs.png',mimeType:'image/png',
     buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGOsOJHCwMDAxMDAwMDAAAAT7gGovvSxigAAAABJRU5ErkJggg==','base64')
@@ -212,6 +214,7 @@ test('GPS denial offers map pin fallback without losing report details',async({p
   await expect(page.locator('#reportPhotoName')).toHaveText('glas.png');
   await expect.poll(async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('wd_v3_report_draft')||'null')?.locationMode)).toBe('map');
   await page.locator('#reportPhotoRemove').click();
+  await page.locator('#reportLocationMap').click({position:{x:80,y:80}});
   await page.locator('#reportReview').click();
   await expect(page.locator('#reportSummary')).toContainText('Gekozen plek op de kaart');
   await page.locator('#reportSubmit').click();
