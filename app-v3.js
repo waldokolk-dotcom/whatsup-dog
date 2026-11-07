@@ -581,7 +581,9 @@ function removeReportDraft(){try{localStorage.removeItem(REPORTDRAFTKEY);return 
 function restoreReportDraft(){
  const draft=read(REPORTDRAFTKEY,null);if(!draft||!draft.savedAt||Date.now()-draft.savedAt>REPORT_DRAFT_TTL){removeReportDraft();return false}
  if(!["danger","animal","handy","fun"].includes(draft.category))return false;
- reportState={category:draft.category,type:draft.type||null,subtype:draft.subtype||null,locationMode:draft.locationMode==="map"?"map":"gps",location:draft.location||null};
+ const savedLocation=draft.location;
+ const validLocation=savedLocation&&Number.isFinite(Number(savedLocation.lat))&&Number.isFinite(Number(savedLocation.lng))&&Math.abs(Number(savedLocation.lat))<=90&&Math.abs(Number(savedLocation.lng))<=180;
+ reportState={category:draft.category,type:draft.type||null,subtype:draft.subtype||null,locationMode:draft.locationMode==="map"?"map":"gps",location:validLocation?{lat:Number(savedLocation.lat),lng:Number(savedLocation.lng)}:null};
  $("#reportText").value=String(draft.text||"").slice(0,220);
  const status=$("#reportDraftStatus");status.textContent="Concept van eerder hervat";status.classList.remove("hidden");
  chooseReport(reportState.category,reportState.type,reportState.subtype,true);
