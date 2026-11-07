@@ -378,3 +378,7 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 ## Uitvoeringscyclus 7 november 2026, 15:53 CET — veilige offline PWA-cache
 - Productcommit `ec3e37d`: serviceworker beperkt offline caching tot de eigen app-scope en expliciet bekende statische PWA-bestanden; willekeurige dynamische URL's worden niet langer in Cache Storage opgeslagen. Dit voorkomt onbedoelde opslag van potentieel gevoelige responses op gedeelde apparaten. Cacheversie v117 dwingt opschoning van eerdere caches bij activatie. Geen backend- of productiegegevens gewijzigd.
 - De geïsoleerde PR-previewworkflow publiceert nog geen publieke HTTPS-URL. Gehoste accountloze meldroute en geïsoleerde eigenaarsrechtentest, review en groene CI op de nieuwe head zijn releasevoorwaarden; niet naar productie gemerged.
+
+## Uitvoeringscyclus 7 november 2026, 16:56 CET — exacte offline-cache allowlist
+- Productcommit `b70f9482d1356c9503c57835b133c0dd3e3d9ef6`: serviceworker accepteert alleen exact vooraf goedgekeurde statische URL's inclusief queryversie voor offline caching; onbekende queryparameters op een bekende bestandsnaam worden niet meer gecachet. Cacheversie v118 verwijdert oude cache bij activatie. Geen backend- of productiegegevens gewijzigd.
+- Releasegates: controleer actuele Actions op deze commit, valideer publieke HTTPS-preview en geïsoleerde backend create/reload/owner-delete. Pages workflow is aan `main`/handmatige dispatch en productieomgeving gekoppeld; geen previewpublicatie zonder aparte hostautorisatie. Geen merge of productiepublicatie uitgevoerd.
