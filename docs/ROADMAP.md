@@ -355,3 +355,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 ## Uitvoeringscyclus 7 november 2026, 10:59 CET — GPS-fallback volledig
 - Productcommit `9b74344`: ook bij ongeldige GPS-coördinaten, kaartweergavefouten en synchrone geolocatie-uitzonderingen opent de bestaande handmatige gebiedskeuze; voorheen verscheen daar alleen een toast. Geen backend- of productiedatawijziging.
 - Nieuwe CI op commit direct bevraagd; definitieve resultaten worden pas na workflowafloop als groen aangemerkt. Publieke HTTPS-featurepreview, geïsoleerde backend-E2E en vereiste reviews zijn nog niet aangetoond; geen productiepublicatie.
+
+## Uitvoeringscyclus 7 november 2026, 11:53 CET — offline kaart met bestaande meldingen
+- Productcommit `e10adb830fd206dafba2f8c694fe029a4277831f`: bij het starten van de PWA worden eerder door de server bevestigde, nog actieve openbare meldingen direct uit de bestaande lokale cache op de kaart en in de meldingenlijst getoond, ook wanneer anonieme authenticatie of netwerk vertraagd of onbereikbaar is. Zodra de sessie klaar is vervangt de serverfeed de cache. Geen nieuwe opslag, backendwijziging of echte gebruikersdata gemuteerd.
+- Voorafgaande head `c86dc4e`: vijf Actions groen: validate #42362008309, map #42362008292, previewbundel #42362008291, browser #42362008273, quality #42362008313.
+- Nieuwe head en CI opnieuw controleren. De geïsoleerde previewbundel is geen publieke HTTPS-preview. GitHub Pages workflow publiceert vanuit main naar productie; geen geautoriseerde afzonderlijke host gevonden. Gehoste create/reload/owner-delete-test en reviews blijven releasegates; productie niet gewijzigd.
