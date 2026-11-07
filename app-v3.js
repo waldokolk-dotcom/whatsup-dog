@@ -16,6 +16,10 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 async function boot(){
  // Render the primary product experience immediately, independent of network/auth latency.
  initMap(); bind(); showView("map");
+ // Show previously verified, unexpired public reports even before auth/network responds.
+ // The server refresh replaces this snapshot as soon as the anonymous session is ready.
+ const offlineReports=cachedActiveReports();
+ if(offlineReports.length){syncReportMarkers(offlineReports);renderAlerts(offlineReports);renderPremiumHome(offlineReports)}
  if(!window.supabase||!CFG.url||!CFG.publishableKey){toast("Meldingen tijdelijk niet beschikbaar; kaart blijft bruikbaar");return}
  client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
  try{
