@@ -324,3 +324,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `fa53edf`: openen van een melding via een directe kaartlink controleert nu serverfouten, actieve status en geldige coördinaten. Verlopen/verwijderde meldingen geven een duidelijke melding en verversen de kaart in plaats van een lege of kapotte detailweergave.
 - CI voor de nieuwe productcommit is direct bevraagd: nog geen workflowruns teruggegeven. Groen testen is daarom niet geclaimd.
 - Publieke featurepreview en echte geïsoleerde backendacceptatie blijven onbewezen. Bestaande Pages-productie niet gewijzigd. Volgende run: CI hercontroleren en geautoriseerde HTTPS-preview realiseren.
+
+
+### Uitvoeringscontrole 7 november 2026 — mobiele feedback
+- Productcommit `0a541d192e88e743bae8d9f28117ee1ca9f68522`: statusmeldingen toegankelijk voor schermlezers (`role=status`, `aria-live=polite`); sluitknop van meldvenster heeft expliciet toegankelijk label.
+- Publieke featurepreview en geïsoleerde backendacceptatie blijven releasegates; geen productiedeploy uitgevoerd.
