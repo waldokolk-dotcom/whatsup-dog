@@ -163,7 +163,8 @@ function showView(v){
 }
 function initMap(){
  const s=settings(),saved=read(MAPVIEWKEY,null);
- const start=saved&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng))?saved:{lat:s.lat,lng:s.lng,zoom:14};
+ const validSaved=saved&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng))&&Math.abs(Number(saved.lat))<=90&&Math.abs(Number(saved.lng))<=180;
+ const start=validSaved?{lat:Number(saved.lat),lng:Number(saved.lng),zoom:Number.isFinite(Number(saved.zoom))?Math.min(19,Math.max(3,Number(saved.zoom))):14}:{lat:s.lat,lng:s.lng,zoom:14};
  map=L.map("map",{zoomControl:false,attributionControl:true}).setView([Number(start.lat),Number(start.lng)],Number(start.zoom)||14);
  const tiles=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
  // A failed tile connection must not leave an unexplained blank map.
@@ -199,7 +200,8 @@ function initMap(){
  window.visualViewport?.addEventListener("resize",()=>map?.invalidateSize({animate:false,pan:false}));
  window.addEventListener("orientationchange",()=>setTimeout(()=>map?.invalidateSize({animate:false,pan:false}),250));
  $("#areaPill").textContent=s.areaLabel+" ▾";
- const enabled=localStorage.getItem("wd_v3_offleash")!=="0";
+ let enabled=true;
+ try{enabled=localStorage.getItem("wd_v3_offleash")!=="0"}catch(err){console.warn("Losloopvoorkeur niet beschikbaar",err)}
  const toggle=$("#offleashToggle");if(toggle)toggle.checked=enabled;
  loadOffleashAreas(enabled);
 }
