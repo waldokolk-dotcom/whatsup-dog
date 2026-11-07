@@ -19,7 +19,7 @@ async function boot(){
  // Show previously verified, unexpired public reports even before auth/network responds.
  // The server refresh replaces this snapshot as soon as the anonymous session is ready.
  const offlineReports=cachedActiveReports();
- if(offlineReports.length){syncReportMarkers(offlineReports);renderAlerts(offlineReports);renderPremiumHome(offlineReports)}
+ if(offlineReports.length){syncReportMarkers(offlineReports);renderAlerts(offlineReports,{cached:true});renderPremiumHome(offlineReports)}
  if(!window.supabase||!CFG.url||!CFG.publishableKey){toast("Meldingen tijdelijk niet beschikbaar; kaart blijft bruikbaar");return}
  client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
  try{
@@ -341,7 +341,7 @@ async function refreshReports(){
    const cached=cachedActiveReports();
    if(cached.length){
      syncReportMarkers(cached);
-     renderAlerts(cached);
+     renderAlerts(cached,{cached:true});
      renderPremiumHome(cached);
    }
  }
@@ -395,11 +395,12 @@ function classForReport(r){
  if(r.type==="road")return "blue";
  return "teal";
 }
-function renderAlerts(rows){
+function renderAlerts(rows,{cached=false}={}){
  const list=$("#alertsList"); if(!list)return;
- if(!rows.length){list.innerHTML='<div class="empty">Nog geen meldingen in jouw buurt.</div>';return}
+ const staleNote=cached?'<p class="cleanup-note" role="status">Eerder opgehaalde meldingen. De actuele situatie kan veranderd zijn; zodra de verbinding terug is wordt de lijst vernieuwd.</p>':"";
+ if(!rows.length){list.innerHTML=staleNote+'<div class="empty">Nog geen meldingen in jouw buurt.</div>';return}
  const s=settings(), now=Date.now();
- list.innerHTML=rows.slice(0,20).map(r=>{
+ list.innerHTML=staleNote+rows.slice(0,20).map(r=>{
    const minutes=Math.max(1,Math.round((now-new Date(r.created_at||now).getTime())/60000));
    const ago=minutes<60?minutes+" min":Math.round(minutes/60)+" u";
    const title=r.subtype||labelType(r.type);
