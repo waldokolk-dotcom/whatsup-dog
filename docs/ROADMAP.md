@@ -417,3 +417,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `81bc60b4032abf0b60e6b2568501a5199dd7e6d7`: herstelde meldconcepten accepteren uitsluitend eindige, geografisch geldige kaartcoördinaten. Ongeldige of beschadigde browseropslag leidt terug naar expliciete pinselectie in plaats van een Leaflet-fout of ongeldige meldlocatie. Geen backend- of productiegegevens gewijzigd.
 - Vorige head `8b607236d0cb1a10c9eb75117783567b1fc2467b`: vijf Actions groen (map 42417943811, previewartifact 42417943831, browser 42417943834, validate 42417943879, quality 42417943781). Nieuwe productcommit en documentatie-head vereisen afzonderlijke CI-controle.
 - Publieke HTTPS-featurepreview niet aangetoond: Pages-workflow deployt vanuit `main` naar `github-pages`; bestaande preview is slechts een artifact. PR #71 heeft nul ingediende reviews. Geïsoleerde backendacceptatie en fysieke mobiele acceptatie ontbreken. Geen merge of productiepublicatie.
+
+
+## Uitvoering 8 november 2026 — robuuste kaartstart
+- Productcommit `cff86bcd49c84bd03b211cd5182528cb7bebd0b3`: opgeslagen kaartpositie wordt alleen hersteld bij geografisch geldige coördinaten; zoom wordt begrensd. Geblokkeerde lokale opslag van de losloopvoorkeur laat de kaart niet langer vastlopen. Bestaande backend en productiegegevens ongewijzigd.
+- Vorige head `737318c`: vijf GitHub Actions groen (map 42422707474, preview 42422707431, browser 42422707444, validate 42422707552, quality 42422707558). Productcommit vereist nieuwe CI-verificatie.
+- Publieke featurepreview nog niet beschikbaar: `.github/workflows/pr-preview-artifact.yml` uploadt alleen een artefact; `.github/workflows/pages.yml` deployt uitsluitend `main` naar `github-pages`. Zonder aparte geautoriseerde previewomgeving geen productie-deploy of Pages-omschakeling. Backend-eigenaarsacceptatie en review blijven releasegates.
