@@ -309,3 +309,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `9deb226`: na succesvolle publicatie wordt niet langer een losse marker toegevoegd vlak voordat `refreshReports()` de volledige serverfeed rendert. Daarmee blijft de serverfeed de enige bron voor kaartpins en ontstaan geen dubbele markers bij publiceren.
 - Publieke featurepreview en echte gehoste backend-E2E zijn nog niet aangetoond; GitHub Pages deployt alleen via main/handmatige dispatch naar de bestaande Pages-omgeving. Geen productiepublicatie of productiedatawijziging.
 - Volgende run: CI voor `9deb226` verifiëren, een afzonderlijke geautoriseerde HTTPS-preview vinden en geïsoleerde create/reload/owner-delete-backendtest uitvoeren.
+
+## Uitvoeringscyclus 7 november 2026, 02:50 CET — oplossen serverbevestigd
+- Voorafgaande head `2cbb205`: vier Actions groen (validate, browseracceptatie, kaartregressie en kwaliteitscontrole).
+- Productcode `b8113d1`: 'opgelost' markeren controleert nu sessie-eigendom en leest de serverstatus terug vóór de kaartpin wordt verwijderd en een succesmelding verschijnt. Foutieve lokale succesweergave bij mislukte RPC wordt voorkomen.
+- Nieuwe CI moet nog groen worden. Geen afzonderlijke publieke HTTPS-preview of echte gehoste backend-E2E bewezen; Pages-deploy naar productie niet gestart.
