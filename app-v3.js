@@ -643,8 +643,9 @@ function chooseReportLocationOnMap(){
  }else{
    reportLocationMap.setView([center.lat,center.lng],16);reportLocationMarker.setLatLng([center.lat,center.lng]);
  }
- reportState.location={lat:center.lat,lng:center.lng};
- const status=$("#reportLocationStatus");if(status)status.textContent="Tik op de kaart of sleep de pin naar de juiste plek.";
+ // The map centre is only a suggestion: never publish its coordinates without an explicit choice.
+ // Preserve a previously confirmed pin when reopening the map selector.
+ const status=$("#reportLocationStatus");if(status)status.textContent=reportState.location?"Gekozen plek op de kaart wordt gebruikt.":"Tik op de kaart of sleep de pin om je meldlocatie te bevestigen.";
  saveReportDraft();
  setTimeout(()=>reportLocationMap.invalidateSize(),50);
 }
@@ -674,7 +675,7 @@ async function compress(file){
 async function submitReport(e){
  e.preventDefault();if(!reportState.type){toast("Kies eerst een soort melding");return}if(navigator.onLine===false){saveReportDraft();toast("Je bent offline. Je concept blijft bewaard; probeer opnieuw zodra je verbinding hebt.");return}if(!client||!user){saveReportDraft();toast("Publiceren is tijdelijk niet beschikbaar. Je concept is bewaard; probeer het later opnieuw.");return}const btn=$("#reportSubmit");if(btn.disabled)return;btn.disabled=true;btn.setAttribute("aria-busy","true");
  try{let loc;
- if(reportState.locationMode==="map"&&reportState.location){loc=reportState.location}
+ if(reportState.locationMode==="map"){if(!reportState.location)throw new Error("location-not-selected");loc=reportState.location}
  else if(navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{timeout:6000,maximumAge:30000}))}
  else{throw new Error("location-unavailable")}
  if(!Number.isFinite(Number(loc?.lat))||!Number.isFinite(Number(loc?.lng))||Math.abs(Number(loc.lat))>90||Math.abs(Number(loc.lng))>180){throw new Error("location-invalid")}
@@ -717,7 +718,12 @@ async function submitReport(e){
  catch(err){
   console.warn(err);
   const gpsFailed=reportState.locationMode==="gps"&&(err?.code===1||err?.code===2||err?.code===3||err?.message==="location-unavailable"||err?.message==="location-invalid");
-  if(gpsFailed){
+  if(err?.message==="location-not-selected"){
+   $("#reportStep3").hidden=true;$("#reportStep2").hidden=false;
+   chooseReportLocationOnMap();
+   toast("Bevestig eerst de meldlocatie door op de kaart te tikken of de pin te slepen.");
+   $("#reportChooseMap")?.focus();
+  }else if(gpsFailed){
    // Keep the description and selected photo: only location needs another input.
    $("#reportStep3").hidden=true;$("#reportStep2").hidden=false;
    chooseReportLocationOnMap();
