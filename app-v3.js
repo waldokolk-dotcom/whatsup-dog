@@ -598,6 +598,15 @@ function renderReportPhotoPreview(){
 }
 function openReportReview(){
  const text=$("#reportText").value.trim();if(text.length<3){toast("Beschrijf kort wat mensen moeten weten");$("#reportText").focus();return}
+ if(reportState.locationMode==="map"&&!reportState.location){
+  saveReportDraft();
+  const status=$("#reportLocationStatus");if(status){status.textContent="Tik op de kaart of versleep de pin om de exacte meldlocatie te bevestigen.";status.setAttribute("role","status");}
+  $("#reportLocationMapWrap")?.classList.remove("hidden");
+  reportLocationMap?.invalidateSize();
+  $("#reportLocationMap")?.scrollIntoView({block:"nearest",behavior:"smooth"});
+  toast("Bevestig eerst de plek op de kaart. Je melding blijft bewaard.");
+  return;
+ }
  saveReportDraft();const category=({danger:"Gevaar",animal:"Dier",handy:"Handig",fun:"Leuk"})[reportState.category]||"Melding";const location=reportState.locationMode==="map"?"Gekozen plek op de kaart":"Mijn huidige locatie bij plaatsen";const photo=$("#reportPhoto")?.files?.[0]?.name||"Geen foto";
  $("#reportSummary").innerHTML=`<div class="report-summary-row"><small>Soort</small><b>${esc(category)} · ${esc(reportState.subtype||labelType(reportState.type))}</b></div><div class="report-summary-row"><small>Omschrijving</small><b>${esc(text)}</b></div><div class="report-summary-row"><small>Locatie</small><b>${esc(location)}</b></div><div class="report-summary-row"><small>Foto</small><b>${esc(photo)}</b></div>`;
  $("#reportStep2").hidden=true;$("#reportStep3").hidden=false;$("#reportSubmit").focus()
