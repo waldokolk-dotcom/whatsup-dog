@@ -645,9 +645,8 @@ async function submitReport(e){
  localStorage.removeItem(REPORTDRAFTKEY);clearReportPhoto();$("#reportDialog").close();
  showView("map");
  map.setView([loc.lat,loc.lng],17);
- if(confirmed){
-  L.marker([loc.lat,loc.lng],{icon:markerIcon(confirmed),pane:"reportMarkersPane",zIndexOffset:1200,reportId:id,reportData:confirmed,riseOnHover:true}).addTo(markers).on("click",()=>openReportDetail(confirmed));
- }
+ // refreshReports owns the marker layer. Avoid adding a second pin for the
+ // same report before the server feed is rendered.
  setTimeout(()=>map?.invalidateSize(),50);
  await Promise.allSettled([refreshReports(),refreshMine()]);
  // A freshly inserted report can appear in the active feed after the initial read.
