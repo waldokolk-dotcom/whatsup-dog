@@ -382,3 +382,10 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 ## Uitvoeringscyclus 7 november 2026, 16:56 CET — exacte offline-cache allowlist
 - Productcommit `b70f9482d1356c9503c57835b133c0dd3e3d9ef6`: serviceworker accepteert alleen exact vooraf goedgekeurde statische URL's inclusief queryversie voor offline caching; onbekende queryparameters op een bekende bestandsnaam worden niet meer gecachet. Cacheversie v118 verwijdert oude cache bij activatie. Geen backend- of productiegegevens gewijzigd.
 - Releasegates: controleer actuele Actions op deze commit, valideer publieke HTTPS-preview en geïsoleerde backend create/reload/owner-delete. Pages workflow is aan `main`/handmatige dispatch en productieomgeving gekoppeld; geen previewpublicatie zonder aparte hostautorisatie. Geen merge of productiepublicatie uitgevoerd.
+
+
+### 7 november 2026, 17:53 CET — lokale opslag vol (P0)
+- Productcommit `53d9c48`: `app-v3.js` vangt opslagfouten (quota, private browsing, opslagblokkade) af zodat een volle lokale opslag de kaart-/meldingenverversing niet onderbreekt. Als een meldconcept niet kan worden bewaard, krijgt de gebruiker een expliciete waarschuwing in het meldscherm; de app claimt dan niet dat het concept veilig is opgeslagen.
+- Vorige head `b979f77`: vijf Actions geslaagd (map regression 42388879642, preview artifact 42388879812, browser acceptance 42388879676, validate 42388879731, quality 42388879738). Nieuwe head vereist eigen CI-verificatie.
+- De bestaande `.github/workflows/pages.yml` publiceert naar de productie-Pages-omgeving, niet naar een geïsoleerde featurepreview. Zonder geautoriseerde afzonderlijke hostingroute wordt Pages niet vanuit de featurebranch gestart. Geen productiegegevens of secrets gewijzigd.
+- Open: publieke HTTPS-featurepreview, gehoste geïsoleerde backend-E2E inclusief eigenaarsverwijdering, toepasselijke reviews en mobiele toestelacceptatie. Geen release.
