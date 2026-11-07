@@ -351,3 +351,7 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 ## Uitvoeringscyclus 7 november 2026 — offline meldroute
 - Productcommit `8c5ec53`: de meldknop voorkomt een zinloze backend-/GPS-/foto-uploadpoging als de browser expliciet offline is. Het meldconcept blijft lokaal bewaard en de gebruiker krijgt een concrete melding om na herstel van verbinding opnieuw te proberen. Bestaande backend, eigenaarsrechten en productiegegevens blijven ongewijzigd.
 - CI en publieke HTTPS-preview moeten op de nieuwe head afzonderlijk worden bevestigd. Een lokaal gebouwde preview is niet hetzelfde als een gehoste klantreis. Geen productiepublicatie zonder geautoriseerde hosting, reviews en hosted E2E.
+
+## Uitvoeringscyclus 7 november 2026, 10:59 CET — GPS-fallback volledig
+- Productcommit `9b74344`: ook bij ongeldige GPS-coördinaten, kaartweergavefouten en synchrone geolocatie-uitzonderingen opent de bestaande handmatige gebiedskeuze; voorheen verscheen daar alleen een toast. Geen backend- of productiedatawijziging.
+- Nieuwe CI op commit direct bevraagd; definitieve resultaten worden pas na workflowafloop als groen aangemerkt. Publieke HTTPS-featurepreview, geïsoleerde backend-E2E en vereiste reviews zijn nog niet aangetoond; geen productiepublicatie.
