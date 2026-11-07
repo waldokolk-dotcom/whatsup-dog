@@ -25,7 +25,11 @@ async function boot(){
  try{
    const {data}=await client.auth.getSession(); if(data.session) user=data.session.user;
    if(!user){const r=await client.auth.signInAnonymously();if(r.error)throw r.error;user=r.data.user}
- }catch(err){console.warn("Anonieme sessie",err);toast("Meldingen tijdelijk niet beschikbaar; probeer later opnieuw");return}
+ }catch(err){console.warn("Anonieme sessie",err);toast("Meldingen tijdelijk niet beschikbaar; probeer later opnieuw");
+   // Recover the complete report flow after connectivity returns, without asking
+   // users to manually reload or losing the locally preserved report draft.
+   if(!navigator.onLine){window.addEventListener("online",()=>location.reload(),{once:true})}
+   return}
  syncPushUi(); applyProfile();
  await refreshReports().catch(err=>console.warn("Meldingen laden",err));
  await refreshGiveaways().catch(err=>console.warn("Weggeefhoek laden",err));
