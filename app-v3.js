@@ -802,14 +802,16 @@ function locate(){
     try{
      const lat=position?.coords?.latitude,lng=position?.coords?.longitude;
      if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){
-      toast("Locatie ongeldig. Kies je gebied handmatig.");return;
+      toast("Locatie ongeldig. Kies je gebied handmatig.");
+      if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal();
+      return;
      }
      const point=[lat,lng];
      if(currentLocationMarker)currentLocationMarker.setLatLng(point);
      else currentLocationMarker=L.circleMarker(point,{radius:8,color:"#176fa8",fillColor:"#7dc4ff",fillOpacity:1,weight:3,interactive:false}).addTo(map);
      map.setView(point,16);
      toast("Je locatie staat op de kaart.");
-    }catch(err){console.warn("GPS-kaartweergave mislukt",err);toast("Locatie tonen lukt niet. Kies je gebied handmatig.")}
+    }catch(err){console.warn("GPS-kaartweergave mislukt",err);toast("Locatie tonen lukt niet. Kies je gebied handmatig.");if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal()}
     finally{release()}
    },
    error=>{
@@ -820,7 +822,7 @@ function locate(){
    },
    {enableHighAccuracy:false,timeout:8000,maximumAge:30000}
   );
- }catch(err){console.warn("GPS-aanvraag mislukt",err);toast("Locatie niet beschikbaar. Kies je gebied handmatig.");release()}
+ }catch(err){console.warn("GPS-aanvraag mislukt",err);toast("Locatie niet beschikbaar. Kies je gebied handmatig.");release();if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal()}
 }
 function urlB64(s){const pad="=".repeat((4-s.length%4)%4),b=(s+pad).replace(/-/g,"+").replace(/_/g,"/"),raw=atob(b);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
 function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)}
