@@ -334,3 +334,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `28a35dc7f4162a7f96d0944e8d76b7775e32aeab`: mobiele kaart-GPS opent bij ontbrekende geolocatie of GPS-fout direct de bestaande handmatige gebiedskeuze; geen backend, gebruikersdata of productie gewijzigd.
 - Branch-preview via GitHub Pages blijft niet geautoriseerd: `pages.yml` deployt naar `github-pages` op `main`; niet vanuit deze featurebranch uitvoeren.
 - Releasegate: CI op nieuwe head, gehoste mobiele klantreis en geïsoleerde backend-eigenaarscontrole moeten nog worden bewezen. Geen liveclaim.
+
+## Uitvoeringscyclus 7 november 2026, 07:59 CET — geïsoleerd preview-buildartefact
+- Voorafgaande PR-head `6ad470f`: vier GitHub Actions geslaagd (map #42344483253, validate #42344483263, browser #42344483219, quality #42344483250).
+- Commit `44d40eba`: nieuwe `.github/workflows/pr-preview-artifact.yml` bouwt op PR #71 een afzonderlijk downloadbaar statisch PWA-bundelartefact, valideert bron/bundel en weigert herkenbare gevoelige bestanden. Productie-Pages wordt niet aangeraakt; geen secrets of kosten toegevoegd.
+- Direct na commit waren nog geen nieuwe workflowruns zichtbaar; de previewbundle is dus nog niet groen bewezen. Dit is expliciet GEEN publieke HTTPS-hosting of live backend-E2E.
+- Open blokkades: geautoriseerde afzonderlijke publieke previewhost, backend-eigenaarsrechten met geïsoleerde testdata, iPhone/Android-browseracceptatie op gehoste URL en toepasselijke reviews. Niet mergen of deployen voordat dit aantoonbaar is.
