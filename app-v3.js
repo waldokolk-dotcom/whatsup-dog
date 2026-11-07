@@ -441,7 +441,21 @@ async function resolveOwnReport(id){
  removeReportMarker(id);
  await Promise.allSettled([refreshMine(),refreshReports()]);
 }
-async function openReportById(id){return client.from("reports").select("*").eq("id",id).maybeSingle().then(({data})=>{if(data){showView("map");map.setView([data.lat,data.lng],16);openReportDetail(data)}})}
+async function openReportById(id){
+ if(!client||!id){toast("Melding is niet beschikbaar");return}
+ try{
+  const {data,error}=await client.from("reports").select("*").eq("id",id).maybeSingle();
+  if(error)throw error;
+  if(!data||data.status!=="active"){toast("Deze melding is niet meer beschikbaar");await refreshReports();return}
+  const lat=Number(data.lat),lng=Number(data.lng);
+  if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){
+   toast("De locatie van deze melding is ongeldig");return;
+  }
+  showView("map");
+  map.setView([lat,lng],16);
+  openReportDetail(data);
+ }catch(err){console.warn("Melding openen mislukt",err);toast("Melding openen lukt niet. Probeer opnieuw.")}
+}
 async function openReportDetail(r){
  $("#detailTitle").textContent=r.subtype||labelType(r.type);
  $("#detailText").textContent=r.text||"Melding";
