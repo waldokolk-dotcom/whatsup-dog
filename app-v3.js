@@ -9,7 +9,7 @@ const APP_VERSION="4.23", APP_VERSION_DATE="22-10-2026", REPORT_DRAFT_TTL=24*60*
 let premiumMapFilter="all";
 const SOCIAL_LINKS=Object.freeze({facebook:"https://www.facebook.com/profile.php?id=61594785673559",instagram:"",tiktok:""});
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,reportPhotoUrl=null,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
-const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(err){console.warn("Lokale opslag niet beschikbaar",err);return false}};
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
 const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2400)};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -561,7 +561,8 @@ function openReport(){
 }
 function saveReportDraft(){
  if(!reportState.category)return;
- write(REPORTDRAFTKEY,{savedAt:Date.now(),category:reportState.category,type:reportState.type,subtype:reportState.subtype,locationMode:reportState.locationMode,location:reportState.location,text:$("#reportText")?.value.slice(0,220)||""})
+ const saved=write(REPORTDRAFTKEY,{savedAt:Date.now(),category:reportState.category,type:reportState.type,subtype:reportState.subtype,locationMode:reportState.locationMode,location:reportState.location,text:$("#reportText")?.value.slice(0,220)||""});
+ if(!saved){const status=$("#reportDraftStatus");if(status){status.textContent="Concept kan niet op dit apparaat worden bewaard. Houd dit scherm open.";status.classList.remove("hidden")}}
 }
 function restoreReportDraft(){
  const draft=read(REPORTDRAFTKEY,null);if(!draft||!draft.savedAt||Date.now()-draft.savedAt>REPORT_DRAFT_TTL){localStorage.removeItem(REPORTDRAFTKEY);return false}
