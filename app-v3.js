@@ -774,29 +774,36 @@ async function saveArea(e){e.preventDefault();const q=$("#areaSearch").value.tri
 let currentLocationMarker=null;
 function locate(){
  const button=$("#locateBtn");
+ if(button?.disabled)return;
  if(!navigator.geolocation){
   toast("Locatie niet beschikbaar. Kies je gebied via de gebiedsknop.");
   return;
  }
  if(button){button.disabled=true;button.setAttribute("aria-busy","true")}
  const release=()=>{if(button){button.disabled=false;button.removeAttribute("aria-busy")}};
- navigator.geolocation.getCurrentPosition(
-  position=>{
-   const lat=position.coords.latitude,lng=position.coords.longitude;
-   if(!Number.isFinite(lat)||!Number.isFinite(lng)){toast("Locatie ongeldig. Kies je gebied handmatig.");release();return}
-   const point=[lat,lng];
-   if(currentLocationMarker)currentLocationMarker.setLatLng(point);
-   else currentLocationMarker=L.circleMarker(point,{radius:8,color:"#176fa8",fillColor:"#7dc4ff",fillOpacity:1,weight:3,interactive:false}).addTo(map);
-   map.setView(point,16);
-   toast("Je locatie staat op de kaart.");release();
-  },
-  error=>{
-   const message=error?.code===1?"Locatietoegang geweigerd. Kies je gebied handmatig.":error?.code===3?"Locatie bepalen duurde te lang. Probeer opnieuw of kies je gebied.":"Locatie niet gevonden. Kies je gebied handmatig.";
-   toast(message);release();
-  },
-  {enableHighAccuracy:false,timeout:8000,maximumAge:30000}
- );
-
+ try{
+  navigator.geolocation.getCurrentPosition(
+   position=>{
+    try{
+     const lat=position?.coords?.latitude,lng=position?.coords?.longitude;
+     if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){
+      toast("Locatie ongeldig. Kies je gebied handmatig.");return;
+     }
+     const point=[lat,lng];
+     if(currentLocationMarker)currentLocationMarker.setLatLng(point);
+     else currentLocationMarker=L.circleMarker(point,{radius:8,color:"#176fa8",fillColor:"#7dc4ff",fillOpacity:1,weight:3,interactive:false}).addTo(map);
+     map.setView(point,16);
+     toast("Je locatie staat op de kaart.");
+    }catch(err){console.warn("GPS-kaartweergave mislukt",err);toast("Locatie tonen lukt niet. Kies je gebied handmatig.")}
+    finally{release()}
+   },
+   error=>{
+    const message=error?.code===1?"Locatietoegang geweigerd. Kies je gebied handmatig.":error?.code===3?"Locatie bepalen duurde te lang. Probeer opnieuw of kies je gebied.":"Locatie niet gevonden. Kies je gebied handmatig.";
+    toast(message);release();
+   },
+   {enableHighAccuracy:false,timeout:8000,maximumAge:30000}
+  );
+ }catch(err){console.warn("GPS-aanvraag mislukt",err);toast("Locatie niet beschikbaar. Kies je gebied handmatig.");release()}
 }
 function urlB64(s){const pad="=".repeat((4-s.length%4)%4),b=(s+pad).replace(/-/g,"+").replace(/_/g,"/"),raw=atob(b);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
 function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)}
