@@ -303,3 +303,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `9e75344`: buurtpush wordt alleen aangeroepen nadat de opgeslagen melding werkelijk actief en leesbaar is bevestigd. Onbevestigde meldingen veroorzaken geen potentieel misleidende pushnotificatie.
 - Nieuwe CI voor productcommit nog controleren. Featurepreview ontbreekt: bestaande Pages-workflow deployt naar de productieomgeving en mag niet voor een branch-preview worden misbruikt. Geen merge of productiegegevens gewijzigd.
 - Volgende: nieuwe CI en hostingrechten controleren; geïsoleerde echte backend-create/reload/owner-delete-test en publieke featurepreview via afzonderlijke geautoriseerde hosting.
+
+## Uitvoeringscyclus 7 november 2026, 01:50 CET — dubbele kaartpin voorkomen
+- Voorafgaande head `af1d48f`: vier GitHub Actions groen (validate, browseracceptatie, kaartregressie, kwaliteitscontrole).
+- Productcommit `9deb226`: na succesvolle publicatie wordt niet langer een losse marker toegevoegd vlak voordat `refreshReports()` de volledige serverfeed rendert. Daarmee blijft de serverfeed de enige bron voor kaartpins en ontstaan geen dubbele markers bij publiceren.
+- Publieke featurepreview en echte gehoste backend-E2E zijn nog niet aangetoond; GitHub Pages deployt alleen via main/handmatige dispatch naar de bestaande Pages-omgeving. Geen productiepublicatie of productiedatawijziging.
+- Volgende run: CI voor `9deb226` verifiëren, een afzonderlijke geautoriseerde HTTPS-preview vinden en geïsoleerde create/reload/owner-delete-backendtest uitvoeren.
