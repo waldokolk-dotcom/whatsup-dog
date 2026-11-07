@@ -369,3 +369,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 ## Uitvoeringscyclus 7 november 2026, 13:55 CET — transparantie offline meldingen
 - Productcommit `55341b35a66e5b757d0d9d93bd61e60c5f904812`: de lijst met eerder opgehaalde meldingen toont nu expliciet dat deze mogelijk verouderd zijn wanneer de backend nog niet beschikbaar is of verversen mislukt. Bij succesvolle serververversing verdwijnt de waarschuwing. Hiermee worden offline meldingen niet ten onrechte als actuele livewaarnemingen gepresenteerd.
 - Voor deze productcommit zijn CI en publiek bereikbare HTTPS-preview nog niet groen bevestigd; afzonderlijke geautoriseerde previewhost, echte geïsoleerde backendacceptatie en toepasselijke review blijven releasevoorwaarden. Geen productiepublicatie.
+
+## Uitvoeringscyclus 7 november 2026 — anonieme meldconcepten
+- Productcommit `4a14dc5`: als anonieme backend-sessie ontbreekt, wordt het meldconcept nu bewaard vóór de foutmelding; offline controle gebeurt vóór de sessiecontrole. Geen verloren invoer bij tijdelijke authenticatieproblemen.
+- De previewworkflow levert momenteel uitsluitend een GitHub Actions-artefact; dit is geen publieke HTTPS-featurepreview. Pages publiceert alleen vanaf `main`. Er is nog geen afzonderlijke geautoriseerde previewhost bevestigd.
+- Nog vereist: actuele CI op nieuwe head, Playwright mobiele acceptatie, echte geïsoleerde backend-eigenaarsrechtentest en eventuele verplichte review. Geen productiepublicatie.
