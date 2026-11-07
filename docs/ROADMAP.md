@@ -394,3 +394,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `dcb7ceae543e540f8f7083daac88e69a2535db26`: onboarding-locatieknop geeft nu ook zonder geolocation-API, bij ongeldige GPS-coördinaten, geweigerde toestemming of niet-beschikbare lokale opslag een duidelijke handmatige terugval met focus op plaatsinvoer. GPS krijgt een timeout van 8 seconden; bestaande backend en gebruikersdata blijven ongemoeid.
 - Publieke featurepreview nog niet geverifieerd: Pages-workflow publiceert uitsluitend `main` naar productie; PR-previewworkflow levert uitsluitend een artifact. Geen afzonderlijke previewhosting geautoriseerd. Geen merge zonder reviews, groene CI en geïsoleerde backendacceptatie.
 - Controleer CI op product-SHA en huidige PR-head; verifieer HTTPS en volledige meldroute voordat release wordt geclaimd.
+
+## Uitvoering 7 november 2026 — herstel meldroute na offline authenticatie
+- Productcommit `f50710a53542bf5f1620929576b3c20d40ed3846`: wanneer anonieme authenticatie offline faalt, herlaadt de PWA eenmalig zodra de verbinding terugkeert. Dit herstart de bestaande anonieme sessie en meldroute zonder handmatig herladen; het bestaande lokaal bewaarde meldconcept blijft behouden. Geen backend-, secret- of productiegegevenswijziging.
+- CI op de vorige head `60b39e6`: vijf workflows groen (validate, browser acceptance, map regression, preview artifact, quality). Nieuwe head moet afzonderlijk groen worden.
+- Releasegates blijven: geen afzonderlijke publieke HTTPS-previewhost geautoriseerd; PR #71 heeft geen reviews; geïsoleerde gehoste backend-E2E en toestelacceptatie ontbreken. Niet mergen of productie deployen.
