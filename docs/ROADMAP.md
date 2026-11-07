@@ -374,3 +374,7 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `4a14dc5`: als anonieme backend-sessie ontbreekt, wordt het meldconcept nu bewaard vóór de foutmelding; offline controle gebeurt vóór de sessiecontrole. Geen verloren invoer bij tijdelijke authenticatieproblemen.
 - De previewworkflow levert momenteel uitsluitend een GitHub Actions-artefact; dit is geen publieke HTTPS-featurepreview. Pages publiceert alleen vanaf `main`. Er is nog geen afzonderlijke geautoriseerde previewhost bevestigd.
 - Nog vereist: actuele CI op nieuwe head, Playwright mobiele acceptatie, echte geïsoleerde backend-eigenaarsrechtentest en eventuele verplichte review. Geen productiepublicatie.
+
+## Uitvoeringscyclus 7 november 2026, 15:53 CET — veilige offline PWA-cache
+- Productcommit `ec3e37d`: serviceworker beperkt offline caching tot de eigen app-scope en expliciet bekende statische PWA-bestanden; willekeurige dynamische URL's worden niet langer in Cache Storage opgeslagen. Dit voorkomt onbedoelde opslag van potentieel gevoelige responses op gedeelde apparaten. Cacheversie v117 dwingt opschoning van eerdere caches bij activatie. Geen backend- of productiegegevens gewijzigd.
+- De geïsoleerde PR-previewworkflow publiceert nog geen publieke HTTPS-URL. Gehoste accountloze meldroute en geïsoleerde eigenaarsrechtentest, review en groene CI op de nieuwe head zijn releasevoorwaarden; niet naar productie gemerged.
