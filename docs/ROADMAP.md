@@ -314,3 +314,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Voorafgaande head `2cbb205`: vier Actions groen (validate, browseracceptatie, kaartregressie en kwaliteitscontrole).
 - Productcode `b8113d1`: 'opgelost' markeren controleert nu sessie-eigendom en leest de serverstatus terug vóór de kaartpin wordt verwijderd en een succesmelding verschijnt. Foutieve lokale succesweergave bij mislukte RPC wordt voorkomen.
 - Nieuwe CI moet nog groen worden. Geen afzonderlijke publieke HTTPS-preview of echte gehoste backend-E2E bewezen; Pages-deploy naar productie niet gestart.
+
+## Uitvoeringscyclus 7 november 2026, 03:55 CET — GPS-kaartactie robuuster
+- Voorafgaande head `5765249`: vier GitHub Actions groen (map regression, browser acceptance, quality watch, validate).
+- Productcode `9df4242`: GPS-knop voorkomt dubbele aanvragen, controleert ook geografische coördinaten buiten geldige grenzen, herstelt de knop na uitzonderingen bij kaartweergave en geeft een handmatige gebiedsfallback. Geen echte gebruikersdata gewijzigd.
+- Nieuwe head CI moet opnieuw groen bevestigd worden; publieke featurepreview en echte geïsoleerde backend-E2E blijven onbewezen. Bestaande Pages-workflow raakt productie; geen Pages-preview of merge gestart.
