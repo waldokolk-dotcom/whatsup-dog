@@ -8,17 +8,22 @@ async function stubBackend(page){
     localStorage.setItem('wd_v3_onboarded','1');
     localStorage.setItem('wd_v3_profile',JSON.stringify({name:'Waldo',petName:'Bowie',breed:'Friese stabij',avatar:'🐶',species:'dog'}));
     localStorage.setItem('wd_v3_settings',JSON.stringify({areaLabel:'Corlaer',lat:52.21,lng:5.48,radius:2000,categories:['danger','lost','animal'],push:false}));
-    const chain=(data=[])=>({
-      select(){return this},eq(){return this},gt(){return this},order(){return this},
-      limit(){return Promise.resolve({data,error:null})},
-      maybeSingle(){return Promise.resolve({data:null,error:null})},
-      insert(){return Promise.resolve({data:null,error:null})},
+    // The test backend must behave like a persisted report table, not a write-only mock.
+    const chain=(table)=>({
+      filters:[],
+      select(){return this},
+      eq(key,value){this.filters.push([key,value]);return this},
+      gt(){return this},order(){return this},
+      rows(){const data=table==='reports'?(window.__wdReports||[]):[];return data.filter(row=>this.filters.every(([key,value])=>row[key]===value))},
+      limit(n){return Promise.resolve({data:this.rows().slice(0,n),error:null})},
+      maybeSingle(){return Promise.resolve({data:this.rows()[0]||null,error:null})},
+      insert(row){if(table==='reports'){const rows=Array.isArray(row)?row:[row];window.__wdReports.push(...rows.map(x=>({...x,status:'active',created_at:new Date().toISOString()})));localStorage.setItem('__wd_test_reports',JSON.stringify(window.__wdReports))}return Promise.resolve({data:null,error:null})},
       update(){return this},delete(){return this},
-      then(resolve){return Promise.resolve({data,error:null}).then(resolve)}
+      then(resolve){return Promise.resolve({data:this.rows(),error:null}).then(resolve)}
     });
     const client={
       auth:{getSession:async()=>({data:{session:{user:{id:'device-user',is_anonymous:true}}}}),signInAnonymously:async()=>({data:{user:{id:'device-user',is_anonymous:true}},error:null})},
-      from:(table)=>chain(table==='reports'?(window.__wdReports||[]):[]),
+      from:(table)=>chain(table),
       rpc:async(name)=>{
         if(name==='get_active_reports'){
           if(window.__wdFailActiveReports)return {data:null,error:{message:'temporary feed failure'}};
@@ -44,14 +49,43 @@ test('opens the map without account UI',async({page})=>{
   await expect(page.getByText('Inloggen')).toHaveCount(0);
 });
 
-test('PawWheel is thumb reachable and starts report flow',async({page})=>{
+test('mobile map controls stay inside viewport and do not overlap',async({page})=>{
+  const vp=page.viewportSize();
+  if(vp.width>600)return;
+  const ids=['#areaPill','#offleashControl','.wd-map-filterbar','#pawFab'];
+  const boxes=[];
+  for(const id of ids){
+    const el=page.locator(id);
+    await expect(el).toBeVisible();
+    const box=await el.boundingBox();
+    expect(box.x, id+' left edge').toBeGreaterThanOrEqual(0);
+    expect(box.x+box.width, id+' right edge').toBeLessThanOrEqual(vp.width+1);
+    boxes.push({id,...box});
+  }
+  const intersects=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
+  for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)expect(intersects(boxes[i],boxes[j]),boxes[i].id+' overlaps '+boxes[j].id).toBe(false);
+  expect(boxes[3].y, 'report button must remain above bottom navigation').toBeLessThan(vp.height-65);
+});
+
+test('mobile map and report dialog do not cause horizontal page overflow',async({page})=>{
+  const vp=page.viewportSize();
+  if(vp.width>600)return;
+  const check=async(stage)=>{
+    const width=await page.evaluate(()=>document.documentElement.scrollWidth);
+    expect(width,stage+' horizontal overflow').toBeLessThanOrEqual(vp.width+1);
+  };
+  await check('map');
+  await page.locator('#pawFab').click();
+  await expect(page.locator('#reportDialog')).toBeVisible();
+  await check('report dialog');
+});
+
+test('Melding maken is thumb reachable and opens report directly',async({page})=>{
   await expect(page.locator('#pawFab')).toBeVisible();
   const box=await page.locator('#pawFab').boundingBox();
   const vp=page.viewportSize();
   expect(box.y).toBeGreaterThan(vp.height*0.55);
   await page.locator('#pawFab').click();
-  await expect(page.locator('#pawDialog')).toBeVisible();
-  await page.locator('#pawReport').click();
   await expect(page.locator('#reportDialog')).toBeVisible();
   await expect(page.locator('#reportStep1 .report-progress')).toContainText('1 van 3 · Soort');
   await page.locator('.report-type[data-cat="danger"]').click();
@@ -69,14 +103,12 @@ test('PawWheel is thumb reachable and starts report flow',async({page})=>{
 
 test('report draft resumes and review shows exactly what will be published',async({page})=>{
   await page.locator('#pawFab').click();
-  await page.locator('#pawReport').click();
   await page.locator('.report-type[data-cat="animal"]').click();
   await page.locator('#reportSubs .chip',{hasText:'Vermist dier'}).click();
   await page.locator('#reportText').fill('Bruine hond met blauwe halsband');
   await expect.poll(async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('wd_v3_report_draft')||'null')?.text)).toBe('Bruine hond met blauwe halsband');
   await page.locator('#reportDialog [data-close]').click();
   await page.locator('#pawFab').click();
-  await page.locator('#pawReport').click();
   await expect(page.locator('#reportDraftStatus')).toContainText('Concept van eerder hervat');
   await expect(page.locator('#reportSubs .chip.active')).toContainText('Vermist dier');
   await expect(page.locator('#reportText')).toHaveValue('Bruine hond met blauwe halsband');
@@ -92,7 +124,6 @@ test('report draft resumes and review shows exactly what will be published',asyn
 
 test('selected report photo can be previewed and removed before upload',async({page})=>{
   await page.locator('#pawFab').click();
-  await page.locator('#pawReport').click();
   await page.locator('.report-type[data-cat="fun"]').click();
   await page.locator('#reportPhoto').setInputFiles({name:'hondenveld.png',mimeType:'image/png',buffer:Buffer.from('fake-image')});
   await expect(page.locator('#reportPhotoPreview')).toBeVisible();
@@ -100,6 +131,92 @@ test('selected report photo can be previewed and removed before upload',async({p
   await page.locator('#reportPhotoRemove').click();
   await expect(page.locator('#reportPhotoPreview')).toBeHidden();
   await expect(page.locator('#reportPhoto')).toHaveValue('');
+});
+
+test('oversized report photo is rejected immediately without losing the description',async({page})=>{
+  await page.locator('#pawFab').click();
+  await page.locator('.report-type[data-cat="danger"]').click();
+  await page.locator('#reportText').fill('Glas bij de ingang van het park');
+  await page.locator('#reportPhoto').setInputFiles({name:'te-groot.jpg',mimeType:'image/jpeg',buffer:Buffer.alloc(7*1024*1024+1)});
+  await expect(page.locator('#toast')).toContainText('Foto te groot: maximaal 7 MB.');
+  await expect(page.locator('#reportPhoto')).toHaveValue('');
+  await expect(page.locator('#reportPhotoPreview')).toBeHidden();
+  await expect(page.locator('#reportText')).toHaveValue('Glas bij de ingang van het park');
+});
+
+test('mobile photo fallback uploads JPEG and completes a report without createImageBitmap',async({page})=>{
+  await page.evaluate(()=>{
+    window.createImageBitmap=undefined;
+    window.__wdTestClient.storage.from=()=>({
+      upload:async(path,blob)=>{window.__wdPhotoUpload={path,type:blob.type,size:blob.size};return {error:null}},
+      createSignedUrl:async()=>({data:null,error:null})
+    });
+  });
+  await page.locator('#pawFab').click();
+  await page.locator('.report-type[data-cat="danger"]').click();
+  await page.locator('#reportText').fill('Glas bij het hondenveld');
+  await page.locator('#reportChooseMap').click();
+  await page.locator('#reportPhoto').setInputFiles({
+    name:'bewijs.png',mimeType:'image/png',
+    buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGOsOJHCwMDAxMDAwMDAAAAT7gGovvSxigAAAABJRU5ErkJggg==','base64')
+  });
+  await page.locator('#reportReview').click();
+  await page.locator('#reportSubmit').click();
+  await expect(page.locator('#reportDialog')).toBeHidden();
+  await expect(page.locator('#toast')).toContainText('Melding staat op de kaart');
+  const uploaded=await page.evaluate(()=>window.__wdPhotoUpload);
+  expect(uploaded.type).toBe('image/jpeg');
+  expect(uploaded.size).toBeGreaterThan(0);
+  expect(uploaded.path).toMatch(/^device-user[/].+[.]jpg$/);
+});
+
+test('failed photo upload keeps the report and photo ready for retry',async({page})=>{
+  await page.evaluate(()=>{
+    window.__wdTestClient.storage.from=()=>({
+      upload:async()=>({error:{message:'network offline'}}),
+      createSignedUrl:async()=>({data:null,error:null})
+    });
+  });
+  await page.locator('#pawFab').click();
+  await page.locator('.report-type[data-cat="danger"]').click();
+  await page.locator('#reportText').fill('Glas bij de parkeerplaats');
+  await page.locator('#reportChooseMap').click();
+  await page.locator('#reportPhoto').setInputFiles({
+    name:'bewijs.png',mimeType:'image/png',
+    buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGOsOJHCwMDAxMDAwMDAAAAT7gGovvSxigAAAABJRU5ErkJggg==','base64')
+  });
+  await page.locator('#reportReview').click();
+  await page.locator('#reportSubmit').click();
+  await expect(page.locator('#reportDialog')).toBeVisible();
+  await expect(page.locator('#toast')).toContainText('Foto uploaden lukt niet');
+  await expect(page.locator('#reportPhotoName')).toHaveText('bewijs.png');
+  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('wd_v3_report_draft')||'null')?.text)).toBe('Glas bij de parkeerplaats');
+});
+
+test('GPS denial offers map pin fallback without losing report details',async({page})=>{
+  await page.evaluate(()=>{
+    Object.defineProperty(navigator,'geolocation',{configurable:true,value:{
+      getCurrentPosition(_success,fail){fail({code:1,message:'Permission denied'})}
+    }});
+  });
+  await page.locator('#pawFab').click();
+  await page.locator('.report-type[data-cat="danger"]').click();
+  await page.locator('#reportText').fill('Glas naast het hondenveld');
+  await page.locator('#reportPhoto').setInputFiles({name:'glas.png',mimeType:'image/png',buffer:Buffer.from('fake-image')});
+  await page.locator('#reportReview').click();
+  await page.locator('#reportSubmit').click();
+  await expect(page.locator('#reportStep2')).toBeVisible();
+  await expect(page.locator('#reportLocationMapWrap')).toBeVisible();
+  await expect(page.locator('#reportChooseMap')).toHaveClass(/active/);
+  await expect(page.locator('#reportText')).toHaveValue('Glas naast het hondenveld');
+  await expect(page.locator('#reportPhotoName')).toHaveText('glas.png');
+  await expect.poll(async()=>page.evaluate(()=>JSON.parse(localStorage.getItem('wd_v3_report_draft')||'null')?.locationMode)).toBe('map');
+  await page.locator('#reportPhotoRemove').click();
+  await page.locator('#reportReview').click();
+  await expect(page.locator('#reportSummary')).toContainText('Gekozen plek op de kaart');
+  await page.locator('#reportSubmit').click();
+  await expect(page.locator('#reportDialog')).toBeHidden();
+  await expect(page.locator('#toast')).toContainText('Melding staat op de kaart');
 });
 
 test('giveaway is accountless and uses private mail contact',async({page})=>{
@@ -151,14 +268,14 @@ test('Mijn Whatsup uses structured activity cards instead of empty bars',async({
 });
 
 test('info tab explains install and safety',async({page})=>{
-  await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
+  await page.locator('[data-view="my"]').click(); await page.locator('#myInfoLink').click();
   await expect(page.locator('#view-info')).toContainText('Gebruik & veiligheid');
   await expect(page.locator('#view-info')).toContainText('iPhone / iPad');
   await expect(page.locator('#view-info')).toContainText('Geen account en geen wachtwoord');
 });
 
 test('Info shows only configured Facebook links with safe external attributes',async({page})=>{
-  await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
+  await page.locator('[data-view="my"]').click(); await page.locator('#myInfoLink').click();
   const facebook=page.locator('[data-social="facebook"]');
   await expect(facebook).toHaveAttribute('href','https://www.facebook.com/profile.php?id=61594785673559');
   await expect(facebook).toHaveAttribute('target','_blank');
@@ -186,7 +303,7 @@ test('own reports can be marked resolved and removed from the live map',async({p
 });
 
 test('Info explains creation, resolution and expiry rules for reports',async({page})=>{
-  await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
+  await page.locator('[data-view="my"]').click(); await page.locator('#myInfoLink').click();
   await expect(page.locator('#view-info')).toContainText('Spelregels voor meldingen');
   await expect(page.locator('#view-info')).toContainText('Gewone meldingen: 7 dagen');
   await expect(page.locator('#view-info')).toContainText('Leuke plekken en activiteiten: 14 dagen');
@@ -228,7 +345,7 @@ test('map restores Nijkerk losloopgebieden layer with persistent switch',async({
 });
 
 test('Info shows app version and manual update control',async({page})=>{
-  await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
+  await page.locator('[data-view="my"]').click(); await page.locator('#myInfoLink').click();
   await expect(page.locator('#appVersion')).toContainText('4.23');
   await expect(page.locator('#versionDate')).toContainText('22-10-2026');
   await expect(page.locator('#checkUpdateButton')).toBeVisible();
@@ -265,12 +382,11 @@ test('desktop push repair code is present and test button can re-register',async
   await expect(page.locator('#pushToggle')).toBeVisible();
   await expect(page.locator('#pushStatus')).toBeVisible();
   const app=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(app).toContain('v=30');
+  expect(app).toMatch(/app-v3\.js\?v=\d+/);
 });
 
 test('report can switch from current location to a chosen map location',async({page})=>{
   await page.locator('#pawFab').click();
-  await page.locator('#pawReport').click();
   await page.locator('.report-type[data-cat="danger"]').click();
   await expect(page.locator('#reportUseGps')).toHaveClass(/active/);
   await page.locator('#reportChooseMap').click();
@@ -290,7 +406,6 @@ test('all report categories expose distinct subtype icons',async({page})=>{
     await page.locator('#reportDialog').evaluate(el=>{ if(el.open) el.close(); });
     await page.evaluate(()=>localStorage.removeItem('wd_v3_report_draft'));
     await page.locator('#pawFab').click();
-    await page.locator('#pawReport').click();
     await page.locator('.report-type[data-cat="'+cat+'"]').click();
     const texts=await page.locator('#reportSubs .chip-icon').allTextContents();
     expect(texts).toEqual(icons);
@@ -299,8 +414,8 @@ test('all report categories expose distinct subtype icons',async({page})=>{
 
 test('active own reports distinguish status from actions',async({page})=>{
   const script=await page.locator('script[src*="app-v3.js"]').getAttribute('src');
-  expect(script).toContain('v=30');
-  const response=await page.request.get('/app-v3.js?v=30');
+  expect(script).toMatch(/app-v3\.js\?v=\d+/);
+  const response=await page.request.get('/app-v3.js?v=32');
   const source=await response.text();
   expect(source).toContain('Markeer als opgelost');
   expect(source).toContain('Verwijder melding');
@@ -333,7 +448,7 @@ test('active polluted-water report is visible as a map marker',async({page})=>{
 });
 
 test('resolve and delete remove markers from map immediately',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=30');
+  const response=await page.request.get('/app-v3.js?v=32');
   const source=await response.text();
   expect(source).toContain('function removeReportMarker');
   expect(source).toContain('function deleteOwnReport');
@@ -351,7 +466,7 @@ test('email icon is centered inside its square',async({page})=>{
 });
 
 test('map view forces report resync',async({page})=>{
-  const response=await page.request.get('/app-v3.js?v=30');
+  const response=await page.request.get('/app-v3.js?v=32');
   const source=await response.text();
   expect(source).toContain('if(v==="map")');
   expect(source).toContain('refreshReports().catch');
@@ -614,7 +729,7 @@ test('dense nearby reports are clustered into a calm mobile map view',async({pag
 });
 
 test('marker implementation keeps report icons and adds zoom-aware density control',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=30')).text();
+  const js=await (await page.request.get('/app-v3.js?v=32')).text();
   const css=await (await page.request.get('/app-v3.css?v=22')).text();
   expect(js).toContain('function markerSizeForZoom');
   expect(js).toContain('function clusterReportGroups');
@@ -625,7 +740,7 @@ test('marker implementation keeps report icons and adds zoom-aware density contr
 
 
 test('cold start report refresh does not call catch on Supabase rpc builder',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=30')).text();
+  const js=await (await page.request.get('/app-v3.js?v=32')).text();
   expect(js).not.toContain('client.rpc("archive_expired_reports").catch');
   expect(js).toContain('const expiry=await client.rpc("archive_expired_reports")');
   expect(js).toContain('const rows=await fetchActiveReports()');
@@ -674,13 +789,13 @@ test('report detail offers one calm context-aware reaction and privacy-safe shar
   await expect(page.locator('.reaction-love-icon')).toBeVisible();
   await expect(page.locator('.reaction-seen-icon')).toBeHidden();
   await expect(page.locator('#detailShare')).toBeVisible();
-  const js=await (await page.request.get('/app-v3.js?v=30')).text();
+  const js=await (await page.request.get('/app-v3.js?v=32')).text();
   expect(js).toContain('window.open(facebook,"_blank","noopener,noreferrer")');
   expect(js).toContain('SOCIAL_LINKS.facebook');
 });
 
 test('update button opens plain-language version notes',async({page})=>{
-  await page.locator('#pawFab').click(); await page.locator('#pawInfo').click();
+  await page.locator('[data-view="my"]').click(); await page.locator('#myInfoLink').click();
   await page.locator('#checkUpdateButton').click();
   await expect(page.locator('#updateNotesDialog')).toBeVisible();
   await expect(page.locator('#notesVersion')).toHaveText('4.23');
@@ -690,7 +805,7 @@ test('update button opens plain-language version notes',async({page})=>{
 
 
 test('giveaway like implementation is present and uses the shared love language',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=30')).text();
+  const js=await (await page.request.get('/app-v3.js?v=32')).text();
   expect(js).toContain('get_giveaway_reaction_summary');
   expect(js).toContain('toggle_giveaway_reaction');
   expect(js).toContain('give-like reaction-button love');
@@ -698,7 +813,7 @@ test('giveaway like implementation is present and uses the shared love language'
 });
 
 test('pending update button opens notes before applying update',async({page})=>{
-  const js=await (await page.request.get('/app-v3.js?v=30')).text();
+  const js=await (await page.request.get('/app-v3.js?v=32')).text();
   expect(js).toContain('$("#applyUpdateButton")?.addEventListener("click",openUpdateNotes)');
   await page.evaluate(()=>document.querySelector('#updateBanner').classList.remove('hidden'));
   await page.locator('#applyUpdateButton').click();
@@ -722,4 +837,129 @@ test('premium Home appears and is functional',async({page})=>{
  await expect(page.locator('.wd-map-filterbar .wd-filter')).toHaveCount(5);
  await page.locator('[data-mapfilter="lost"]').click();
  await expect(page.locator('[data-mapfilter="lost"]')).toHaveClass(/active/);
+});
+
+
+test('compact landscape map keeps header, area and filters separated',async({page})=>{
+  for(const width of [667,812]){
+    await page.setViewportSize({width,height:375});
+    await page.reload();
+    await page.locator('[data-view="map"]').click();
+    // The decorative brand is intentionally hidden on short landscape screens to free map space.
+    await expect(page.locator('.map-brand')).toBeHidden();
+    const selectors=['#mapAlerts','#areaPill','#offleashControl','.wd-map-filterbar'];
+    const boxes=[];
+    for(const selector of selectors){
+      const el=page.locator(selector);
+      await expect(el).toBeVisible();
+      const box=await el.boundingBox();
+      expect(box.x,selector+' left').toBeGreaterThanOrEqual(0);
+      expect(box.x+box.width,selector+' right').toBeLessThanOrEqual(width+1);
+      boxes.push({selector,...box});
+    }
+    const intersects=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
+    for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
+      expect(intersects(boxes[i],boxes[j]),width+'px: '+boxes[i].selector+' overlaps '+boxes[j].selector).toBe(false);
+    }
+    await expect(page.locator('#pawFab')).toBeVisible();
+  }
+});
+
+
+test('dynamic neighborhood lists announce updates without interrupting navigation',async({page})=>{
+  const regions=[
+    {view:'home',selector:'#wdHomeReports'},
+    {view:'alerts',selector:'#alertsList'},
+    {view:'giveaway',selector:'#giveList'}
+  ];
+  for(const {view,selector} of regions){
+    await page.locator('[data-view="'+view+'"]').click();
+    const region=page.locator(selector);
+    await expect(region).toHaveAttribute('aria-live','polite');
+    await expect(region).toHaveAttribute('aria-relevant','additions text');
+  }
+  await expect(page.locator('#alertsList')).toHaveAttribute('role','status');
+});
+
+
+test('portrait phones keep the report action clear of bottom navigation',async({page})=>{
+  for(const {width,height} of [{width:375,height:667},{width:390,height:844},{width:320,height:568}]){
+    await page.setViewportSize({width,height});
+    await page.reload();
+    await page.locator('[data-view="map"]').click();
+    const action=page.locator('#pawFab');
+    await expect(action).toBeVisible();
+    const box=await action.boundingBox();
+    expect(box,'report button has a visible hit area').not.toBeNull();
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x+box.width).toBeLessThanOrEqual(width+1);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y+box.height).toBeLessThanOrEqual(height+1);
+    await action.click();
+    await expect(page.locator('#pawFab')).toBeAttached();
+  }
+});
+
+
+test('portrait map controls stay inside screen and clear of the reporting action',async({page})=>{
+  for(const {width,height} of [{width:375,height:667},{width:390,height:844}]){
+    await page.setViewportSize({width,height});
+    await page.reload();
+    await page.locator('[data-view="map"]').click();
+    const controls=['#areaPill','#mapAlerts','#offleashControl','.wd-map-filterbar','#pawFab'];
+    const boxes=[];
+    for(const selector of controls){
+      const el=page.locator(selector);
+      await expect(el).toBeVisible();
+      const box=await el.boundingBox();
+      expect(box,selector+' has geometry').not.toBeNull();
+      expect(box.x,selector+' left').toBeGreaterThanOrEqual(0);
+      expect(box.x+box.width,selector+' right').toBeLessThanOrEqual(width+1);
+      expect(box.y,selector+' top').toBeGreaterThanOrEqual(0);
+      expect(box.y+box.height,selector+' bottom').toBeLessThanOrEqual(height+1);
+      boxes.push({selector,...box});
+    }
+    const fab=boxes.find(b=>b.selector==='#pawFab');
+    for(const control of boxes.filter(b=>b!==fab)){
+      const overlaps=control.x<fab.x+fab.width&&control.x+control.width>fab.x&&control.y<fab.y+fab.height&&control.y+control.height>fab.y;
+      expect(overlaps,control.selector+' must not cover reporting action').toBe(false);
+    }
+  }
+});
+
+
+test('small portrait viewport keeps the map free from horizontal page scrolling',async({page})=>{
+  for(const {width,height} of [{width:320,height:568},{width:375,height:667},{width:390,height:844}]){
+    await page.setViewportSize({width,height});
+    await page.reload();
+    await page.locator('[data-view="map"]').click();
+    const geometry=await page.evaluate(()=>({
+      viewport:document.documentElement.clientWidth,
+      document:document.documentElement.scrollWidth,
+      body:document.body.scrollWidth
+    }));
+    expect(geometry.document, width+'px: page should not scroll sideways').toBeLessThanOrEqual(geometry.viewport+1);
+    await expect(page.locator('#pawFab')).toBeVisible();
+  }
+});
+
+
+test('compact portrait location control does not obscure report action',async({page})=>{
+  for(const {width,height} of [{width:320,height:568},{width:375,height:667},{width:390,height:844}]){
+    await page.setViewportSize({width,height});
+    await page.reload();
+    await page.locator('[data-view="map"]').click();
+    const locate=page.locator('#locateBtn');
+    const report=page.locator('#pawFab');
+    await expect(locate).toBeVisible();
+    await expect(report).toBeVisible();
+    const a=await locate.boundingBox();
+    const b=await report.boundingBox();
+    expect(a).not.toBeNull();
+    expect(b).not.toBeNull();
+    const overlap=a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
+    expect(overlap,width+'px: locate button obscures report button').toBe(false);
+  }
 });
