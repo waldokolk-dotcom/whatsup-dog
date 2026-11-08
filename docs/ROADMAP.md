@@ -428,3 +428,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `0291174897d44ad5275811ff284674cf89b63948`: herstel na mislukte anonieme login luistert voortaan ook naar een volgende `online`-gebeurtenis wanneer de browser tijdens de fout ten onrechte al online rapporteerde. Geen backend-, productie- of datamutaties.
 - Vorige head `08786a63e33ad9ff503186c2d58cf8fc58e691dc`: vijf GitHub Actions geslaagd, inclusief validatie, mobiele browseracceptatie, kaartregressie, quality en preview-artifact. Nieuwe CI en publieke HTTPS-preview moeten afzonderlijk worden bewezen.
 - De previewworkflow uploadt alleen een artifact; Pages deployt uitsluitend naar productie vanuit main. Geen geautoriseerde aparte publieke previewhost vastgesteld; geen ingediende reviews; geïsoleerde backend-eigenaarsacceptatie ontbreekt. Geen merge/deploy.
+
+
+## Uitvoering 8 november 2026, 03:59 CET — losloopkaart blijft bedienbaar bij opslagblokkade
+- Productcommit `8ab6818a678139b14ccb5eb392fdfeb57b27573d`: `toggleOffleashLayer` vangt nu ook fouten bij het schrijven van de losloopvoorkeur af. De kaartlaag blijft direct aan/uit te zetten bij geblokkeerde browseropslag; de gebruiker krijgt melding dat de keuze niet permanent wordt opgeslagen. Geen backend- of gebruikersdatamutaties.
+- Preview: bestaande PR-workflow produceert alleen een artefact; Pages-workflow gebruikt productieomgeving `github-pages` vanuit `main`. Zonder afzonderlijk geautoriseerde previewhost geen publieke featurepreview claimen.
+- Releasegates: controleer Actions op productcommit en documentatiehead; vereiste reviews, geïsoleerde backend-eigenaarsacceptatie en publieke HTTPS-preview ontbreken nog. Geen merge of productiepublicatie.
