@@ -34,13 +34,16 @@ async function boot(){
    // (for example after a temporary backend outage). Retry only when the user
    // returns to the app, and throttle reloads to avoid a refresh loop.
    const retryKey="wd_auth_recovery_attempt";
+   let lastInMemory=0;
    const recover=()=>{
      if(navigator.onLine===false||document.visibilityState==="hidden")return;
-     try{
-       const last=Number(sessionStorage.getItem(retryKey)||0);
-       if(Date.now()-last<60000)return;
-       sessionStorage.setItem(retryKey,String(Date.now()));
-     }catch{return} // Never enter an uncontrolled reload loop without storage.
+     const now=Date.now();
+     let last=lastInMemory;
+     try{last=Math.max(last,Number(sessionStorage.getItem(retryKey)||0)||0)}
+     catch{ /* Private browsing can deny storage; still allow one throttled retry. */ }
+     if(now-last<60000)return;
+     lastInMemory=now;
+     try{sessionStorage.setItem(retryKey,String(now))}catch{ /* In-memory throttle remains active. */ }
      location.reload();
    };
    window.addEventListener("online",recover,{once:true});
