@@ -517,3 +517,7 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 ## 8 november 2026 — mobiele preview werkt zonder browseropslag
 - Productcommits `f353eb3` en `feeb0b6`: previewopslag gebruikt een tijdelijke in-memory fallback als iOS Safari of een privacywebview `localStorage` blokkeert; ook wissen van previewgegevens werkt zonder Storage API. Dit raakt geen productiebackend of echte gebruikersdata. In-memory concepten verdwijnen bij herladen.
 - Render-preview op bestaande geautoriseerde statische service; alleen-lezen gateway blijft actief. Controleer actuele deploy en vijf Actions voor de definitieve SHA. Backendplaatsing/eigenaarsverwijdering blijven niet bewezen en mogen niet als afgerond worden geclaimd.
+
+## 8 november 2026 — Safari previewopslag consistent bij quota-omslag
+- Productcommit `7d96749`: de geïsoleerde previewopslag leest in-memory waarden met voorrang en telt zowel browser- als geheugensleutels. Bij een mislukte localStorage-write blijven nieuwe proefgegevens zichtbaar in dezelfde sessie; echte backendgegevens worden niet gewijzigd.
+- Eerdere head `c4a8f24`: vijf Actions groen en Render deployment `dep-dboe2h3m8hqs738adomg` live. Nieuwe head vereist eigen CI- en deploycontrole. Backendwrites/eigenaarsrechten blijven bewust buiten deze read-only preview.
