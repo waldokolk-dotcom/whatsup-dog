@@ -487,3 +487,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Voorafgaande head `fff4d61`: vijf Actions succesvol, inclusief browseracceptatie, kaartregressie en preview-artefact. Nieuwe hostingcommit vereist eigen CI-resultaten.
 - Render-workspace is gevonden, maar niet door de eigenaar geselecteerd; daarom is geen externe Render-service aangemaakt en is er nog **geen publieke HTTPS-previewlink**. Voor publicatie zijn expliciete workspacebevestiging en aantoonbare gratis beschikbaarheid nodig.
 - PR #71 heeft nul ingediende reviews. Geïsoleerde backend-eigenaarsacceptatie nog niet bewezen; geen productie-merge.
+
+## 8 november 2026 — Render preview router en PWA cachebeleid
+- Hostingcommit `b92e05ccf661d5aa58472440e9225ce070e6efec`: afzonderlijke Render-preview heeft nu een rewrite naar `index.html` voor directe navigatie/deep links en expliciete `no-cache, must-revalidate` headers voor HTML en service worker, zodat een nieuwe previewversie niet door oude PWA-shell blijft hangen.
+- Voorafgaande head `fe7e4ed`: vijf GitHub Actions groen (validate, browseracceptatie, kaartregressie, kwaliteitscontrole, preview-artefact). Nieuwe head vereist opnieuw CI; een Render-service of publieke HTTPS-URL is niet geverifieerd.
+- Externe publicatie geblokkeerd op expliciete keuze van Render-workspace en controle van kosteloze service. Geen productie-merge of backendtest op echte gebruikersdata uitgevoerd.
