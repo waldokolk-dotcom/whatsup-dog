@@ -467,3 +467,10 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `acbb4de5c73f4b6196b27eb412f9982fb5e55112`: bij een exception tijdens het wegschrijven van een melding (zoals netwerkuitval) wordt een eerder geüploade privéfoto nu via de bestaande geautoriseerde storage-remove-route opgeruimd, net als bij een geretourneerde databasefout. Geen echte gebruikersdata aangeraakt.
 - Browserasset `app-v3.js?v=37` in `ab598836`; offline PWA-cache `v120` in `42b9c323` om oude code niet te blijven serveren.
 - Hosting blijft ongewijzigd: PR-preview is alleen een Actions-artefact, Pages is productie vanuit `main`. Geen publieke featurepreview of live backendacceptatie bewezen. Controleer nieuwe SHA/Actions vóór release; geen merge zonder review- en beveiligingsgates.
+
+
+## Uitvoering 8 november 2026 — herstel meldfunctie na tijdelijke backendstoring
+- Voorafgaande head `8c3ca68404859910175986269c35236515a59cf4`: vijf PR Actions succesvol (validate 42469026467, browseracceptatie 42469026430, kaartregressie 42469026459, kwaliteitscontrole 42469026411, previewbundle 42469026417).
+- Productcode `fc2c406a`: anonieme aanmelding kan na tijdelijke backenduitval bij terugkeer naar de app herstellen, ook als het toestel continu online bleef. Een sessionStorage-grens van 60 seconden voorkomt herhaalde reloads; bij geblokkeerde opslag geen automatische reload. Concept blijft lokaal bewaard. HTML `90ebe5a4` laadt JS v38; service worker `299092ef` gebruikt cache v121.
+- Dit is een productwijziging, geen bewijs van werkende hosting. Nieuwe CI en browseracceptatie op de uiteindelijke head moeten nog slagen. Publieke featurepreview is niet aangetoond: PR-workflow levert slechts een artifact; Pages-workflow deployt alleen vanuit main. Geen productiepublicatie uitgevoerd.
+- Open gates: geautoriseerde afzonderlijke HTTPS-preview, geïsoleerde backendacceptatie (aanmaken, herladen, alleen eigen melding verwijderen), vereiste reviews en eventuele hostingrechten. Geen gebruikersdata of secrets gewijzigd.
