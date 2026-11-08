@@ -12,6 +12,15 @@ if(!/<title>Whatsup Dog<\/title>/i.test(html))throw new Error('Preview title not
 html=html.replace(/<title>Whatsup Dog<\/title>/i,'<title>Whatsup Dog · Veilige proefversie</title>');
 fs.writeFileSync(file,html);
 fs.copyFileSync('preview-guard.js','dist/preview-guard.js');
+// The offline shell must never load without its read-only safety gateway.
+// Precache the guard with the exact URL injected into index.html and rotate the cache on every guard change.
+const workerFile='dist/sw.js';
+let worker=fs.readFileSync(workerFile,'utf8');
+if(!worker.includes("const CORE=["))throw new Error('Preview worker precache list missing');
+worker=worker.replace('const CORE=[',`const CORE=['./preview-guard.js?v=${guardVersion}',`);
+if(!worker.includes(`./preview-guard.js?v=${guardVersion}`))throw new Error('Preview guard not precached');
+worker=worker.replace(/const CACHE=PREFIX\+'[^']+';/,`const CACHE=PREFIX+'preview-${guardVersion}';`);
+fs.writeFileSync(workerFile,worker);
 if(!fs.readFileSync('dist/preview-guard.js').equals(guard))throw new Error('Preview safety guard differs from source');
 const manifest=JSON.parse(fs.readFileSync('dist/manifest.webmanifest','utf8'));
 manifest.name='Whatsup dog · proefversie';manifest.short_name='Whatsup dog proef';
