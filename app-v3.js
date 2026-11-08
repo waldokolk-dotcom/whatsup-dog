@@ -846,7 +846,7 @@ function locate(){
  if(button?.disabled)return;
  if(!navigator.geolocation){
   toast("Locatie niet beschikbaar. Kies een gebied op de kaart.");
-  $("#areaDialog")?.showModal();
+  if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal();
   return;
  }
  if(button){button.disabled=true;button.setAttribute("aria-busy","true")}
