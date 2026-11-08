@@ -15,7 +15,7 @@ window.__wdPreviewStorage=(()=>{
     getItem:key=>read(namespaced(key)),
     setItem:(key,value)=>write(namespaced(key),String(value)),
     removeItem:key=>remove(namespaced(key)),
-    clear:()=>{for(const key of keys())if(key.startsWith(prefix))real.removeItem(key)},
+    clear:()=>{for(const key of keys())if(key.startsWith(prefix))remove(key)},
     key:index=>keys().filter(key=>key.startsWith(prefix))[index]?.slice(prefix.length)??null,
     get length(){return keys().filter(key=>key.startsWith(prefix)).length}
   });
