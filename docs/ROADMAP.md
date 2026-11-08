@@ -439,3 +439,10 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Previewworkflow gewijzigd in commit `9d5b28f3331187a733f282a4613d28ac36ee57c3`: `cancel-in-progress: false` voor PR #71, zodat opvolgende commits de lopende previewbouw niet telkens annuleren. Vorige productcommit `8ab6818`: validate, browseracceptatie, kaartregressie en quality groen; previewrun #42440780324 was geannuleerd.
 - Dit herstelt de continuïteit van het afzonderlijke preview-artefact, maar levert **nog geen publiek gehoste HTTPS-preview**. GitHub Pages blijft uitsluitend productie vanuit `main`; geen nieuwe host of productiedata aangeraakt.
 - PR heeft nul ingediende reviews. Open gates: nieuwe previewrun groen, afzonderlijke geautoriseerde publieke previewhost, geïsoleerde backend-eigenaarsacceptatie, mobiele acceptatie en toepasselijke reviews. Geen merge of deploy.
+
+
+## Uitvoeringscyclus 8 november 2026 — GPS fallback
+- Productcommit `421f5771`: als GPS niet ondersteund wordt en de handmatige gebiedsdialoog al open is, probeert de app niet opnieuw `showModal()` aan te roepen. Dit voorkomt een `InvalidStateError` en houdt handmatige gebiedskeuze bruikbaar.
+- De code is uitsluitend aangepast op PR #71 / `feature/map-first-mobile-20261030`. Geen productiegegevens, secrets of hostinginstellingen gewijzigd.
+- CI voor deze head bij eerste controle: []. Nieuwe CI en publieke HTTPS-preview moeten nog afzonderlijk worden bevestigd; geen groene release of livegang geclaimd.
+- Hostingblokkade: previewworkflow uploadt alleen een Actions-artefact, terwijl `pages.yml` uitsluitend `main` naar de bestaande productieomgeving deployt. Geen afzonderlijk geautoriseerde publieke previewhost vastgesteld. Echte geïsoleerde backend-E2E en toepasselijke PR-reviews blijven releasevoorwaarden.
