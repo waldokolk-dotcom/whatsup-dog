@@ -446,3 +446,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - De code is uitsluitend aangepast op PR #71 / `feature/map-first-mobile-20261030`. Geen productiegegevens, secrets of hostinginstellingen gewijzigd.
 - CI voor deze head bij eerste controle: []. Nieuwe CI en publieke HTTPS-preview moeten nog afzonderlijk worden bevestigd; geen groene release of livegang geclaimd.
 - Hostingblokkade: previewworkflow uploadt alleen een Actions-artefact, terwijl `pages.yml` uitsluitend `main` naar de bestaande productieomgeving deployt. Geen afzonderlijk geautoriseerde publieke previewhost vastgesteld. Echte geïsoleerde backend-E2E en toepasselijke PR-reviews blijven releasevoorwaarden.
+
+## Uitvoeringsrun 8 november 2026 — GPS-precisie op mobiele kaart
+- Productcommit `5ad2f6a5a84f699477d7ef292082e5c34a322365`: kaartlocatie weigert onnauwkeurige GPS-fixes boven 1000 meter en ontbrekende nauwkeurigheidsmetadata; biedt direct handmatige gebiedskeuze. Bij 100–1000 meter gebruikt de kaart minder nauwkeurige zoom en toont expliciet dat het om een benadering gaat. Hiermee wordt schijnprecisie bij mobiele netwerkgeolocatie voorkomen.
+- Release blijft gescheiden van productie: Pages-workflow deployt alleen `main`; PR-previewworkflow levert een artifact, geen publieke HTTPS-host. Geen veilige afzonderlijke hostautorisatie aangetoond.
+- Nieuwe head/Actions en mobiele browseracceptatie moeten na deze commit worden bevestigd; geen groene test of live preview geclaimd zonder bewijs. Geïsoleerde backend-E2E en toepasselijke reviews blijven releasegates.
