@@ -233,7 +233,8 @@ async function loadOffleashAreas(enabled=true){
 }
 function toggleOffleashLayer(e){
  const on=!!e.target.checked;
- localStorage.setItem("wd_v3_offleash",on?"1":"0");
+ // Private browsing and restricted storage must not break the visible map toggle.
+ try{localStorage.setItem("wd_v3_offleash",on?"1":"0")}catch(err){console.warn("Losloopvoorkeur niet opgeslagen",err);toast("Keuze geldt alleen zolang deze pagina open is")}
  if(!offleashLayer)return;
  if(on){if(!map.hasLayer(offleashLayer))offleashLayer.addTo(map);toast("Losloopgebieden zichtbaar")}
  else{if(map.hasLayer(offleashLayer))map.removeLayer(offleashLayer);toast("Losloopgebieden verborgen")}
