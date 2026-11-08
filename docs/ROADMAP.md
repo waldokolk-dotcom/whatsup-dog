@@ -434,3 +434,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `8ab6818a678139b14ccb5eb392fdfeb57b27573d`: `toggleOffleashLayer` vangt nu ook fouten bij het schrijven van de losloopvoorkeur af. De kaartlaag blijft direct aan/uit te zetten bij geblokkeerde browseropslag; de gebruiker krijgt melding dat de keuze niet permanent wordt opgeslagen. Geen backend- of gebruikersdatamutaties.
 - Preview: bestaande PR-workflow produceert alleen een artefact; Pages-workflow gebruikt productieomgeving `github-pages` vanuit `main`. Zonder afzonderlijk geautoriseerde previewhost geen publieke featurepreview claimen.
 - Releasegates: controleer Actions op productcommit en documentatiehead; vereiste reviews, geïsoleerde backend-eigenaarsacceptatie en publieke HTTPS-preview ontbreken nog. Geen merge of productiepublicatie.
+
+## Uitvoering 8 november 2026, 04:54 CET — previewbouw niet meer annuleren
+- Previewworkflow gewijzigd in commit `9d5b28f3331187a733f282a4613d28ac36ee57c3`: `cancel-in-progress: false` voor PR #71, zodat opvolgende commits de lopende previewbouw niet telkens annuleren. Vorige productcommit `8ab6818`: validate, browseracceptatie, kaartregressie en quality groen; previewrun #42440780324 was geannuleerd.
+- Dit herstelt de continuïteit van het afzonderlijke preview-artefact, maar levert **nog geen publiek gehoste HTTPS-preview**. GitHub Pages blijft uitsluitend productie vanuit `main`; geen nieuwe host of productiedata aangeraakt.
+- PR heeft nul ingediende reviews. Open gates: nieuwe previewrun groen, afzonderlijke geautoriseerde publieke previewhost, geïsoleerde backend-eigenaarsacceptatie, mobiele acceptatie en toepasselijke reviews. Geen merge of deploy.
