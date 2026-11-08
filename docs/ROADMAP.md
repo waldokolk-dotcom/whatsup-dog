@@ -462,3 +462,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `7ec07834b8eef2e387156dd528d414c0967de66b`: als Supabase-clientinitialisatie onverwacht faalt, blijft de kaart zichtbaar en wordt de meldfunctie als tijdelijk onbeschikbaar gemeld. Geen ongecontroleerde boot-exceptie.
 - Voorafgaande head `af58fd5`: vijf Actions groen, inclusief mobiele browseracceptatie, kaartregressie en preview-artefact. Nieuwe head moet opnieuw CI doorlopen; geen nieuwe groene status claimen voordat Actions slagen.
 - Previewworkflow publiceert nog niet naar publieke HTTPS-host. Pages is gekoppeld aan main; geen productiepublicatie zonder review, geautoriseerde hosting en geïsoleerde backendacceptatie.
+
+## Uitvoering 8 november 2026 — foutpad foto-upload en databasepublicatie
+- Productcommit `acbb4de5c73f4b6196b27eb412f9982fb5e55112`: bij een exception tijdens het wegschrijven van een melding (zoals netwerkuitval) wordt een eerder geüploade privéfoto nu via de bestaande geautoriseerde storage-remove-route opgeruimd, net als bij een geretourneerde databasefout. Geen echte gebruikersdata aangeraakt.
+- Browserasset `app-v3.js?v=37` in `ab598836`; offline PWA-cache `v120` in `42b9c323` om oude code niet te blijven serveren.
+- Hosting blijft ongewijzigd: PR-preview is alleen een Actions-artefact, Pages is productie vanuit `main`. Geen publieke featurepreview of live backendacceptatie bewezen. Controleer nieuwe SHA/Actions vóór release; geen merge zonder review- en beveiligingsgates.
