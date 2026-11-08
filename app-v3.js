@@ -21,7 +21,8 @@ async function boot(){
  const offlineReports=cachedActiveReports();
  if(offlineReports.length){syncReportMarkers(offlineReports);renderAlerts(offlineReports,{cached:true});renderPremiumHome(offlineReports)}
  if(!window.supabase||!CFG.url||!CFG.publishableKey){toast("Meldingen tijdelijk niet beschikbaar; kaart blijft bruikbaar");return}
- client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
+ try { client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}}); }
+ catch(err){console.warn("Backend initialiseren",err);toast("Meldingen tijdelijk niet beschikbaar; kaart blijft bruikbaar");return}
  try{
    const {data}=await client.auth.getSession(); if(data.session) user=data.session.user;
    if(!user){const r=await client.auth.signInAnonymously();if(r.error)throw r.error;user=r.data.user}
