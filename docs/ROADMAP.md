@@ -508,3 +508,7 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `c7d27432ae68616f838cb43cd81c5bca44bd5537`: de veiligheidsbanner van de Render-proefversie is niet meer sticky en blijft in de documentflow, met iOS safe-area padding en compacte typografie. Zo kan deze niet bovenop kaartbediening blijven plakken bij scrollen; preview blijft read-only en productie onaangeroerd.
 - Render-deployment `dep-dbocase417fc73frn87g` aangevraagd voor die exacte commit op bestaande statische preview. Controleer live status, huidige SHA en nieuwe CI vóór acceptatie. URL: https://whatsup-dog-pr71-preview.onrender.com.
 - Vijf GitHub Actions waren groen op vorige head `80febf8`; nieuwe head nog niet bevestigd. Echte backendwrite- en eigenaarsacceptatie blijft bewust niet mogelijk in deze alleen-lezen preview.
+
+## 8 november 2026 — preview build herstel
+- Product/hostingcommit `ab09cce7abb97f8fd0906ab84750b9706c284c8a`: verwijdert dubbele productiebuild uit `scripts/build-preview.mjs` (Render voert `build-site` al vooraf uit) en corrigeert de case-insensitive titelvervanging zodat de publieke proefversie expliciet als proefversie herkenbaar is. Een ontbrekende HTML-titel laat de build nu falen in plaats van ongemerkt verkeerde labeling te publiceren.
+- Preview blijft read-only; backend-eigenaarsrechten en productie-merge niet bewezen. CI en Render-deploy voor nieuwe head apart controleren.
