@@ -1,0 +1,20 @@
+# Separate, zero-cost static preview blueprint for PR #71.
+# This file does not provision hosting automatically and does not alter GitHub Pages.
+# Only deploy after confirming Render workspace and free static-site availability.
+services:
+  - type: web
+    name: whatsup-dog-pr71-preview
+    runtime: static
+    repo: https://github.com/waldokolk-dotcom/whatsup-dog
+    branch: feature/map-first-mobile-20261030
+    buildCommand: node scripts/validate.mjs && node scripts/build-site.mjs
+    staticPublishPath: ./dist
+    autoDeployTrigger: off
+    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
