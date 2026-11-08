@@ -503,3 +503,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Product-/hostingcommit `6c70382432878655a3357fb25f41faed67f1bbc5`: `scripts/build-preview.mjs` berekent nu een SHA-256 fingerprint van `preview-guard.js`, injecteert deze als assetversie in de HTML en controleert dat de beschermende guard daadwerkelijk identiek in `dist` staat. Dit voorkomt dat een oude guard uit browsercache bij een nieuwe preview blijft hangen.
 - Render-deployment `dep-dbobg3jl550s7398c600` aangevraagd voor exact deze commit op bestaande geïsoleerde service `whatsup-dog-pr71-preview`; bij eerste controle `build_in_progress`. Publieke URL: https://whatsup-dog-pr71-preview.onrender.com. Nieuwe CI en onafhankelijke URL-acceptatie nog niet bewezen; productie niet aangepast.
 - Preview blijft bewust read-only voor echte backendwrites; backend-eigenaarsacceptatie met geïsoleerde testdata en verplichte reviews blijven open.
+
+## 8 november 2026 — mobiele previewbanner uit kaartviewport
+- Productcommit `c7d27432ae68616f838cb43cd81c5bca44bd5537`: de veiligheidsbanner van de Render-proefversie is niet meer sticky en blijft in de documentflow, met iOS safe-area padding en compacte typografie. Zo kan deze niet bovenop kaartbediening blijven plakken bij scrollen; preview blijft read-only en productie onaangeroerd.
+- Render-deployment `dep-dbocase417fc73frn87g` aangevraagd voor die exacte commit op bestaande statische preview. Controleer live status, huidige SHA en nieuwe CI vóór acceptatie. URL: https://whatsup-dog-pr71-preview.onrender.com.
+- Vijf GitHub Actions waren groen op vorige head `80febf8`; nieuwe head nog niet bevestigd. Echte backendwrite- en eigenaarsacceptatie blijft bewust niet mogelijk in deze alleen-lezen preview.
