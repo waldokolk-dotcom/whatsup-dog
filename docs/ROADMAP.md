@@ -451,3 +451,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `5ad2f6a5a84f699477d7ef292082e5c34a322365`: kaartlocatie weigert onnauwkeurige GPS-fixes boven 1000 meter en ontbrekende nauwkeurigheidsmetadata; biedt direct handmatige gebiedskeuze. Bij 100–1000 meter gebruikt de kaart minder nauwkeurige zoom en toont expliciet dat het om een benadering gaat. Hiermee wordt schijnprecisie bij mobiele netwerkgeolocatie voorkomen.
 - Release blijft gescheiden van productie: Pages-workflow deployt alleen `main`; PR-previewworkflow levert een artifact, geen publieke HTTPS-host. Geen veilige afzonderlijke hostautorisatie aangetoond.
 - Nieuwe head/Actions en mobiele browseracceptatie moeten na deze commit worden bevestigd; geen groene test of live preview geclaimd zonder bewijs. Geïsoleerde backend-E2E en toepasselijke reviews blijven releasegates.
+
+
+## Uitvoering 8 november 2026 — GPS-nauwkeurigheid bij publiceren
+- Productcode `9980c6b`: publicatie met GPS weigert nu posities met onbekende nauwkeurigheid of >1000 m afwijking; de bestaande kaartkeuze wordt geopend en het concept blijft behouden. GPS probeert hoge nauwkeurigheid met een timeout van 10 seconden. Hiermee wordt een onnauwkeurige kaartpin niet als exacte melding gepubliceerd.
+- PWA-versie bijgewerkt: `1092eb1` (app-script v36), `086bbbf` (offline cache v119). Geen wijziging aan productie of echte gebruikersdata.
+- Open releasegates: controleer Actions op nieuwe head, browseracceptatie iPhone/Android, echte backend-eigenaarsrechten met geïsoleerde testdata, en een afzonderlijk geautoriseerde publiek bereikbare HTTPS-preview. GitHub Pages-workflow publiceert vanaf main; PR-preview bouwt uitsluitend een artefact. Geen geverifieerde publieke feature-URL; geen merge.
