@@ -28,7 +28,8 @@ async function boot(){
  }catch(err){console.warn("Anonieme sessie",err);toast("Meldingen tijdelijk niet beschikbaar; probeer later opnieuw");
    // Recover the complete report flow after connectivity returns, without asking
    // users to manually reload or losing the locally preserved report draft.
-   if(!navigator.onLine){window.addEventListener("online",()=>location.reload(),{once:true})}
+   // Register recovery even if the browser initially reports online: a later connectivity transition can restore anonymous sign-in.
+   window.addEventListener("online",()=>location.reload(),{once:true});
    return}
  syncPushUi(); applyProfile();
  await refreshReports().catch(err=>console.warn("Meldingen laden",err));
