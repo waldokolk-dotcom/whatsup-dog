@@ -6,10 +6,10 @@ window.__wdPreviewStorage=(()=>{
   const memory=new Map(),prefix='wd-preview-';
   let real;
   try{real=window.localStorage;const probe=prefix+'storage-probe';real.setItem(probe,'1');real.removeItem(probe)}catch{real=null}
-  const read=key=>real?real.getItem(key):(memory.has(key)?memory.get(key):null);
-  const write=(key,value)=>{if(real){try{real.setItem(key,value);return}catch{real=null}}memory.set(key,value)};
+  const read=key=>memory.has(key)?memory.get(key):(real?real.getItem(key):null);
+  const write=(key,value)=>{if(real){try{real.setItem(key,value);memory.delete(key);return}catch{real=null}}memory.set(key,value)};
   const remove=key=>{if(real){try{real.removeItem(key)}catch{real=null}}memory.delete(key)};
-  const keys=()=>real?Object.keys(real):Array.from(memory.keys());
+  const keys=()=>Array.from(new Set([...(real?Object.keys(real):[]),...memory.keys()]));
   const namespaced=key=>prefix+String(key);
   return Object.freeze({
     getItem:key=>read(namespaced(key)),
