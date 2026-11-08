@@ -692,7 +692,7 @@ async function submitReport(e){
  e.preventDefault();if(!reportState.type){toast("Kies eerst een soort melding");return}if(navigator.onLine===false){saveReportDraft();toast("Je bent offline. Je concept blijft bewaard; probeer opnieuw zodra je verbinding hebt.");return}if(!client||!user){saveReportDraft();toast("Publiceren is tijdelijk niet beschikbaar. Je concept is bewaard; probeer het later opnieuw.");return}const btn=$("#reportSubmit");if(btn.disabled)return;btn.disabled=true;btn.setAttribute("aria-busy","true");
  try{let loc;
  if(reportState.locationMode==="map"){if(!reportState.location)throw new Error("location-not-selected");loc=reportState.location}
- else if(navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{timeout:6000,maximumAge:30000}))}
+ else if(navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>{if(!Number.isFinite(p.coords.accuracy)||p.coords.accuracy>1000){rej(new Error("location-inaccurate"));return}res({lat:p.coords.latitude,lng:p.coords.longitude})},rej,{enableHighAccuracy:true,timeout:10000,maximumAge:30000}))}
  else{throw new Error("location-unavailable")}
  if(!Number.isFinite(Number(loc?.lat))||!Number.isFinite(Number(loc?.lng))||Math.abs(Number(loc.lat))>90||Math.abs(Number(loc.lng))>180){throw new Error("location-invalid")}
  let uploadedPhotoPath=null;
@@ -733,7 +733,7 @@ async function submitReport(e){
  toast(confirmed?"Melding staat op de kaart":"Melding verzonden; zichtbaarheid nog niet bevestigd. Vernieuw de kaart.")}
  catch(err){
   console.warn(err);
-  const gpsFailed=reportState.locationMode==="gps"&&(err?.code===1||err?.code===2||err?.code===3||err?.message==="location-unavailable"||err?.message==="location-invalid");
+  const gpsFailed=reportState.locationMode==="gps"&&(err?.code===1||err?.code===2||err?.code===3||err?.message==="location-unavailable"||err?.message==="location-invalid"||err?.message==="location-inaccurate");
   if(err?.message==="location-not-selected"){
    $("#reportStep3").hidden=true;$("#reportStep2").hidden=false;
    chooseReportLocationOnMap();
