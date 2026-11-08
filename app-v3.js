@@ -700,11 +700,14 @@ async function submitReport(e){
  const id=crypto.randomUUID(),p=profile();let photo_path=null,file=$("#reportPhoto").files[0];
  if(file){const blob=await compress(file);photo_path=user.id+"/"+id+".jpg";const up=await client.storage.from("report-photos").upload(photo_path,blob,{contentType:"image/jpeg",upsert:false});if(up.error){console.warn("Foto-upload mislukt",up.error);throw new Error("photo-upload")}uploadedPhotoPath=photo_path}
  const row={id,user_id:user.id,author_name:(p.name||"Buurtgenoot").slice(0,40),author_avatar:p.avatar||"🐾",type:reportState.type,subtype:reportState.subtype||null,text:($("#reportText").value.trim()||reportState.subtype||"Nieuwe melding").slice(0,220),lat:loc.lat,lng:loc.lng,photo_path,species:p.species||"both"};
- const {error}=await client.from("reports").insert(row);
- if(error){
-  // A failed database insert must not leave an orphaned private photo behind.
+ // Network exceptions must also trigger photo cleanup, not just Supabase error responses.
+ // Otherwise a failed report can leave an unreferenced private upload behind.
+ let insertError=null;
+ try{const result=await client.from("reports").insert(row);insertError=result.error}
+ catch(err){insertError=err}
+ if(insertError){
   if(uploadedPhotoPath){try{const cleanup=await client.storage.from("report-photos").remove([uploadedPhotoPath]);if(cleanup.error)console.warn("Foto opruimen na mislukte melding",cleanup.error)}catch(cleanupError){console.warn("Foto opruimen na mislukte melding",cleanupError)}}
-  throw error;
+  throw insertError;
  }
  // Verify the persisted row before presenting it as a published map marker.
  // A successful insert alone does not prove the report is readable after reload.
