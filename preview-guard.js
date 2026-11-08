@@ -2,15 +2,22 @@
 'use strict';
 window.__WD_PREVIEW__=true;
 window.__wdPreviewStorage=(()=>{
-  const real=window.localStorage,prefix='wd-preview-';
+  // Safari private mode and restricted webviews may deny Storage access. Keep the preview usable in memory.
+  const memory=new Map(),prefix='wd-preview-';
+  let real;
+  try{real=window.localStorage;const probe=prefix+'storage-probe';real.setItem(probe,'1');real.removeItem(probe)}catch{real=null}
+  const read=key=>real?real.getItem(key):(memory.has(key)?memory.get(key):null);
+  const write=(key,value)=>{if(real){try{real.setItem(key,value);return}catch{real=null}}memory.set(key,value)};
+  const remove=key=>{if(real){try{real.removeItem(key)}catch{real=null}}memory.delete(key)};
+  const keys=()=>real?Object.keys(real):Array.from(memory.keys());
   const namespaced=key=>prefix+String(key);
   return Object.freeze({
-    getItem:key=>real.getItem(namespaced(key)),
-    setItem:(key,value)=>real.setItem(namespaced(key),String(value)),
-    removeItem:key=>real.removeItem(namespaced(key)),
-    clear:()=>{for(const key of Object.keys(real))if(key.startsWith(prefix))real.removeItem(key)},
-    key:index=>Object.keys(real).filter(key=>key.startsWith(prefix))[index]?.slice(prefix.length)??null,
-    get length(){return Object.keys(real).filter(key=>key.startsWith(prefix)).length}
+    getItem:key=>read(namespaced(key)),
+    setItem:(key,value)=>write(namespaced(key),String(value)),
+    removeItem:key=>remove(namespaced(key)),
+    clear:()=>{for(const key of keys())if(key.startsWith(prefix))real.removeItem(key)},
+    key:index=>keys().filter(key=>key.startsWith(prefix))[index]?.slice(prefix.length)??null,
+    get length(){return keys().filter(key=>key.startsWith(prefix)).length}
   });
 })();
 // The app's bare localStorage references resolve to this preview-only lexical binding.
