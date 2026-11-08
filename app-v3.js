@@ -861,11 +861,19 @@ function locate(){
       if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal();
       return;
      }
+     // A coarse network-derived position is not a trustworthy walking location.
+     // Never present it as a precise GPS fix or silently center a report on it.
+     const accuracy=Number(position?.coords?.accuracy);
+     if(!Number.isFinite(accuracy)||accuracy>1000){
+      toast("Je locatie is te onnauwkeurig. Kies je gebied handmatig.");
+      if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal();
+      return;
+     }
      const point=[lat,lng];
      if(currentLocationMarker)currentLocationMarker.setLatLng(point);
      else currentLocationMarker=L.circleMarker(point,{radius:8,color:"#176fa8",fillColor:"#7dc4ff",fillOpacity:1,weight:3,interactive:false}).addTo(map);
-     map.setView(point,16);
-     toast("Je locatie staat op de kaart.");
+     map.setView(point,accuracy>250?13:accuracy>100?14:16);
+     toast(accuracy>100?"Je locatie is bij benadering op de kaart gezet.":"Je locatie staat op de kaart.");
     }catch(err){console.warn("GPS-kaartweergave mislukt",err);toast("Locatie tonen lukt niet. Kies je gebied handmatig.");if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal()}
     finally{release()}
    },
