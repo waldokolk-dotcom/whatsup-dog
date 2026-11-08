@@ -1,7 +1,5 @@
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
-import {execFileSync} from 'node:child_process';
-execFileSync(process.execPath,['scripts/build-site.mjs'],{stdio:'inherit'});
 const file='dist/index.html';
 let html=fs.readFileSync(file,'utf8');
 const head='<head>';
@@ -10,7 +8,8 @@ const guard=fs.readFileSync('preview-guard.js');
 const guardVersion=createHash('sha256').update(guard).digest('hex').slice(0,12);
 html=html.replace(head,head+`\n  <script src="./preview-guard.js?v=${guardVersion}"></script>`);
 if(!html.includes(`preview-guard.js?v=${guardVersion}`))throw new Error('Preview safety guard injection failed');
-html=html.replace('<title>Whatsup dog</title>','<title>Whatsup dog · Veilige proefversie</title>');
+if(!/<title>Whatsup Dog<\/title>/i.test(html))throw new Error('Preview title not found');
+html=html.replace(/<title>Whatsup Dog<\/title>/i,'<title>Whatsup Dog · Veilige proefversie</title>');
 fs.writeFileSync(file,html);
 fs.copyFileSync('preview-guard.js','dist/preview-guard.js');
 if(!fs.readFileSync('dist/preview-guard.js').equals(guard))throw new Error('Preview safety guard differs from source');
