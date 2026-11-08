@@ -481,3 +481,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - De bestaande Pages-workflow publiceert vanaf `main` naar productie. De PR-previewworkflow uploadt uitsluitend een Actions-artefact. Er is daarom **geen publieke featurepreview** of productiepublicatie uitgevoerd; het bestaande Pages-doel niet overschrijven.
 - Direct na productcommit leverde GitHub nog geen workflowruns voor `164b7e2`; groene CI en echte iPhone/Android/backendacceptatie voor deze head zijn **niet bevestigd**. PR #71 had bij controle nul ingediende reviews.
 - Releasegates: afzonderlijk geautoriseerde publieke HTTPS-previewhost, daadwerkelijke backendtest met geïsoleerde gegevens en verwijdering, toepasselijke reviews en groene CI op actuele head. Geen nieuwe secrets, kosten of productiegegevensmutaties.
+
+## 8 november 2026 — aparte HTTPS-preview voorbereid
+- Hostingverbetering commit `f335beb19f9d5987a0b29ab0bff641d10c059834`: `render.yaml` definieert een afzonderlijke statische preview op de bestaande PR #71-branch, met bestaande build/validatie, zonder extra secrets of wijzigingen aan productie-GitHub Pages. Automatische deploy is uitgeschakeld.
+- Voorafgaande head `fff4d61`: vijf Actions succesvol, inclusief browseracceptatie, kaartregressie en preview-artefact. Nieuwe hostingcommit vereist eigen CI-resultaten.
+- Render-workspace is gevonden, maar niet door de eigenaar geselecteerd; daarom is geen externe Render-service aangemaakt en is er nog **geen publieke HTTPS-previewlink**. Voor publicatie zijn expliciete workspacebevestiging en aantoonbare gratis beschikbaarheid nodig.
+- PR #71 heeft nul ingediende reviews. Geïsoleerde backend-eigenaarsacceptatie nog niet bewezen; geen productie-merge.
