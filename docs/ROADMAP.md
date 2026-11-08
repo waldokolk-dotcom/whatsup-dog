@@ -525,3 +525,7 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 ## 8 november 2026 — Render blueprint buildketen hersteld
 - Hostingcommit `19e63fec`: `render.yaml` bouwt nu eerst `dist` via `build-site.mjs`, daarna pas de beveiligde preview via `build-preview.mjs`; voordien ontbrak de vereiste buildstap in de declaratieve configuratie. Ook onbedoelde letterlijke `\n` in commentaar gecorrigeerd.
 - De bestaande Render-service gebruikt een afzonderlijke werkende buildcommand; de blueprintfix voorkomt een kapotte herinstallatie vanuit repositoryconfiguratie. De publieke preview blijft read-only. Nieuwe SHA, CI en Render deployment afzonderlijk controleren.
+
+## 9 november 2026 — offline preview guard cacheherstel
+- Product/hostingcommit `d256dace`: `scripts/build-preview.mjs` voegt de SHA-256-versie van `preview-guard.js` aan de service-worker precache toe en roteert de previewcache bij een nieuwe guardversie. Hiermee kan de offline PWA-shell niet zonder de benodigde alleen-lezen gateway laden wanneer de guard al eerder online is opgehaald. Geen productiecode, backend of gebruikersdata gewijzigd.
+- De bestaande Render-static-preview heeft autoDeploy uit; handmatige deploy nodig. Controleer CI, Render commit-SHA en onafhankelijke HTTPS-bereikbaarheid voor acceptatie. Backend-eigenaarsacceptatie en review blijven open.
