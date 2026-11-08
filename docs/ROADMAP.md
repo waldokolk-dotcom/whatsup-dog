@@ -457,3 +457,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcode `9980c6b`: publicatie met GPS weigert nu posities met onbekende nauwkeurigheid of >1000 m afwijking; de bestaande kaartkeuze wordt geopend en het concept blijft behouden. GPS probeert hoge nauwkeurigheid met een timeout van 10 seconden. Hiermee wordt een onnauwkeurige kaartpin niet als exacte melding gepubliceerd.
 - PWA-versie bijgewerkt: `1092eb1` (app-script v36), `086bbbf` (offline cache v119). Geen wijziging aan productie of echte gebruikersdata.
 - Open releasegates: controleer Actions op nieuwe head, browseracceptatie iPhone/Android, echte backend-eigenaarsrechten met geïsoleerde testdata, en een afzonderlijk geautoriseerde publiek bereikbare HTTPS-preview. GitHub Pages-workflow publiceert vanaf main; PR-preview bouwt uitsluitend een artefact. Geen geverifieerde publieke feature-URL; geen merge.
+
+## Uitvoering 8 november 2026 — backendinitialisatie veilig afvangen
+- Productcommit `7ec07834b8eef2e387156dd528d414c0967de66b`: als Supabase-clientinitialisatie onverwacht faalt, blijft de kaart zichtbaar en wordt de meldfunctie als tijdelijk onbeschikbaar gemeld. Geen ongecontroleerde boot-exceptie.
+- Voorafgaande head `af58fd5`: vijf Actions groen, inclusief mobiele browseracceptatie, kaartregressie en preview-artefact. Nieuwe head moet opnieuw CI doorlopen; geen nieuwe groene status claimen voordat Actions slagen.
+- Previewworkflow publiceert nog niet naar publieke HTTPS-host. Pages is gekoppeld aan main; geen productiepublicatie zonder review, geautoriseerde hosting en geïsoleerde backendacceptatie.
