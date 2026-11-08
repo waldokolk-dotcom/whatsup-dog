@@ -30,7 +30,21 @@ async function boot(){
    // Recover the complete report flow after connectivity returns, without asking
    // users to manually reload or losing the locally preserved report draft.
    // Register recovery even if the browser initially reports online: a later connectivity transition can restore anonymous sign-in.
-   window.addEventListener("online",()=>location.reload(),{once:true});
+   // A failed anonymous sign-in can also recover while the device stays online
+   // (for example after a temporary backend outage). Retry only when the user
+   // returns to the app, and throttle reloads to avoid a refresh loop.
+   const retryKey="wd_auth_recovery_attempt";
+   const recover=()=>{
+     if(navigator.onLine===false||document.visibilityState==="hidden")return;
+     try{
+       const last=Number(sessionStorage.getItem(retryKey)||0);
+       if(Date.now()-last<60000)return;
+       sessionStorage.setItem(retryKey,String(Date.now()));
+     }catch{return} // Never enter an uncontrolled reload loop without storage.
+     location.reload();
+   };
+   window.addEventListener("online",recover,{once:true});
+   document.addEventListener("visibilitychange",recover);
    return}
  syncPushUi(); applyProfile();
  await refreshReports().catch(err=>console.warn("Meldingen laden",err));
