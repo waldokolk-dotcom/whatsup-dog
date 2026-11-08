@@ -512,3 +512,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 ## 8 november 2026 — preview build herstel
 - Product/hostingcommit `ab09cce7abb97f8fd0906ab84750b9706c284c8a`: verwijdert dubbele productiebuild uit `scripts/build-preview.mjs` (Render voert `build-site` al vooraf uit) en corrigeert de case-insensitive titelvervanging zodat de publieke proefversie expliciet als proefversie herkenbaar is. Een ontbrekende HTML-titel laat de build nu falen in plaats van ongemerkt verkeerde labeling te publiceren.
 - Preview blijft read-only; backend-eigenaarsrechten en productie-merge niet bewezen. CI en Render-deploy voor nieuwe head apart controleren.
+
+
+## 8 november 2026 — mobiele preview werkt zonder browseropslag
+- Productcommits `f353eb3` en `feeb0b6`: previewopslag gebruikt een tijdelijke in-memory fallback als iOS Safari of een privacywebview `localStorage` blokkeert; ook wissen van previewgegevens werkt zonder Storage API. Dit raakt geen productiebackend of echte gebruikersdata. In-memory concepten verdwijnen bij herladen.
+- Render-preview op bestaande geautoriseerde statische service; alleen-lezen gateway blijft actief. Controleer actuele deploy en vijf Actions voor de definitieve SHA. Backendplaatsing/eigenaarsverwijdering blijven niet bewezen en mogen niet als afgerond worden geclaimd.
