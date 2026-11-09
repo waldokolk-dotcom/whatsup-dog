@@ -93,6 +93,12 @@ function bind(){
  $("#areaPill").addEventListener("click",()=>$("#areaDialog").showModal());
  $("#locateBtn").addEventListener("click",locate);
  $("#offleashToggle")?.addEventListener("change",toggleOffleashLayer);
+ // Make the entire off-leash pill tappable without double-toggling its native switch.
+ $("#offleashControl")?.addEventListener("click",event=>{
+  if(event.target.closest("#offleashToggle"))return;
+  const toggle=$("#offleashToggle");if(!toggle||toggle.disabled)return;
+  toggle.click();
+ });
  $("#areaForm").addEventListener("submit",saveArea);
  $("#reportForm").addEventListener("submit",submitReport);
  $("#reportUseGps")?.addEventListener("click",useCurrentReportLocation);
