@@ -47,7 +47,7 @@ const localStorage=window.__wdPreviewStorage;
   function label(){
     if(document.getElementById('wdPreviewBanner'))return;
     const banner=document.createElement('div');banner.id='wdPreviewBanner';banner.setAttribute('role','status');
-    banner.textContent='PROEFVERSIE · Alleen lezen · De huidige app blijft ongewijzigd';
+    banner.textContent='PROEFVERSIE · Bekijk de kaart en meldingen. Publiceren is hier uitgeschakeld; de bestaande app blijft ongewijzigd.';
     banner.style.cssText='position:relative;z-index:2;background:#173d35;color:#fffdf8;padding:calc(8px + env(safe-area-inset-top, 0px)) 12px 8px;text-align:center;font:700 12px/1.35 system-ui;box-sizing:border-box';
     document.body.prepend(banner);
     const style=document.createElement('style');
