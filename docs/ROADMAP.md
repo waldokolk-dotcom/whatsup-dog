@@ -558,3 +558,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Commit teruggelezen via GitHub; GitHub Actions en commit-status leverden onmiddellijk na de commit nog geen resultaten op. Groene tests op deze SHA zijn dus niet aangetoond.
 - De bekende Render-preview `https://whatsup-dog-pr71-preview.onrender.com` is in deze uitvoering niet onafhankelijk via HTTPS/browser geverifieerd. Geen claim van deployment of werkende backendpublicatie/verwijdering. Geen productie-merge of mutatie van gebruikersdata.
 - Vervolg: CI op de nieuwe SHA controleren, echte mobiele browseracceptatie en gehoste meldroute met geïsoleerde backendtestdata valideren voordat productie wordt vrijgegeven.
+
+## 9 november 2026 — iPhone kaartstart en losloopgebieden (screenshot gebruiker)
+- Productcode `b9a1459`: een oude opgeslagen kaartpositie buiten het geselecteerde gebied wordt niet langer als startpunt hergebruikt; automatische focus op een recente melding springt niet meer naar een andere plaats.
+- Mobiele UI `76a35bf`: losloopgebieden is een compacte 38×24 px schakelaar in een 48 px hoge bediening, met vaste iOS-styling, focusindicator en voldoende ruimte voor de tekst.
+- PWA assetversies `ed2622f` en serviceworker v122 verversen de mobiele code en styling.
+- Verificatie nog nodig: nieuwe head Actions, Render-deployment op exact SHA en browsercontrole op iPhone/Android. Geen backenddata of productie gewijzigd.
