@@ -23,6 +23,9 @@ services:
       - path: /sw.js
         name: Cache-Control
         value: no-cache, must-revalidate
+      - path: /preview-guard.js
+        name: Cache-Control
+        value: no-store, max-age=0
       - path: /*
         name: X-Content-Type-Options
         value: nosniff
