@@ -878,6 +878,8 @@ async function saveArea(e){e.preventDefault();const q=$("#areaSearch").value.tri
  // A manually chosen area is authoritative; discard the stale map viewport.
  try{localStorage.removeItem(MAPVIEWKEY)}catch(err){console.warn("Kaartpositie wissen niet beschikbaar",err)}
  initialReportFocusDone=true;
+ // A blue GPS dot from the previous map context must not remain on a manually selected town.
+ if(currentLocationMarker){map.removeLayer(currentLocationMarker);currentLocationMarker=null;}
  $("#areaPill").textContent=s.areaLabel+" ▾";map.setView([s.lat,s.lng],14);$("#areaDialog").close();syncPushUi();applyProfile();toast("Gebied aangepast")}catch{toast("Zoeken lukt nu niet")}}
 let currentLocationMarker=null;
 function locate(){
