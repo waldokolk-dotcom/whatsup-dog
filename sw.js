@@ -1,6 +1,6 @@
 const PREFIX='whatsup-dog:'+self.registration.scope+':';
-const CACHE=PREFIX+'v121';
-const CORE=['./','./index.html','./app-v3.css?v=27','./whatsup-premium.css?v=2','./modern-2026.css?v=29','./app-v3.js?v=38','./walk-checklist.js?v=1','./backend-config.js?v=4','./manifest.webmanifest','./icon-192.png','./icon-512.png','./vendor/leaflet/leaflet.js','./vendor/leaflet/leaflet.css','./data/nijkerk-losloopgebieden.geojson'];
+const CACHE=PREFIX+'v122';
+const CORE=['./','./index.html','./app-v3.css?v=27','./whatsup-premium.css?v=2','./modern-2026.css?v=30','./app-v3.js?v=39','./walk-checklist.js?v=1','./backend-config.js?v=4','./manifest.webmanifest','./icon-192.png','./icon-512.png','./vendor/leaflet/leaflet.js','./vendor/leaflet/leaflet.css','./data/nijkerk-losloopgebieden.geojson'];
 const STATIC_URLS=new Set(CORE.map(path=>new URL(path,self.registration.scope).href));
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE))));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith(PREFIX)&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
