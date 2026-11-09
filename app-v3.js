@@ -182,7 +182,9 @@ function showView(v){
 }
 function initMap(){
  const s=settings(),saved=read(MAPVIEWKEY,null);
- const validSaved=saved&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng))&&Math.abs(Number(saved.lat))<=90&&Math.abs(Number(saved.lng))<=180;
+ // Restore a map viewport only if it still belongs to the selected area.
+ const savedDistance=saved&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng))?L.latLng(Number(s.lat),Number(s.lng)).distanceTo(L.latLng(Number(saved.lat),Number(saved.lng))):Infinity;
+ const validSaved=saved&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng))&&Math.abs(Number(saved.lat))<=90&&Math.abs(Number(saved.lng))<=180&&savedDistance<=Math.max(3000,Number(s.radius)||2000);
  const start=validSaved?{lat:Number(saved.lat),lng:Number(saved.lng),zoom:Number.isFinite(Number(saved.zoom))?Math.min(19,Math.max(3,Number(saved.zoom))):14}:{lat:s.lat,lng:s.lng,zoom:14};
  map=L.map("map",{zoomControl:false,attributionControl:true}).setView([Number(start.lat),Number(start.lng)],Number(start.zoom)||14);
  const tiles=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
@@ -398,7 +400,8 @@ function focusLatestOwnActiveReport(rows){
  const latest=(own.length?own:candidates).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))[0];
  const points=candidates.map(r=>L.latLng(Number(r.lat),Number(r.lng)));
  const anyVisible=points.some(point=>map.getBounds().pad(-0.05).contains(point));
- if(!anyVisible&&latest){
+ // Never recenter the map to a report in another town.
+ if(!anyVisible&&latest&&area.distanceTo(L.latLng(Number(latest.lat),Number(latest.lng)))<=maxDistance){
    map.setView([Number(latest.lat),Number(latest.lng)],16,{animate:false});
  }
  initialReportFocusDone=true;
