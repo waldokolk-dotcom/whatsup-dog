@@ -2,7 +2,8 @@ import fs from 'node:fs';
 
 const files=[
   'index.html','app-v3.css','whatsup-premium.css','modern-2026.css','app-v3.js','walk-checklist.js','backend-config.js','sw.js',
-  'manifest.webmanifest','icon-192.png','icon-512.png'
+  'community-ui-bridge.js','report-lifecycle.js','report-photo.js','dialog-ui.js','community-tools.js','ui-hotfix-1.6.2.js',
+  'version.js','mobile-ui.js','profile-ui.js','directory-ui.js','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png'
 ];
 fs.rmSync('dist',{recursive:true,force:true});
 fs.mkdirSync('dist',{recursive:true});
@@ -22,6 +23,9 @@ const html=fs.readFileSync('dist/index.html','utf8');
 for(const asset of ['whatsup-premium.css','modern-2026.css','app-v3.css','app-v3.js','walk-checklist.js']){
  if(!fs.existsSync('dist/'+asset))throw new Error('Production bundle missing '+asset);
  if(!html.includes(asset))throw new Error('HTML missing required app asset '+asset);
+}
+for(const asset of ['community-ui-bridge.js','report-lifecycle.js','report-photo.js']){
+ if(!fs.existsSync('dist/'+asset))throw new Error('Production bundle missing '+asset);
 }
 const app=fs.readFileSync('dist/app-v3.js','utf8');
 if(!fs.existsSync('dist/sw.js'))throw new Error('Production bundle missing sw.js');

@@ -9,16 +9,47 @@ const APP_VERSION="4.23", APP_VERSION_DATE="22-10-2026", REPORT_DRAFT_TTL=24*60*
 let premiumMapFilter="all";
 const SOCIAL_LINKS=Object.freeze({facebook:"https://www.facebook.com/profile.php?id=61594785673559",instagram:"",tiktok:""});
 let client,user,map,markers,offleashLayer,reportLocationMap,reportLocationMarker,reportPhotoUrl=null,initialReportFocusDone=false,reportSyncTimer=null,lastActiveReports=[],reportState={category:null,type:null,subtype:null,locationMode:"gps",location:null},deferredInstall=null;
-const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const read=(k,f={})=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}}, write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(err){console.warn("Lokale opslag niet beschikbaar",err);return false}};
 const profile=()=>read(PKEY,{}), settings=()=>read(SKEY,{areaLabel:"Nijkerk",lat:52.2182,lng:5.4835,radius:2000,categories:["danger","lost","animal"],push:false});
 const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2400)};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 async function boot(){
- if(!window.supabase||!CFG.url||!CFG.publishableKey){toast("Backend niet beschikbaar");return}
- client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
- const {data}=await client.auth.getSession(); if(data.session) user=data.session.user;
- if(!user){const r=await client.auth.signInAnonymously();if(r.error){console.warn(r.error);toast("Veilige toestelsessie kon niet starten");return}user=r.data.user}
- initMap(); bind(); showView("home"); syncPushUi(); applyProfile();
+ // Render the primary product experience immediately, independent of network/auth latency.
+ initMap(); bind(); showView("map");
+ // Show previously verified, unexpired public reports even before auth/network responds.
+ // The server refresh replaces this snapshot as soon as the anonymous session is ready.
+ const offlineReports=cachedActiveReports();
+ if(offlineReports.length){syncReportMarkers(offlineReports);renderAlerts(offlineReports,{cached:true});renderPremiumHome(offlineReports)}
+ if(!window.supabase||!CFG.url||!CFG.publishableKey){toast("Meldingen tijdelijk niet beschikbaar; kaart blijft bruikbaar");return}
+ try { client=window.supabase.createClient(CFG.url,CFG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}}); }
+ catch(err){console.warn("Backend initialiseren",err);toast("Meldingen tijdelijk niet beschikbaar; kaart blijft bruikbaar");return}
+ try{
+   const {data}=await client.auth.getSession(); if(data.session) user=data.session.user;
+   if(!user){const r=await client.auth.signInAnonymously();if(r.error)throw r.error;user=r.data.user}
+ }catch(err){console.warn("Anonieme sessie",err);toast("Meldingen tijdelijk niet beschikbaar; probeer later opnieuw");
+   // Recover the complete report flow after connectivity returns, without asking
+   // users to manually reload or losing the locally preserved report draft.
+   // Register recovery even if the browser initially reports online: a later connectivity transition can restore anonymous sign-in.
+   // A failed anonymous sign-in can also recover while the device stays online
+   // (for example after a temporary backend outage). Retry only when the user
+   // returns to the app, and throttle reloads to avoid a refresh loop.
+   const retryKey="wd_auth_recovery_attempt";
+   let lastInMemory=0;
+   const recover=()=>{
+     if(navigator.onLine===false||document.visibilityState==="hidden")return;
+     const now=Date.now();
+     let last=lastInMemory;
+     try{last=Math.max(last,Number(sessionStorage.getItem(retryKey)||0)||0)}
+     catch{ /* Private browsing can deny storage; still allow one throttled retry. */ }
+     if(now-last<60000)return;
+     lastInMemory=now;
+     try{sessionStorage.setItem(retryKey,String(now))}catch{ /* In-memory throttle remains active. */ }
+     location.reload();
+   };
+   window.addEventListener("online",recover,{once:true});
+   document.addEventListener("visibilitychange",recover);
+   return}
+ syncPushUi(); applyProfile();
  await refreshReports().catch(err=>console.warn("Meldingen laden",err));
  await refreshGiveaways().catch(err=>console.warn("Weggeefhoek laden",err));
  await refreshMine().catch(err=>console.warn("Mijn Whatsup laden",err));
@@ -29,7 +60,7 @@ async function boot(){
  document.addEventListener("visibilitychange",resync);
  clearInterval(reportSyncTimer);
  reportSyncTimer=setInterval(resync,30000);
- if(!localStorage.getItem("wd_v3_onboarded")) $("#onboarding").showModal();
+ // Onboarding is voluntary: the map and reporting must never be gated by a modal.
  const qp=new URLSearchParams(location.search).get("report");if(qp)setTimeout(()=>openReportById(qp),700);
 }
 function bind(){
@@ -42,7 +73,7 @@ function bind(){
  $("#wdHomeAll")?.addEventListener("click",()=>showView("alerts"));
  $$("[data-mapfilter]").forEach(b=>b.addEventListener("click",()=>{premiumMapFilter=b.dataset.mapfilter;syncPremiumMapFilter()}));
  $$("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
- $("#pawFab").addEventListener("click",()=>$("#pawDialog").showModal());
+ $("#pawFab").addEventListener("click",openReport);
  $("#pawReport").addEventListener("click",()=>{$("#pawDialog").close();openReport()});
  $("#pawGive").addEventListener("click",()=>{$("#pawDialog").close();showView("giveaway")});
  $("#pawArea").addEventListener("click",()=>{$("#pawDialog").close();$("#areaDialog").showModal()});
@@ -62,6 +93,12 @@ function bind(){
  $("#areaPill").addEventListener("click",()=>$("#areaDialog").showModal());
  $("#locateBtn").addEventListener("click",locate);
  $("#offleashToggle")?.addEventListener("change",toggleOffleashLayer);
+ // Make the entire off-leash pill tappable without double-toggling its native switch.
+ $("#offleashControl")?.addEventListener("click",event=>{
+  if(event.target.closest("#offleashToggle"))return;
+  const toggle=$("#offleashToggle");if(!toggle||toggle.disabled)return;
+  toggle.click();
+ });
  $("#areaForm").addEventListener("submit",saveArea);
  $("#reportForm").addEventListener("submit",submitReport);
  $("#reportUseGps")?.addEventListener("click",useCurrentReportLocation);
@@ -91,7 +128,16 @@ function bind(){
  });
  $("#applyUpdateButton")?.addEventListener("click",openUpdateNotes);
  $("#onboardForm").addEventListener("submit",finishOnboarding);
- $("#onboardLocate").addEventListener("click",()=>navigator.geolocation?.getCurrentPosition(async p=>{const s=settings();s.lat=p.coords.latitude;s.lng=p.coords.longitude;s.areaLabel="Mijn locatie";write(SKEY,s);$("#onboardPlace").value="Mijn locatie";toast("Locatie gekozen")},()=>toast("Locatie niet gedeeld")));
+ $("#onboardLocate").addEventListener("click",()=>{
+  if(!navigator.geolocation){toast("Locatie niet beschikbaar; kies handmatig een plaats");$("#onboardPlace").focus();return}
+  navigator.geolocation.getCurrentPosition(p=>{
+    const {latitude:lat,longitude:lng}=p.coords||{};
+    if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){toast("Ongeldige locatie; kies handmatig een plaats");$("#onboardPlace").focus();return}
+    const s=settings();s.lat=lat;s.lng=lng;s.areaLabel="Mijn locatie";
+    if(!write(SKEY,s)){toast("Locatie kon niet worden opgeslagen; kies handmatig een plaats");$("#onboardPlace").focus();return}
+    $("#onboardPlace").value="Mijn locatie";toast("Locatie gekozen");
+  },()=>{toast("Locatie niet gedeeld; kies handmatig een plaats");$("#onboardPlace").focus()},{timeout:8000,maximumAge:30000});
+});
  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
 }
 
@@ -142,9 +188,28 @@ function showView(v){
 }
 function initMap(){
  const s=settings(),saved=read(MAPVIEWKEY,null);
- const start=saved&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng))?saved:{lat:s.lat,lng:s.lng,zoom:14};
+ // Restore a map viewport only if it still belongs to the selected area.
+ const savedDistance=saved&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng))?L.latLng(Number(s.lat),Number(s.lng)).distanceTo(L.latLng(Number(saved.lat),Number(saved.lng))):Infinity;
+ const validSaved=saved&&Number.isFinite(Number(saved.lat))&&Number.isFinite(Number(saved.lng))&&Math.abs(Number(saved.lat))<=90&&Math.abs(Number(saved.lng))<=180&&savedDistance<=Math.max(3000,Number(s.radius)||2000);
+ const start=validSaved?{lat:Number(saved.lat),lng:Number(saved.lng),zoom:Number.isFinite(Number(saved.zoom))?Math.min(19,Math.max(3,Number(saved.zoom))):14}:{lat:s.lat,lng:s.lng,zoom:14};
  map=L.map("map",{zoomControl:false,attributionControl:true}).setView([Number(start.lat),Number(start.lng)],Number(start.zoom)||14);
- L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+ const tiles=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+ // A failed tile connection must not leave an unexplained blank map.
+ const mapStatus=document.createElement("button");
+ mapStatus.type="button";
+ mapStatus.className="wd-map-retry";
+ mapStatus.textContent="Kaart niet geladen · opnieuw proberen";
+ mapStatus.hidden=true;
+ mapStatus.setAttribute("aria-label","Kaart opnieuw laden");
+ $("#view-map").append(mapStatus);
+ let tileFailures=0;
+ tiles.on("tileerror",()=>{if(++tileFailures>=3)mapStatus.hidden=false});
+ tiles.on("tileload",()=>{tileFailures=0;mapStatus.hidden=true});
+ mapStatus.addEventListener("click",()=>{
+   tileFailures=0;mapStatus.hidden=true;
+   map.invalidateSize({animate:false,pan:false});
+   tiles.redraw();
+ });
  const reportPane=map.createPane("reportMarkersPane");
  reportPane.style.zIndex="720";
  reportPane.style.pointerEvents="auto";
@@ -153,8 +218,17 @@ function initMap(){
  map.on("moveend",()=>{const center=map.getCenter();write(MAPVIEWKEY,{lat:center.lat,lng:center.lng,zoom:map.getZoom()})});
  // Marker sizes and clustering depend on zoom; refresh immediately without a backend request.
  map.on("zoomend",()=>renderReportMarkers());
+ // Leaflet can retain a stale tile viewport when iOS changes the visual viewport
+ // (browser chrome, standalone PWA, orientation). Observe the actual map box.
+ if(typeof ResizeObserver!=="undefined"){
+   const mapResizeObserver=new ResizeObserver(()=>map?.invalidateSize({animate:false,pan:false}));
+   mapResizeObserver.observe($("#map"));
+ }
+ window.visualViewport?.addEventListener("resize",()=>map?.invalidateSize({animate:false,pan:false}));
+ window.addEventListener("orientationchange",()=>setTimeout(()=>map?.invalidateSize({animate:false,pan:false}),250));
  $("#areaPill").textContent=s.areaLabel+" ▾";
- const enabled=localStorage.getItem("wd_v3_offleash")!=="0";
+ let enabled=true;
+ try{enabled=localStorage.getItem("wd_v3_offleash")!=="0"}catch(err){console.warn("Losloopvoorkeur niet beschikbaar",err)}
  const toggle=$("#offleashToggle");if(toggle)toggle.checked=enabled;
  loadOffleashAreas(enabled);
 }
@@ -185,7 +259,8 @@ async function loadOffleashAreas(enabled=true){
 }
 function toggleOffleashLayer(e){
  const on=!!e.target.checked;
- localStorage.setItem("wd_v3_offleash",on?"1":"0");
+ // Private browsing and restricted storage must not break the visible map toggle.
+ try{localStorage.setItem("wd_v3_offleash",on?"1":"0")}catch(err){console.warn("Losloopvoorkeur niet opgeslagen",err);toast("Keuze geldt alleen zolang deze pagina open is")}
  if(!offleashLayer)return;
  if(on){if(!map.hasLayer(offleashLayer))offleashLayer.addTo(map);toast("Losloopgebieden zichtbaar")}
  else{if(map.hasLayer(offleashLayer))map.removeLayer(offleashLayer);toast("Losloopgebieden verborgen")}
@@ -285,7 +360,7 @@ async function fetchActiveReports(){
  const first=await client.rpc("get_active_reports");
  if(!first.error)return validActiveReports(first.data||[]);
  console.warn("Actieve meldingen RPC mislukt",first.error);
- const fallback=await client.from("reports").select("id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,photo_path,status,created_at,species,expires_at").eq("status","active").gt("expires_at",new Date().toISOString()).order("created_at",{ascending:false}).limit(200);
+ const fallback=await client.from("reports").select("id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,photo_path,status,created_at,species,expires_at").eq("status","active").or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`).order("created_at",{ascending:false}).limit(200);
  if(fallback.error)throw fallback.error;
  return validActiveReports(fallback.data||[]);
 }
@@ -309,7 +384,7 @@ async function refreshReports(){
    const cached=cachedActiveReports();
    if(cached.length){
      syncReportMarkers(cached);
-     renderAlerts(cached);
+     renderAlerts(cached,{cached:true});
      renderPremiumHome(cached);
    }
  }
@@ -331,7 +406,8 @@ function focusLatestOwnActiveReport(rows){
  const latest=(own.length?own:candidates).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))[0];
  const points=candidates.map(r=>L.latLng(Number(r.lat),Number(r.lng)));
  const anyVisible=points.some(point=>map.getBounds().pad(-0.05).contains(point));
- if(!anyVisible&&latest){
+ // Never recenter the map to a report in another town.
+ if(!anyVisible&&latest&&area.distanceTo(L.latLng(Number(latest.lat),Number(latest.lng)))<=maxDistance){
    map.setView([Number(latest.lat),Number(latest.lng)],16,{animate:false});
  }
  initialReportFocusDone=true;
@@ -363,11 +439,12 @@ function classForReport(r){
  if(r.type==="road")return "blue";
  return "teal";
 }
-function renderAlerts(rows){
+function renderAlerts(rows,{cached=false}={}){
  const list=$("#alertsList"); if(!list)return;
- if(!rows.length){list.innerHTML='<div class="empty">Nog geen meldingen in jouw buurt.</div>';return}
+ const staleNote=cached?'<p class="cleanup-note" role="status">Eerder opgehaalde meldingen. De actuele situatie kan veranderd zijn; zodra de verbinding terug is wordt de lijst vernieuwd.</p>':"";
+ if(!rows.length){list.innerHTML=staleNote+'<div class="empty">Nog geen meldingen in jouw buurt.</div>';return}
  const s=settings(), now=Date.now();
- list.innerHTML=rows.slice(0,20).map(r=>{
+ list.innerHTML=staleNote+rows.slice(0,20).map(r=>{
    const minutes=Math.max(1,Math.round((now-new Date(r.created_at||now).getTime())/60000));
    const ago=minutes<60?minutes+" min":Math.round(minutes/60)+" u";
    const title=r.subtype||labelType(r.type);
@@ -375,8 +452,22 @@ function renderAlerts(rows){
  }).join("");
  list.querySelectorAll("[data-alert-id]").forEach(btn=>btn.onclick=async()=>{
    const id=btn.dataset.alertId;
-   const {data}=await client.from("reports").select("*").eq("id",id).maybeSingle();
-   if(data)openReportDetail(data);
+   const cached=lastActiveReports.find(r=>String(r.id)===String(id));
+   if(!client||!user){
+     if(cached)openReportDetail(cached);
+     else toast("Melding tijdelijk niet beschikbaar");
+     return;
+   }
+   try{
+     const {data,error}=await client.from("reports").select("*").eq("id",id).maybeSingle();
+     if(error)throw error;
+     if(data?.status==="active")openReportDetail(data);
+     else toast("Deze melding is niet meer beschikbaar");
+   }catch(err){
+     console.warn("Melding uit lijst openen mislukt",err);
+     if(cached)openReportDetail(cached);
+     else toast("Melding tijdelijk niet beschikbaar");
+   }
  });
 }
 function removeReportMarker(id){
@@ -386,18 +477,48 @@ function removeReportMarker(id){
  renderReportMarkers();
 }
 async function deleteOwnReport(id){
+ if(!client||!user)throw new Error("Meldingenservice niet beschikbaar");
+ // The UI may only delete the authenticated anonymous session's own reports.
+ const {data:owned,error:ownerError}=await client.from("reports").select("id,user_id").eq("id",id).eq("user_id",user.id).maybeSingle();
+ if(ownerError)throw ownerError;
+ if(!owned)throw new Error("Deze melding hoort niet bij jouw sessie of bestaat niet meer");
  const {error}=await client.rpc("delete_own_report",{target:id});
  if(error)throw error;
+ // Do not claim deletion if the server still exposes an active report.
+ const {data:remaining,error:verifyError}=await client.from("reports").select("id,status").eq("id",id).maybeSingle();
+ if(verifyError)throw verifyError;
+ if(remaining&&remaining.status==="active")throw new Error("Melding is nog actief op de server");
  removeReportMarker(id);
  await Promise.allSettled([refreshMine(),refreshReports()]);
 }
 async function resolveOwnReport(id){
+ if(!client||!user)throw new Error("Meldingenservice niet beschikbaar");
+ const {data:owned,error:ownerError}=await client.from("reports").select("id,user_id").eq("id",id).eq("user_id",user.id).maybeSingle();
+ if(ownerError)throw ownerError;
+ if(!owned)throw new Error("Deze melding hoort niet bij jouw sessie of bestaat niet meer");
  const {error}=await client.rpc("resolve_own_report",{target:id});
  if(error)throw error;
+ const {data:remaining,error:verifyError}=await client.from("reports").select("id,status").eq("id",id).maybeSingle();
+ if(verifyError)throw verifyError;
+ if(remaining&&remaining.status==="active")throw new Error("Melding is nog actief op de server");
  removeReportMarker(id);
  await Promise.allSettled([refreshMine(),refreshReports()]);
 }
-async function openReportById(id){return client.from("reports").select("*").eq("id",id).maybeSingle().then(({data})=>{if(data){showView("map");map.setView([data.lat,data.lng],16);openReportDetail(data)}})}
+async function openReportById(id){
+ if(!client||!id){toast("Melding is niet beschikbaar");return}
+ try{
+  const {data,error}=await client.from("reports").select("*").eq("id",id).maybeSingle();
+  if(error)throw error;
+  if(!data||data.status!=="active"){toast("Deze melding is niet meer beschikbaar");await refreshReports();return}
+  const lat=Number(data.lat),lng=Number(data.lng);
+  if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){
+   toast("De locatie van deze melding is ongeldig");return;
+  }
+  showView("map");
+  map.setView([lat,lng],16);
+  openReportDetail(data);
+ }catch(err){console.warn("Melding openen mislukt",err);toast("Melding openen lukt niet. Probeer opnieuw.")}
+}
 async function openReportDetail(r){
  $("#detailTitle").textContent=r.subtype||labelType(r.type);
  $("#detailText").textContent=r.text||"Melding";
@@ -448,7 +569,7 @@ function renderReportReaction(kind,summary={}){
 async function configureReportReaction(r){
  const box=$("#detailReaction"),btn=$("#detailReactionButton");
  if(!box||!btn)return;
- if(r?.status!=="active"){box.classList.add("hidden");return}
+ if(r?.status!=="active"||!client||!user){box.classList.add("hidden");return}
  const kind=reactionKindForReport(r);
  box.classList.remove("hidden");
  renderReportReaction(kind,{});
@@ -484,25 +605,41 @@ function openReport(){
 }
 function saveReportDraft(){
  if(!reportState.category)return;
- write(REPORTDRAFTKEY,{savedAt:Date.now(),category:reportState.category,type:reportState.type,subtype:reportState.subtype,locationMode:reportState.locationMode,location:reportState.location,text:$("#reportText")?.value.slice(0,220)||""})
+ const saved=write(REPORTDRAFTKEY,{savedAt:Date.now(),category:reportState.category,type:reportState.type,subtype:reportState.subtype,locationMode:reportState.locationMode,location:reportState.location,text:$("#reportText")?.value.slice(0,220)||""});
+ if(!saved){const status=$("#reportDraftStatus");if(status){status.textContent="Concept kan niet op dit apparaat worden bewaard. Houd dit scherm open.";status.classList.remove("hidden")}}
 }
+function removeReportDraft(){try{localStorage.removeItem(REPORTDRAFTKEY);return true}catch(err){console.warn("Meldconcept wissen niet beschikbaar",err);return false}}
 function restoreReportDraft(){
- const draft=read(REPORTDRAFTKEY,null);if(!draft||!draft.savedAt||Date.now()-draft.savedAt>REPORT_DRAFT_TTL){localStorage.removeItem(REPORTDRAFTKEY);return false}
+ const draft=read(REPORTDRAFTKEY,null);if(!draft||!draft.savedAt||Date.now()-draft.savedAt>REPORT_DRAFT_TTL){removeReportDraft();return false}
  if(!["danger","animal","handy","fun"].includes(draft.category))return false;
- reportState={category:draft.category,type:draft.type||null,subtype:draft.subtype||null,locationMode:draft.locationMode==="map"?"map":"gps",location:draft.location||null};
+ const savedLocation=draft.location;
+ const validLocation=savedLocation&&Number.isFinite(Number(savedLocation.lat))&&Number.isFinite(Number(savedLocation.lng))&&Math.abs(Number(savedLocation.lat))<=90&&Math.abs(Number(savedLocation.lng))<=180;
+ reportState={category:draft.category,type:draft.type||null,subtype:draft.subtype||null,locationMode:draft.locationMode==="map"?"map":"gps",location:validLocation?{lat:Number(savedLocation.lat),lng:Number(savedLocation.lng)}:null};
  $("#reportText").value=String(draft.text||"").slice(0,220);
  const status=$("#reportDraftStatus");status.textContent="Concept van eerder hervat";status.classList.remove("hidden");
  chooseReport(reportState.category,reportState.type,reportState.subtype,true);
  if(reportState.locationMode==="map")chooseReportLocationOnMap();else useCurrentReportLocation();
  return true
 }
-function discardReportDraft(){localStorage.removeItem(REPORTDRAFTKEY);clearReportPhoto();$("#reportDialog").close();toast("Concept gewist")}
+function discardReportDraft(){removeReportDraft();clearReportPhoto();$("#reportDialog").close();toast("Concept gewist")}
 function clearReportPhoto(){if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);reportPhotoUrl=null;const input=$("#reportPhoto");if(input)input.value="";const preview=$("#reportPhotoPreview");if(preview){preview.classList.add("hidden");preview.hidden=true;preview.style.removeProperty("display")}const img=$("#reportPhotoImage");if(img)img.removeAttribute("src")}
 function renderReportPhotoPreview(){
- const file=$("#reportPhoto")?.files?.[0];if(!file)return clearReportPhoto();const preview=$("#reportPhotoPreview");$("#reportPhotoName").textContent=file.name;preview.hidden=false;preview.classList.remove("hidden");preview.style.display="grid";if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);reportPhotoUrl=URL.createObjectURL(file);$("#reportPhotoImage").src=reportPhotoUrl
+ const file=$("#reportPhoto")?.files?.[0];if(!file)return clearReportPhoto();
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type)){clearReportPhoto();toast("Kies een JPG-, PNG- of WebP-foto.");return}
+ if(file.size>7*1024*1024){clearReportPhoto();toast("Foto te groot: maximaal 7 MB.");return}
+ const preview=$("#reportPhotoPreview");$("#reportPhotoName").textContent=file.name;preview.hidden=false;preview.classList.remove("hidden");preview.style.display="grid";if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);reportPhotoUrl=URL.createObjectURL(file);$("#reportPhotoImage").src=reportPhotoUrl
 }
 function openReportReview(){
  const text=$("#reportText").value.trim();if(text.length<3){toast("Beschrijf kort wat mensen moeten weten");$("#reportText").focus();return}
+ if(reportState.locationMode==="map"&&!reportState.location){
+  saveReportDraft();
+  const status=$("#reportLocationStatus");if(status){status.textContent="Tik op de kaart of versleep de pin om de exacte meldlocatie te bevestigen.";status.setAttribute("role","status");}
+  $("#reportLocationMapWrap")?.classList.remove("hidden");
+  reportLocationMap?.invalidateSize();
+  $("#reportLocationMap")?.scrollIntoView({block:"nearest",behavior:"smooth"});
+  toast("Bevestig eerst de plek op de kaart. Je melding blijft bewaard.");
+  return;
+ }
  saveReportDraft();const category=({danger:"Gevaar",animal:"Dier",handy:"Handig",fun:"Leuk"})[reportState.category]||"Melding";const location=reportState.locationMode==="map"?"Gekozen plek op de kaart":"Mijn huidige locatie bij plaatsen";const photo=$("#reportPhoto")?.files?.[0]?.name||"Geen foto";
  $("#reportSummary").innerHTML=`<div class="report-summary-row"><small>Soort</small><b>${esc(category)} · ${esc(reportState.subtype||labelType(reportState.type))}</b></div><div class="report-summary-row"><small>Omschrijving</small><b>${esc(text)}</b></div><div class="report-summary-row"><small>Locatie</small><b>${esc(location)}</b></div><div class="report-summary-row"><small>Foto</small><b>${esc(photo)}</b></div>`;
  $("#reportStep2").hidden=true;$("#reportStep3").hidden=false;$("#reportSubmit").focus()
@@ -528,7 +665,9 @@ function renderSubChoices(cat,preferredSubtype=null){
  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{box.querySelectorAll("button").forEach(x=>x.classList.remove("active"));b.classList.add("active");reportState.type=b.dataset.t;reportState.subtype=b.dataset.s;saveReportDraft()})
 }
 function useCurrentReportLocation(){
- reportState.locationMode="gps";reportState.location=null;
+ // Preserve a confirmed manual pin when toggling GPS, so GPS failure
+ // does not erase the user's previously chosen location.
+ reportState.locationMode="gps";
  $("#reportUseGps")?.classList.add("active");$("#reportChooseMap")?.classList.remove("active");
  $("#reportLocationMapWrap")?.classList.add("hidden");
  const s=$("#reportLocationStatus");if(s)s.textContent="Mijn huidige locatie wordt gebruikt.";
@@ -549,33 +688,100 @@ function chooseReportLocationOnMap(){
  }else{
    reportLocationMap.setView([center.lat,center.lng],16);reportLocationMarker.setLatLng([center.lat,center.lng]);
  }
- reportState.location={lat:center.lat,lng:center.lng};
- const status=$("#reportLocationStatus");if(status)status.textContent="Tik op de kaart of sleep de pin naar de juiste plek.";
+ // The map centre is only a suggestion: never publish its coordinates without an explicit choice.
+ // Preserve a previously confirmed pin when reopening the map selector.
+ const status=$("#reportLocationStatus");if(status)status.textContent=reportState.location?"Gekozen plek op de kaart wordt gebruikt.":"Tik op de kaart of sleep de pin om je meldlocatie te bevestigen.";
  saveReportDraft();
  setTimeout(()=>reportLocationMap.invalidateSize(),50);
 }
-async function compress(file){if(!file)return null;if(file.size>7*1024*1024)throw new Error("Foto te groot");const bmp=await createImageBitmap(file),scale=Math.min(1,1400/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);bmp.close?.();return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("foto")),"image/jpeg",.82))}
+async function compress(file){
+ if(!file)return null;
+ if(file.size>7*1024*1024)throw new Error("photo-too-large");
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type))throw new Error("photo-unsupported");
+ let bmp;
+ if(typeof createImageBitmap==="function"){try{bmp=await createImageBitmap(file)}catch(err){console.warn("Fotodecodering via canvas niet beschikbaar",err)}}
+ if(!bmp){
+   // Some mobile Safari versions cannot decode every supported camera image via createImageBitmap.
+   bmp=await new Promise((resolve,reject)=>{
+     const url=URL.createObjectURL(file),img=new Image();
+     img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};
+     img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("photo-decode"))};
+     img.src=url;
+   });
+ }
+ const width=bmp.width||bmp.naturalWidth,height=bmp.height||bmp.naturalHeight;
+ if(!width||!height){bmp.close?.();throw new Error("photo-decode")}
+ const scale=Math.min(1,1400/Math.max(width,height)),canvas=document.createElement("canvas");
+ canvas.width=Math.max(1,Math.round(width*scale));canvas.height=Math.max(1,Math.round(height*scale));
+ try{canvas.getContext("2d").drawImage(bmp,0,0,canvas.width,canvas.height)}
+ finally{bmp.close?.()}
+ return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("photo-decode")),"image/jpeg",.82))
+}
 async function submitReport(e){
- e.preventDefault();if(!user||!reportState.type)return;const btn=$("#reportSubmit");btn.disabled=true;
+ e.preventDefault();if(!reportState.type){toast("Kies eerst een soort melding");return}if(navigator.onLine===false){saveReportDraft();toast("Je bent offline. Je concept blijft bewaard; probeer opnieuw zodra je verbinding hebt.");return}if(!client||!user){saveReportDraft();toast("Publiceren is tijdelijk niet beschikbaar. Je concept is bewaard; probeer het later opnieuw.");return}const btn=$("#reportSubmit");if(btn.disabled)return;btn.disabled=true;btn.setAttribute("aria-busy","true");
  try{let loc;
- if(reportState.locationMode==="map"&&reportState.location){loc=reportState.location}
- else if(navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{timeout:6000,maximumAge:30000}))}
+ if(reportState.locationMode==="map"){if(!reportState.location)throw new Error("location-not-selected");loc=reportState.location}
+ else if(navigator.geolocation){loc=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(p=>{if(!Number.isFinite(p.coords.accuracy)||p.coords.accuracy>1000){rej(new Error("location-inaccurate"));return}res({lat:p.coords.latitude,lng:p.coords.longitude})},rej,{enableHighAccuracy:true,timeout:10000,maximumAge:30000}))}
  else{throw new Error("location-unavailable")}
+ if(!Number.isFinite(Number(loc?.lat))||!Number.isFinite(Number(loc?.lng))||Math.abs(Number(loc.lat))>90||Math.abs(Number(loc.lng))>180){throw new Error("location-invalid")}
+ let uploadedPhotoPath=null;
  const id=crypto.randomUUID(),p=profile();let photo_path=null,file=$("#reportPhoto").files[0];
- if(file){const blob=await compress(file);photo_path=user.id+"/"+id+".jpg";const up=await client.storage.from("report-photos").upload(photo_path,blob,{contentType:"image/jpeg",upsert:false});if(up.error)throw up.error}
+ if(file){const blob=await compress(file);photo_path=user.id+"/"+id+".jpg";const up=await client.storage.from("report-photos").upload(photo_path,blob,{contentType:"image/jpeg",upsert:false});if(up.error){console.warn("Foto-upload mislukt",up.error);throw new Error("photo-upload")}uploadedPhotoPath=photo_path}
  const row={id,user_id:user.id,author_name:(p.name||"Buurtgenoot").slice(0,40),author_avatar:p.avatar||"🐾",type:reportState.type,subtype:reportState.subtype||null,text:($("#reportText").value.trim()||reportState.subtype||"Nieuwe melding").slice(0,220),lat:loc.lat,lng:loc.lng,photo_path,species:p.species||"both"};
- const {error}=await client.from("reports").insert(row);if(error)throw error;
- localStorage.removeItem(REPORTDRAFTKEY);clearReportPhoto();$("#reportDialog").close();
+ // Network exceptions must also trigger photo cleanup, not just Supabase error responses.
+ // Otherwise a failed report can leave an unreferenced private upload behind.
+ let insertError=null;
+ try{const result=await client.from("reports").insert(row);insertError=result.error}
+ catch(err){insertError=err}
+ if(insertError){
+  if(uploadedPhotoPath){try{const cleanup=await client.storage.from("report-photos").remove([uploadedPhotoPath]);if(cleanup.error)console.warn("Foto opruimen na mislukte melding",cleanup.error)}catch(cleanupError){console.warn("Foto opruimen na mislukte melding",cleanupError)}}
+  throw insertError;
+ }
+ // Verify the persisted row before presenting it as a published map marker.
+ // A successful insert alone does not prove the report is readable after reload.
+ let confirmed=null;
+ try{
+  const result=await client.from("reports").select("*").eq("id",id).eq("user_id",user.id).maybeSingle();
+  if(result.error)console.warn("Melding controleren",result.error);
+  else if(result.data?.status==="active")confirmed=result.data;
+ }catch(verifyError){console.warn("Melding controleren",verifyError)}
+ removeReportDraft();clearReportPhoto();$("#reportDialog").close();
  showView("map");
  map.setView([loc.lat,loc.lng],17);
- const optimistic={...row,status:"active",created_at:new Date().toISOString(),expires_at:new Date(Date.now()+7*24*60*60*1000).toISOString()};
- L.marker([loc.lat,loc.lng],{icon:markerIcon(optimistic),pane:"reportMarkersPane",zIndexOffset:1200,reportId:id,reportData:optimistic,riseOnHover:true}).addTo(markers).on("click",()=>openReportDetail(optimistic));
+ // refreshReports owns the marker layer. Avoid adding a second pin for the
+ // same report before the server feed is rendered.
  setTimeout(()=>map?.invalidateSize(),50);
  await Promise.allSettled([refreshReports(),refreshMine()]);
+ // A freshly inserted report can appear in the active feed after the initial read.
+ // Confirm from that refreshed server feed before showing the final success state.
+ if(!confirmed){
+  const active=lastActiveReports.find(r=>String(r.id)===String(id)&&r.status==="active"&&r.user_id===user.id);
+  if(active)confirmed=active;
+ }
  map.setView([loc.lat,loc.lng],17);
- client.functions.invoke("dispatch-nearby-push",{body:{reportId:id}}).catch(()=>{});
- toast("Melding staat op de kaart")}
- catch(err){console.warn(err);toast("Plaatsen lukt nu niet")}finally{btn.disabled=false}
+ // Only notify neighbours after the persisted report is confirmed visible.
+ // An unverified insert must never trigger a potentially misleading alert.
+ if(confirmed)client.functions.invoke("dispatch-nearby-push",{body:{reportId:id}}).catch(err=>console.warn("Buurtmelding versturen",err));
+ toast(confirmed?"Melding staat op de kaart":"Melding verzonden; zichtbaarheid nog niet bevestigd. Vernieuw de kaart.")}
+ catch(err){
+  console.warn(err);
+  const gpsFailed=reportState.locationMode==="gps"&&(err?.code===1||err?.code===2||err?.code===3||err?.message==="location-unavailable"||err?.message==="location-invalid"||err?.message==="location-inaccurate");
+  if(err?.message==="location-not-selected"){
+   $("#reportStep3").hidden=true;$("#reportStep2").hidden=false;
+   chooseReportLocationOnMap();
+   toast("Bevestig eerst de meldlocatie door op de kaart te tikken of de pin te slepen.");
+   $("#reportChooseMap")?.focus();
+  }else if(gpsFailed){
+   // Keep the description and selected photo: only location needs another input.
+   $("#reportStep3").hidden=true;$("#reportStep2").hidden=false;
+   chooseReportLocationOnMap();
+   toast("Locatie niet beschikbaar. Kies een plek op de kaart.");
+   $("#reportChooseMap")?.focus();
+  }else if(err?.message==="photo-too-large")toast("Foto te groot: maximaal 7 MB.");
+  else if(err?.message==="photo-unsupported"||err?.message==="photo-decode")toast("Deze foto kan niet worden verwerkt. Kies een andere JPG-, PNG- of WebP-foto.");
+  else if(err?.message==="photo-upload")toast("Foto uploaden lukt niet. Je melding is bewaard als concept; probeer opnieuw.");
+  else toast("Plaatsen lukt nu niet. Je concept blijft bewaard.");
+ }finally{btn.disabled=false;btn.removeAttribute("aria-busy")}
 }
 async function refreshGiveaways(){
  const list=$("#giveList");if(!list||!client)return;list.innerHTML='<div class="empty">Laden…</div>';const {data,error}=await client.from("giveaway_listings").select("id,owner_id,title,description,category,kind,town,image_path,status,created_at").eq("status","actief").order("created_at",{ascending:false}).limit(80);if(error){list.innerHTML='<div class="empty">Ophalen lukt nu niet.</div>';return}
@@ -665,8 +871,63 @@ function applyProfile(){
  if($("#myAreaLabel"))$("#myAreaLabel").textContent=s.areaLabel||"Mijn gebied";
  const town=$("#giveForm [name=\"town\"]"); if(town)town.value=s.areaLabel||"";
 }
-async function saveArea(e){e.preventDefault();const q=$("#areaSearch").value.trim();if(!q)return;try{const res=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(q));const arr=await res.json();if(!arr[0])return toast("Gebied niet gevonden");const s=settings();s.areaLabel=arr[0].display_name.split(",")[0];s.lat=Number(arr[0].lat);s.lng=Number(arr[0].lon);write(SKEY,s);$("#areaPill").textContent=s.areaLabel+" ▾";map.setView([s.lat,s.lng],14);$("#areaDialog").close();syncPushUi();applyProfile();toast("Gebied aangepast")}catch{toast("Zoeken lukt nu niet")}}
-function locate(){navigator.geolocation?.getCurrentPosition(p=>{map.setView([p.coords.latitude,p.coords.longitude],16);L.circleMarker([p.coords.latitude,p.coords.longitude],{radius:8,color:"#176fa8",fillColor:"#7dc4ff",fillOpacity:1,weight:3}).addTo(map)},()=>toast("Locatie niet gedeeld"),{timeout:6000,maximumAge:30000})}
+async function saveArea(e){e.preventDefault();const q=$("#areaSearch").value.trim();if(!q)return;try{const res=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(q));const arr=await res.json();if(!arr[0])return toast("Gebied niet gevonden");const lat=Number(arr[0].lat),lng=Number(arr[0].lon);
+ if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180)return toast("Ongeldige kaartlocatie. Probeer een andere plaats.");
+ const s=settings();s.areaLabel=arr[0].display_name.split(",")[0];s.lat=lat;s.lng=lng;
+ if(!write(SKEY,s))return toast("Gebied kon niet worden opgeslagen. Probeer opnieuw.");
+ // A manually chosen area is authoritative; discard the stale map viewport.
+ try{localStorage.removeItem(MAPVIEWKEY)}catch(err){console.warn("Kaartpositie wissen niet beschikbaar",err)}
+ initialReportFocusDone=true;
+ // A blue GPS dot from the previous map context must not remain on a manually selected town.
+ if(currentLocationMarker){map.removeLayer(currentLocationMarker);currentLocationMarker=null;}
+ $("#areaPill").textContent=s.areaLabel+" ▾";map.setView([s.lat,s.lng],14);$("#areaDialog").close();syncPushUi();applyProfile();toast("Gebied aangepast")}catch{toast("Zoeken lukt nu niet")}}
+let currentLocationMarker=null;
+function locate(){
+ const button=$("#locateBtn");
+ if(button?.disabled)return;
+ if(!navigator.geolocation){
+  toast("Locatie niet beschikbaar. Kies een gebied op de kaart.");
+  if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal();
+  return;
+ }
+ if(button){button.disabled=true;button.setAttribute("aria-busy","true")}
+ const release=()=>{if(button){button.disabled=false;button.removeAttribute("aria-busy")}};
+ try{
+  navigator.geolocation.getCurrentPosition(
+   position=>{
+    try{
+     const lat=position?.coords?.latitude,lng=position?.coords?.longitude;
+     if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){
+      toast("Locatie ongeldig. Kies je gebied handmatig.");
+      if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal();
+      return;
+     }
+     // A coarse network-derived position is not a trustworthy walking location.
+     // Never present it as a precise GPS fix or silently center a report on it.
+     const accuracy=Number(position?.coords?.accuracy);
+     if(!Number.isFinite(accuracy)||accuracy>1000){
+      toast("Je locatie is te onnauwkeurig. Kies je gebied handmatig.");
+      if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal();
+      return;
+     }
+     const point=[lat,lng];
+     if(currentLocationMarker)currentLocationMarker.setLatLng(point);
+     else currentLocationMarker=L.circleMarker(point,{radius:8,color:"#176fa8",fillColor:"#7dc4ff",fillOpacity:1,weight:3,interactive:false}).addTo(map);
+     map.setView(point,accuracy>250?13:accuracy>100?14:16);
+     toast(accuracy>100?"Je locatie is bij benadering op de kaart gezet.":"Je locatie staat op de kaart.");
+    }catch(err){console.warn("GPS-kaartweergave mislukt",err);toast("Locatie tonen lukt niet. Kies je gebied handmatig.");if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal()}
+    finally{release()}
+   },
+   error=>{
+    const message=error?.code===1?"Locatietoegang geweigerd. Kies je gebied handmatig.":error?.code===3?"Locatie bepalen duurde te lang. Probeer opnieuw of kies je gebied.":"Locatie niet gevonden. Kies je gebied handmatig.";
+    toast(message);release();
+    // Offer the existing manual area selector immediately after GPS fails.
+    if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal();
+   },
+   {enableHighAccuracy:false,timeout:8000,maximumAge:30000}
+  );
+ }catch(err){console.warn("GPS-aanvraag mislukt",err);toast("Locatie niet beschikbaar. Kies je gebied handmatig.");release();if(!$("#areaDialog")?.open)$("#areaDialog")?.showModal()}
+}
 function urlB64(s){const pad="=".repeat((4-s.length%4)%4),b=(s+pad).replace(/-/g,"+").replace(/_/g,"/"),raw=atob(b);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
 function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)}
 function isStandalone(){return window.matchMedia?.("(display-mode: standalone)")?.matches||window.navigator.standalone===true}

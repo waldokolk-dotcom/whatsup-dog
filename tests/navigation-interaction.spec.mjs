@@ -21,6 +21,10 @@ test('tabs and map filters work after backend initialization',async({page})=>{
   });
   await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>window.__wdTestClient};'}));
   await page.goto('/');
+  await expect(page.locator('#view-map')).toHaveClass(/active/);
+  await expect(page.locator('#view-home')).not.toHaveClass(/active/);
+  await expect(page.locator('#onboarding')).not.toBeVisible();
+  await page.locator('[data-view="home"]').click();
   await expect(page.locator('#view-home')).toHaveClass(/active/);
   await page.locator('[data-view="map"]').click();
   await expect(page.locator('#view-map')).toHaveClass(/active/);
@@ -28,4 +32,35 @@ test('tabs and map filters work after backend initialization',async({page})=>{
   await expect(page.locator('[data-mapfilter="danger"]')).toHaveClass(/active/);
   await page.locator('[data-view="giveaway"]').click();
   await expect(page.locator('#view-giveaway')).toHaveClass(/active/);
+  // Returning from the giveaway corner must restore the map without losing the chosen filter.
+  await page.locator('[data-view="map"]').click();
+  await expect(page.locator('#view-map')).toHaveClass(/active/);
+  await expect(page.locator('#view-giveaway')).not.toHaveClass(/active/);
+  await expect(page.locator('[data-mapfilter="danger"]')).toHaveClass(/active/);
 });
+
+test('compact map controls do not overlap on a narrow phone',async({page})=>{
+  await page.setViewportSize({width:375,height:667});
+  await page.goto('/');
+  const selectors=['#areaPill','#offleashControl','.wd-map-filterbar'];
+  const boxes=await Promise.all(selectors.map(selector=>page.locator(selector).boundingBox()));
+  for(const box of boxes)expect(box).not.toBeNull();
+  const [area,offleash,filters]=boxes;
+  expect(area.x+area.width).toBeLessThanOrEqual(offleash.x+1);
+  expect(Math.min(area.y+area.height,offleash.y+offleash.height)).toBeLessThanOrEqual(filters.y+1);
+  expect(filters.x+filters.width).toBeLessThanOrEqual(375);
+});
+
+for(const width of [844,932]){
+  test(`landscape map controls remain separate at ${width}px`,async({page})=>{
+    await page.setViewportSize({width,height:390});
+    await page.goto('/');
+    const controls=['#areaPill','#offleashControl','#mapAlerts','.wd-map-filterbar'];
+    const [area,offleash,alerts,filters]=await Promise.all(controls.map(s=>page.locator(s).boundingBox()));
+    for(const box of [area,offleash,alerts,filters])expect(box).not.toBeNull();
+    expect(area.x+area.width).toBeLessThanOrEqual(offleash.x+2);
+    expect(offleash.x+offleash.width).toBeLessThanOrEqual(alerts.x+2);
+    expect(Math.max(area.y+area.height,offleash.y+offleash.height)).toBeLessThanOrEqual(filters.y+2);
+    expect(filters.x+filters.width).toBeLessThanOrEqual(width+1);
+  });
+}

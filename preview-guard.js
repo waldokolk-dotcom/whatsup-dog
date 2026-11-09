@@ -1,16 +1,23 @@
-/* GitHub Pages preview only. Loaded before any app script. No real user data changes. */
+/* Isolated HTTPS feature preview. Loaded before app scripts; production data stays unchanged. */
 'use strict';
 window.__WD_PREVIEW__=true;
 window.__wdPreviewStorage=(()=>{
-  const real=window.localStorage,prefix='wd-preview-';
+  // Safari private mode and restricted webviews may deny Storage access. Keep the preview usable in memory.
+  const memory=new Map(),prefix='wd-preview-';
+  let real;
+  try{real=window.localStorage;const probe=prefix+'storage-probe';real.setItem(probe,'1');real.removeItem(probe)}catch{real=null}
+  const read=key=>memory.has(key)?memory.get(key):(real?real.getItem(key):null);
+  const write=(key,value)=>{if(real){try{real.setItem(key,value);memory.delete(key);return}catch{real=null}}memory.set(key,value)};
+  const remove=key=>{if(real){try{real.removeItem(key)}catch{real=null}}memory.delete(key)};
+  const keys=()=>Array.from(new Set([...(real?Object.keys(real):[]),...memory.keys()]));
   const namespaced=key=>prefix+String(key);
   return Object.freeze({
-    getItem:key=>real.getItem(namespaced(key)),
-    setItem:(key,value)=>real.setItem(namespaced(key),String(value)),
-    removeItem:key=>real.removeItem(namespaced(key)),
-    clear:()=>{for(const key of Object.keys(real))if(key.startsWith(prefix))real.removeItem(key)},
-    key:index=>Object.keys(real).filter(key=>key.startsWith(prefix))[index]?.slice(prefix.length)??null,
-    get length(){return Object.keys(real).filter(key=>key.startsWith(prefix)).length}
+    getItem:key=>read(namespaced(key)),
+    setItem:(key,value)=>write(namespaced(key),String(value)),
+    removeItem:key=>remove(namespaced(key)),
+    clear:()=>{for(const key of keys())if(key.startsWith(prefix))remove(key)},
+    key:index=>keys().filter(key=>key.startsWith(prefix))[index]?.slice(prefix.length)??null,
+    get length(){return keys().filter(key=>key.startsWith(prefix)).length}
   });
 })();
 // The app's bare localStorage references resolve to this preview-only lexical binding.
@@ -28,8 +35,8 @@ const localStorage=window.__wdPreviewStorage;
       const path=url.pathname;
       const allowAuth=path.startsWith('/auth/v1/');
       const allowRole=method==='POST'&&path==='/rest/v1/rpc/is_report_moderator';
-      const allowPhoto=method==='POST'&&path.startsWith('/storage/v1/object/sign/');
-      if(!allowAuth&&!allowRole&&!allowPhoto){
+      // Signed-upload requests can grant write access; never issue them from a read-only preview.
+      if(!allowAuth&&!allowRole){
         return Promise.resolve(new Response(JSON.stringify({message:'Deze proefversie is alleen-lezen.',code:'PREVIEW_READ_ONLY'}),{
           status:403,headers:{'Content-Type':'application/json'}
         }));
@@ -40,8 +47,13 @@ const localStorage=window.__wdPreviewStorage;
   function label(){
     if(document.getElementById('wdPreviewBanner'))return;
     const banner=document.createElement('div');banner.id='wdPreviewBanner';banner.setAttribute('role','status');
-    banner.textContent='PROEFVERSIE · Alleen lezen · De huidige app blijft ongewijzigd';
-    banner.style.cssText='position:sticky;top:0;z-index:99999;background:#173d35;color:#fffdf8;padding:10px 14px;text-align:center;font:700 13px system-ui;box-shadow:0 2px 8px #0002';
+    banner.textContent='PROEFVERSIE · Bekijk de kaart en meldingen. Publiceren is hier uitgeschakeld; de bestaande app blijft ongewijzigd.';
+    banner.style.cssText='position:relative;z-index:2;background:#173d35;color:#fffdf8;padding:calc(8px + env(safe-area-inset-top, 0px)) 12px 8px;text-align:center;font:700 12px/1.35 system-ui;box-sizing:border-box';
+    const close=document.createElement('button');
+    close.type='button';close.setAttribute('aria-label','Sluit proefversie-informatie');close.textContent='×';
+    close.style.cssText='margin-left:10px;border:1px solid currentColor;border-radius:8px;background:transparent;color:inherit;font:inherit;min-width:44px;min-height:44px;cursor:pointer';
+    close.addEventListener('click',()=>banner.remove());
+    banner.append(close);
     document.body.prepend(banner);
     const style=document.createElement('style');
     style.textContent='body:has(#wdPreviewBanner) #reportFab,body:has(#wdPreviewBanner) #homeReport,body:has(#wdPreviewBanner) #mapPlusBtn,body:has(#wdPreviewBanner) #wdAccountSigned .outline-btn{touch-action:manipulation}';

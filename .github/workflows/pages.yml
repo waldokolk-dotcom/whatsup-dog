@@ -42,3 +42,26 @@ jobs:
           path: dist
       - uses: actions/deploy-pages@v4
         id: deployment
+      - name: Verify deployed Pages app and current assets
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          test -n "$PAGE_URL"
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error --location --max-time 15 "$PAGE_URL" -o /tmp/whatsup-live.html && grep -qi 'Whatsup Dog' /tmp/whatsup-live.html; then
+              break
+            fi
+            if [ "$attempt" -eq 12 ]; then echo "Deployed page is unreachable or missing app identity"; exit 1; fi
+            sleep 5
+          done
+          # Ensure the hosted HTML references the exact CSS version built from this commit.
+          expected_css=$(grep -oE 'modern-2026\.css\?v=[0-9]+' index.html | head -n 1)
+          test -n "$expected_css"
+          grep -Fq "$expected_css" /tmp/whatsup-live.html || { echo "Deployed HTML has stale stylesheet version"; exit 1; }
+          for asset in app-v3.css modern-2026.css backend-config.js app-v3.js; do
+            curl --fail --silent --show-error --location --max-time 15 "${PAGE_URL%/}/$asset" -o "/tmp/whatsup-$asset"
+            test -s "/tmp/whatsup-$asset" || { echo "Empty hosted asset: $asset"; exit 1; }
+            cmp -s "dist/$asset" "/tmp/whatsup-$asset" || { echo "Deployed asset differs from current build: $asset"; exit 1; }
+          done
+          echo "PASS: deployed HTML matches expected CSS version and four essential assets are nonempty"

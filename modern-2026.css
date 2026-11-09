@@ -50,3 +50,226 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .give-list.modern-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.sheet{width:min(680px,calc(100vw - 40px));border-radius:var(--wd-radius-lg);margin:auto}.nav{left:50%;right:auto;width:min(720px,70vw);transform:translateX(-50%);bottom:12px;border:1px solid var(--wd-border);border-radius:20px;padding:6px}.paw-fab{bottom:94px}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* Map-first mobile shell: avoid double subtraction of the bottom navigation. */
+.app{height:100dvh;min-height:0}
+#view-map.map-view{height:calc(100dvh - 86px);min-height:0;padding:0;overflow:hidden;background:#eaf2ec}
+#view-map .map{height:100%;min-height:0;width:100%;background:#eaf2ec}
+#view-map.active{display:block}
+.nav{z-index:800}
+.paw-fab{z-index:810;min-width:58px;min-height:58px;touch-action:manipulation}
+#locateBtn,.wd-filter,.report-type,.nav button{touch-action:manipulation}
+@media(max-width:600px){.wd-map-filterbar{max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:none}.wd-map-filterbar::-webkit-scrollbar{display:none}}
+
+/* P0 iPhone: map fills the space above the fixed navigation, with no blank strip.
+   Keep the action above the navigation and the location control above that action. */
+@media(max-width:950px){
+  .app{height:100dvh;min-height:0;overflow:hidden}
+  #view-map.map-view.active{position:absolute;inset:0 0 calc(var(--wd-nav-height) + env(safe-area-inset-bottom)) 0;height:auto!important;min-height:0!important;padding:0!important;overflow:hidden}
+  #view-map .map{position:absolute;inset:0;width:100%;height:100%!important;min-height:0!important}
+  .nav{height:calc(var(--wd-nav-height) + env(safe-area-inset-bottom));bottom:0}
+  .paw-fab{position:absolute;bottom:calc(var(--wd-nav-height) + env(safe-area-inset-bottom) + 12px);width:72px;height:72px;z-index:810}
+  #view-map .map-locate{bottom:calc(96px + env(safe-area-inset-bottom));z-index:550}
+}
+
+/* P0: always visible primary action, map-to-navigation layout and safe-area spacing. */
+@media(max-width:950px){
+  #view-map.map-view.active{bottom:calc(var(--wd-nav-height) + env(safe-area-inset-bottom));height:auto!important}
+  #view-map .map{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;height:100%!important;width:100%!important}
+  .paw-fab{left:50%;bottom:calc(var(--wd-nav-height) + env(safe-area-inset-bottom) + 14px)!important;width:auto!important;min-width:174px!important;height:56px!important;min-height:56px!important;padding:0 20px!important;display:flex!important;flex-direction:row;align-items:center;justify-content:center;gap:9px;border-radius:28px!important;white-space:nowrap;z-index:900!important}
+  .paw-fab span{font-size:22px!important}
+  .paw-fab small{font-size:15px!important;line-height:1!important;font-weight:800!important}
+  #view-map .map-locate{bottom:calc(164px + env(safe-area-inset-bottom))!important}
+}
+
+/* Accessible retry action when OpenStreetMap tiles cannot be loaded. */
+#view-map .wd-map-retry{position:absolute;z-index:600;top:50%;left:50%;transform:translate(-50%,-50%);max-width:calc(100% - 36px);padding:14px 18px;border:2px solid #087864;border-radius:16px;background:#fff;color:#075c4e;font-weight:800;box-shadow:0 8px 30px #0002;cursor:pointer}
+#view-map .wd-map-retry[hidden]{display:none!important}
+
+/* Compact map controls for narrow phones. */
+@media(max-width:600px){
+ #view-map .map-brand{max-width:calc(100% - 84px);overflow:hidden;text-overflow:ellipsis}
+ #view-map .top-pill{left:12px;top:calc(66px + env(safe-area-inset-top));max-width:37%;min-height:44px}
+ #view-map .offleash-control{right:12px;top:calc(66px + env(safe-area-inset-top));width:auto;max-width:57%;min-height:44px;padding:6px 9px;gap:6px}
+ #view-map .offleash-control .offleash-copy{min-width:0;overflow:hidden}
+ #view-map .offleash-control .offleash-copy b{font-size:12px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #view-map .offleash-control .offleash-copy small,#view-map .offleash-control .offleash-icon{display:none}
+ #view-map .wd-map-filterbar{left:12px;right:12px;top:calc(120px + env(safe-area-inset-top));max-width:none;gap:7px;padding:2px 0 8px;overscroll-behavior-x:contain}
+ #view-map .wd-filter{min-height:40px;padding:8px 13px;font-size:12px;box-shadow:0 2px 8px rgba(20,47,40,.10)}
+ #view-map .map-locate{right:14px;width:48px;height:48px}
+}
+
+/* Mobile map control hierarchy: one header row, one utility row, one filter row.
+   Explicitly separate controls from the Leaflet surface on narrow devices. */
+@media(max-width:600px){
+ #view-map.map-view.active{isolation:isolate}
+ #view-map .map-brand{position:absolute;top:calc(12px + env(safe-area-inset-top));left:14px;right:72px;max-width:calc(100% - 92px);z-index:520;white-space:nowrap;pointer-events:none}
+ #view-map #mapAlerts{position:absolute;top:calc(10px + env(safe-area-inset-top));right:12px;left:auto;z-index:530;width:46px;height:46px}
+ #view-map #areaPill{position:absolute;top:calc(66px + env(safe-area-inset-top));left:12px;right:auto;width:calc(45% - 16px);max-width:none;min-width:0;height:44px;z-index:530;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ #view-map #offleashControl{position:absolute;top:calc(66px + env(safe-area-inset-top));right:12px;left:auto;width:calc(55% - 16px);max-width:none;min-width:0;height:44px;z-index:530;display:flex;align-items:center;justify-content:space-between;box-sizing:border-box}
+ #view-map .wd-map-filterbar{position:absolute;top:calc(122px + env(safe-area-inset-top));left:12px;right:12px;width:auto;max-width:none;z-index:530;display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:none}
+ #view-map .wd-map-filterbar .wd-filter{flex:0 0 auto;min-height:40px}
+ #view-map #locateBtn{position:absolute;right:14px;bottom:calc(98px + env(safe-area-inset-bottom))!important;z-index:550}
+ .paw-fab{bottom:calc(var(--wd-nav-height) + env(safe-area-inset-bottom) + 12px)!important}
+}
+
+/* P0 mobile control rail: keep the entire map usable on 320–430px phones.
+   Each row has an independent hit target; filters scroll horizontally. */
+@media (max-width:600px){
+ #view-map .map-brand{font-size:clamp(13px,3.8vw,17px);line-height:1.2;max-width:calc(100% - 96px)}
+ #view-map #areaPill,#view-map #offleashControl{top:calc(64px + env(safe-area-inset-top));height:44px;min-height:44px;box-sizing:border-box}
+ #view-map #areaPill{width:calc(44% - 16px);padding-inline:10px;font-size:12px}
+ #view-map #offleashControl{width:calc(56% - 16px);padding-inline:8px}
+ #view-map .wd-map-filterbar{top:calc(116px + env(safe-area-inset-top));padding-bottom:8px;gap:6px}
+ #view-map .wd-map-filterbar .wd-filter{min-height:42px;font-size:12px}
+ #view-map #locateBtn{bottom:calc(88px + env(safe-area-inset-bottom))!important}
+ .paw-fab{bottom:calc(var(--wd-nav-height) + env(safe-area-inset-bottom) + 10px)!important}
+}
+@media (max-width:360px){
+ #view-map #areaPill{width:calc(42% - 16px)}
+ #view-map #offleashControl{width:calc(58% - 16px)}
+ #view-map .offleash-control .offleash-copy b{font-size:11px}
+}
+
+/* Mobile map controls: preserve keyboard focus and prevent a horizontal filter rail
+   from trapping vertical page gestures on small touchscreens. */
+@media (max-width:600px){
+ #view-map .wd-map-filterbar{touch-action:pan-x;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+ #view-map .wd-map-filterbar .wd-filter:focus-visible,
+ #view-map #areaPill:focus-visible,
+ #view-map #locateBtn:focus-visible,
+ #view-map .paw-fab:focus-visible{outline:3px solid #0f7a67;outline-offset:3px}
+}
+
+/* Accessible mobile map: visible focus for every primary control, without hiding the map. */
+@media (max-width:600px){
+ #view-map #mapAlerts:focus-visible,
+ #view-map #offleashControl:focus-visible,
+ #view-map .wd-map-filterbar:focus-visible,
+ #view-map .wd-map-filterbar .wd-filter:focus-visible{outline:3px solid #0f7a67;outline-offset:3px}
+ #view-map .wd-map-filterbar{scroll-padding-inline:12px}
+ #view-map .wd-map-filterbar .wd-filter{scroll-margin-inline:8px}
+}
+@media (max-width:600px) and (orientation:landscape) and (max-height:440px){
+ #view-map .map-brand{top:calc(6px + env(safe-area-inset-top))}
+ #view-map #mapAlerts{top:calc(4px + env(safe-area-inset-top))}
+ #view-map #areaPill,#view-map #offleashControl{top:calc(54px + env(safe-area-inset-top));height:44px;min-height:44px}
+ #view-map .wd-map-filterbar{top:calc(104px + env(safe-area-inset-top))}
+ #view-map .wd-map-filterbar .wd-filter{min-height:44px}
+}
+
+/* Compact landscape phones (601–839 CSS px): retain the same uncluttered
+   three-row map hierarchy as portrait instead of falling back to desktop offsets. */
+@media (min-width:601px) and (max-width:950px) and (orientation:landscape) and (max-height:440px){
+ #view-map .map-brand{position:absolute;top:calc(8px + env(safe-area-inset-top));bottom:auto;height:auto;min-height:0;max-height:40px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;left:calc(14px + env(safe-area-inset-left));right:70px;max-width:calc(100% - 100px);font-size:17px;z-index:520;white-space:nowrap;pointer-events:none}
+ #view-map #mapAlerts{position:absolute;top:calc(5px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));left:auto;width:44px;height:44px;z-index:530}
+ #view-map #areaPill,#view-map #offleashControl{position:absolute;top:calc(55px + env(safe-area-inset-top));height:44px;min-height:44px;min-width:0;max-width:none;box-sizing:border-box;z-index:530}
+ #view-map #areaPill{left:calc(12px + env(safe-area-inset-left));right:auto;width:calc(44% - 18px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ #view-map #offleashControl{right:calc(12px + env(safe-area-inset-right));left:auto;width:calc(56% - 18px);display:flex;align-items:center}
+ #view-map .wd-map-filterbar{position:absolute;top:calc(106px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));right:calc(12px + env(safe-area-inset-right));width:auto;max-width:none;display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;z-index:530;touch-action:pan-x}
+ #view-map .wd-map-filterbar .wd-filter{flex:0 0 auto;min-height:44px}
+ #view-map #locateBtn{right:calc(14px + env(safe-area-inset-right));bottom:calc(88px + env(safe-area-inset-bottom))!important;z-index:550}
+}
+
+/* Respect iPhone landscape cutouts on narrow CSS viewports; preserve 44px filter targets. */
+@media (max-width:600px){
+ #view-map .map-brand{left:calc(14px + env(safe-area-inset-left));right:calc(72px + env(safe-area-inset-right))}
+ #view-map #mapAlerts{right:calc(12px + env(safe-area-inset-right))}
+ #view-map #areaPill{left:calc(12px + env(safe-area-inset-left))}
+ #view-map #offleashControl{right:calc(12px + env(safe-area-inset-right))}
+ #view-map .wd-map-filterbar{left:calc(12px + env(safe-area-inset-left));right:calc(12px + env(safe-area-inset-right))}
+ #view-map .wd-map-filterbar .wd-filter{min-height:44px}
+ #view-map #locateBtn{right:calc(14px + env(safe-area-inset-right))}
+}
+
+/* Short-screen landscape: keep the map as the primary surface rather than
+   letting three tool rows consume the entire usable viewport. */
+@media (max-width:950px) and (orientation:landscape) and (max-height:440px){
+ #view-map .map-brand{font-size:14px;max-height:28px}
+ #view-map #areaPill,#view-map #offleashControl{top:calc(43px + env(safe-area-inset-top));min-height:44px;height:44px}
+ #view-map .wd-map-filterbar{top:calc(92px + env(safe-area-inset-top));padding-bottom:4px;scroll-snap-type:x proximity}
+ #view-map .wd-map-filterbar .wd-filter{scroll-snap-align:start}
+ #view-map #locateBtn{bottom:calc(72px + env(safe-area-inset-bottom))!important}
+}
+
+/* iPhone landscape notch: utility controls share only the actual safe content width.
+   Percent widths previously ignored left/right cutouts and could collide. */
+@media (max-width:950px) and (orientation:landscape){
+ #view-map #areaPill{width:calc((100% - env(safe-area-inset-left) - env(safe-area-inset-right) - 32px) * .44);max-width:none;min-width:0}
+ #view-map #offleashControl{width:calc((100% - env(safe-area-inset-left) - env(safe-area-inset-right) - 32px) * .56);max-width:none;min-width:0}
+ #view-map #areaPill,#view-map #offleashControl{overflow:hidden}
+ #view-map #offleashControl .offleash-copy{min-width:0;overflow:hidden}
+ #view-map #offleashControl .offleash-copy b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+
+/* Landscape phone: recover map height by removing the decorative brand row.
+   Keep alerts, area, off-leash and filters reachable without overlapping. */
+@media (max-width:950px) and (orientation:landscape) and (max-height:440px){
+ #view-map .map-brand{display:none!important}
+ #view-map #mapAlerts{top:calc(5px + env(safe-area-inset-top))}
+ #view-map #areaPill,#view-map #offleashControl{top:calc(5px + env(safe-area-inset-top));height:44px;min-height:44px}
+ #view-map #areaPill{left:calc(12px + env(safe-area-inset-left));width:calc((100% - env(safe-area-inset-left) - env(safe-area-inset-right) - 92px) * .44)}
+ #view-map #offleashControl{right:calc(66px + env(safe-area-inset-right));width:calc((100% - env(safe-area-inset-left) - env(safe-area-inset-right) - 92px) * .56)}
+ #view-map .wd-map-filterbar{top:calc(56px + env(safe-area-inset-top));padding-bottom:4px}
+}
+
+/* Compact portrait phones: keep location and reporting actions separate.
+   The map location control must not cover the primary report action. */
+@media (max-width:600px) and (orientation:portrait) and (max-height:700px){
+ #view-map #locateBtn{right:calc(12px + env(safe-area-inset-right));bottom:calc(150px + env(safe-area-inset-bottom))!important}
+ #view-map .wd-map-filterbar{scroll-snap-type:x proximity}
+ #view-map .wd-map-filterbar .wd-filter{scroll-snap-align:start}
+}
+
+/* Compact portrait: the area selector and off-leash switch must not collide.
+   Give each half of the usable safe-area width its own flex-free column. */
+@media (max-width:360px) and (orientation:portrait){
+ #view-map #areaPill{
+  left:calc(10px + env(safe-area-inset-left));
+  width:calc((100% - env(safe-area-inset-left) - env(safe-area-inset-right) - 28px) * .42);
+  max-width:none;min-width:0;box-sizing:border-box;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ }
+ #view-map #offleashControl{
+  right:calc(10px + env(safe-area-inset-right));
+  width:calc((100% - env(safe-area-inset-left) - env(safe-area-inset-right) - 28px) * .58);
+  max-width:none;min-width:0;box-sizing:border-box;overflow:hidden;
+ }
+ #view-map #offleashControl .offleash-copy{min-width:0;overflow:hidden}
+ #view-map #offleashControl .offleash-copy b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ #view-map .wd-map-filterbar{
+  left:calc(10px + env(safe-area-inset-left));
+  right:calc(10px + env(safe-area-inset-right));
+  max-width:none;box-sizing:border-box;
+ }
+}
+
+/* Mobile-first map: a single compact utility row instead of a decorative header.
+   The alert action stays reachable while the map retains maximum usable height. */
+@media (max-width:600px) and (orientation:portrait){
+ #view-map .map-brand{display:none!important}
+ #view-map #mapAlerts{top:calc(8px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right))}
+ #view-map #areaPill,#view-map #offleashControl{top:calc(58px + env(safe-area-inset-top));min-height:44px;height:44px}
+ #view-map .wd-map-filterbar{top:calc(108px + env(safe-area-inset-top));max-height:52px;align-items:center}
+ #view-map .wd-map-filterbar .wd-filter{min-height:44px}
+}
+
+/* Keep the reporting action above the home indicator and the map controls. */
+@media (max-width:600px) and (orientation:portrait){
+ #view-map #pawFab{touch-action:manipulation;min-height:52px;max-width:calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right))}
+ #view-map #locateBtn{touch-action:manipulation;min-width:44px;min-height:44px}
+ #view-map .wd-map-filterbar{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+}
+
+/* Compact off-leash switch on mobile; overrides inherited global input dimensions. */
+@media(max-width:600px){
+ #view-map #offleashControl{display:flex;align-items:center;justify-content:space-between;box-sizing:border-box;left:auto;right:12px;width:calc(56% - 12px);max-width:240px;min-width:0;min-height:48px;padding:7px 10px;gap:8px;border-radius:16px}
+ #view-map #offleashControl .offleash-icon,#view-map #offleashControl .offleash-copy small{display:none}
+ #view-map #offleashControl .offleash-copy{display:block;flex:1 1 auto;min-width:0;overflow:hidden}
+ #view-map #offleashControl .offleash-copy b{display:block;font-size:12px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #view-map #offleashToggle{appearance:none;-webkit-appearance:none;position:relative;display:block;flex:0 0 38px;box-sizing:border-box;width:38px!important;min-width:38px;max-width:38px;height:24px!important;min-height:24px;max-height:24px;margin:0;padding:0;border:0;border-radius:999px;background:#a9b9b2;box-shadow:none;cursor:pointer}
+ #view-map #offleashToggle:checked{background:#087e6b}
+ #view-map #offleashToggle::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #1234;transform:translateX(0);transition:transform .15s ease}
+ #view-map #offleashToggle:checked::after{transform:translateX(14px)}
+ #view-map #offleashToggle:focus-visible{outline:3px solid #0a7967;outline-offset:3px}
+}
