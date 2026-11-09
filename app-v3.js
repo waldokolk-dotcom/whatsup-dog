@@ -352,7 +352,7 @@ async function fetchActiveReports(){
  const first=await client.rpc("get_active_reports");
  if(!first.error)return validActiveReports(first.data||[]);
  console.warn("Actieve meldingen RPC mislukt",first.error);
- const fallback=await client.from("reports").select("id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,photo_path,status,created_at,species,expires_at").eq("status","active").gt("expires_at",new Date().toISOString()).order("created_at",{ascending:false}).limit(200);
+ const fallback=await client.from("reports").select("id,user_id,author_name,author_avatar,type,subtype,text,lat,lng,photo_path,status,created_at,species,expires_at").eq("status","active").or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`).order("created_at",{ascending:false}).limit(200);
  if(fallback.error)throw fallback.error;
  return validActiveReports(fallback.data||[]);
 }
