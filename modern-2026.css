@@ -260,3 +260,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
  #view-map #locateBtn{touch-action:manipulation;min-width:44px;min-height:44px}
  #view-map .wd-map-filterbar{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
 }
+
+/* Compact off-leash switch on mobile; overrides inherited global input dimensions. */
+@media(max-width:600px){
+ #view-map #offleashControl{display:flex;align-items:center;justify-content:space-between;box-sizing:border-box;left:auto;right:12px;width:calc(56% - 12px);max-width:240px;min-width:0;min-height:48px;padding:7px 10px;gap:8px;border-radius:16px}
+ #view-map #offleashControl .offleash-icon,#view-map #offleashControl .offleash-copy small{display:none}
+ #view-map #offleashControl .offleash-copy{display:block;flex:1 1 auto;min-width:0;overflow:hidden}
+ #view-map #offleashControl .offleash-copy b{display:block;font-size:12px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #view-map #offleashToggle{appearance:none;-webkit-appearance:none;position:relative;display:block;flex:0 0 38px;box-sizing:border-box;width:38px!important;min-width:38px;max-width:38px;height:24px!important;min-height:24px;max-height:24px;margin:0;padding:0;border:0;border-radius:999px;background:#a9b9b2;box-shadow:none;cursor:pointer}
+ #view-map #offleashToggle:checked{background:#087e6b}
+ #view-map #offleashToggle::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #1234;transform:translateX(0);transition:transform .15s ease}
+ #view-map #offleashToggle:checked::after{transform:translateX(14px)}
+ #view-map #offleashToggle:focus-visible{outline:3px solid #0a7967;outline-offset:3px}
+}
