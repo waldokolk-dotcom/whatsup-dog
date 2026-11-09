@@ -551,3 +551,10 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `874612ac04c670d49e83be424356be8839d27e9e`: wisselen van handmatig gekozen kaartpin naar GPS wist de bevestigde pin niet meer. Als GPS daarna weigert of onnauwkeurig is, kan de gebruiker terug naar de eerder gekozen kaartlocatie zonder opnieuw te tikken; publiceren in GPS-modus gebruikt nog steeds uitsluitend de GPS-fix.
 - GitHub Actions direct na commit: nog geen workflowruns voor deze SHA gevonden. Preview-HTTPS, mobiele Playwright-acceptatie en backend-eigenaarsrechten op deze head niet bevestigd; niet mergen of als live claimen.
 - Volgende cyclus: CI controleren, gehoste meldroute met geïsoleerde backenddata verifiëren en pas na alle gates releasen.
+
+
+## Uitvoering 9 november 2026 — fallback voor actieve meldingen
+- Productcommit `95f15549106d4d14ef8d0c2aad4a6de0e97ee5eb`: `fetchActiveReports()` toont bij uitval van `get_active_reports` RPC ook actieve meldingen zonder vervaldatum (`expires_at IS NULL`). Voorheen filterde `.gt()` die onbedoeld weg; de lokale validatie stond meldingen zonder vervaldatum wel toe. Dit is een functionele correctie aan het ophalen en herladen van meldingen, geen test-only wijziging.
+- Commit teruggelezen via GitHub; GitHub Actions en commit-status leverden onmiddellijk na de commit nog geen resultaten op. Groene tests op deze SHA zijn dus niet aangetoond.
+- De bekende Render-preview `https://whatsup-dog-pr71-preview.onrender.com` is in deze uitvoering niet onafhankelijk via HTTPS/browser geverifieerd. Geen claim van deployment of werkende backendpublicatie/verwijdering. Geen productie-merge of mutatie van gebruikersdata.
+- Vervolg: CI op de nieuwe SHA controleren, echte mobiele browseracceptatie en gehoste meldroute met geïsoleerde backendtestdata valideren voordat productie wordt vrijgegeven.
