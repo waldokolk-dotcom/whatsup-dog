@@ -529,3 +529,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 ## 9 november 2026 — offline preview guard cacheherstel
 - Product/hostingcommit `d256dace`: `scripts/build-preview.mjs` voegt de SHA-256-versie van `preview-guard.js` aan de service-worker precache toe en roteert de previewcache bij een nieuwe guardversie. Hiermee kan de offline PWA-shell niet zonder de benodigde alleen-lezen gateway laden wanneer de guard al eerder online is opgehaald. Geen productiecode, backend of gebruikersdata gewijzigd.
 - De bestaande Render-static-preview heeft autoDeploy uit; handmatige deploy nodig. Controleer CI, Render commit-SHA en onafhankelijke HTTPS-bereikbaarheid voor acceptatie. Backend-eigenaarsacceptatie en review blijven open.
+
+
+## Uitvoering 9 november 2026, 01:55 CET — veilige preview-uploadgrens
+- Productfix `8afef548f21cdc187f60c4717c920b3830054473`: preview weigert nu ook signed-upload aanvragen naar Supabase Storage. Voorheen was `POST /storage/v1/object/sign/` uitgezonderd, ondanks het alleen-lezen karakter van de publieke featurepreview. Anonieme authenticatie en moderatorrolcontrole blijven uitgezonderd.
+- Voorgaande head `e84dce3`: vijf Actions groen (validate, browseracceptatie, kaartregressie, kwaliteitscontrole, preview-build), Render deployment `dep-dbogop0u01pc73f7dhq0` live.
+- Deze wijziging is een beveiligingsreparatie, geen bewijs van volledige backendmeldroute. Hosted schrijf-/verwijderacceptatie vereist geïsoleerde testdata en geautoriseerde backendroute. Geen productiegegevens gewijzigd.
