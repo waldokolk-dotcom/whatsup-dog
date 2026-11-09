@@ -871,7 +871,14 @@ function applyProfile(){
  if($("#myAreaLabel"))$("#myAreaLabel").textContent=s.areaLabel||"Mijn gebied";
  const town=$("#giveForm [name=\"town\"]"); if(town)town.value=s.areaLabel||"";
 }
-async function saveArea(e){e.preventDefault();const q=$("#areaSearch").value.trim();if(!q)return;try{const res=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(q));const arr=await res.json();if(!arr[0])return toast("Gebied niet gevonden");const s=settings();s.areaLabel=arr[0].display_name.split(",")[0];s.lat=Number(arr[0].lat);s.lng=Number(arr[0].lon);write(SKEY,s);$("#areaPill").textContent=s.areaLabel+" ▾";map.setView([s.lat,s.lng],14);$("#areaDialog").close();syncPushUi();applyProfile();toast("Gebied aangepast")}catch{toast("Zoeken lukt nu niet")}}
+async function saveArea(e){e.preventDefault();const q=$("#areaSearch").value.trim();if(!q)return;try{const res=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q="+encodeURIComponent(q));const arr=await res.json();if(!arr[0])return toast("Gebied niet gevonden");const lat=Number(arr[0].lat),lng=Number(arr[0].lon);
+ if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180)return toast("Ongeldige kaartlocatie. Probeer een andere plaats.");
+ const s=settings();s.areaLabel=arr[0].display_name.split(",")[0];s.lat=lat;s.lng=lng;
+ if(!write(SKEY,s))return toast("Gebied kon niet worden opgeslagen. Probeer opnieuw.");
+ // A manually chosen area is authoritative; discard the stale map viewport.
+ try{localStorage.removeItem(MAPVIEWKEY)}catch(err){console.warn("Kaartpositie wissen niet beschikbaar",err)}
+ initialReportFocusDone=true;
+ $("#areaPill").textContent=s.areaLabel+" ▾";map.setView([s.lat,s.lng],14);$("#areaDialog").close();syncPushUi();applyProfile();toast("Gebied aangepast")}catch{toast("Zoeken lukt nu niet")}}
 let currentLocationMarker=null;
 function locate(){
  const button=$("#locateBtn");
