@@ -571,3 +571,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Voorafgaand aan de wijziging waren vijf Actions groen op `2837a9c`. Op `066a9d0` was kaartregressie groen; overige Actions liepen nog.
 - Render preview service `srv-dbljci6gekts738j4r40` gebruikt de juiste featurebranch en heeft autoDeploy uit. Deployment `dep-dbomtndg1s2s73fn6t9g` is handmatig gestart op exact `066a9d0`; bij controle build_in_progress.
 - Publieke URL `https://whatsup-dog-pr71-preview.onrender.com`: externe DNS-resolutie in controlecontainer faalde; bereikbaarheid niet bewezen. Preview is read-only, backend-write/eigenaarsverwijdering niet gevalideerd. Productie en echte data ongewijzigd.
+
+## 9 november 2026 — gekozen gebied blijft leidend (uitvoering 09:34)
+- Productcommit `ab99f227`: bij handmatig kiezen van een plaats worden Nominatim-coördinaten gevalideerd, een niet-opgeslagen gebied niet als succesvol gemeld, de oude kaartviewport verwijderd en automatisch hercentreren op oude meldingen voor deze sessie geblokkeerd. Dit voorkomt terugschieten naar een vorige plaats na gebiedskeuze.
+- PWA `a07cedb3` en `6936476b`: JS asset v41 en serviceworker v124.
+- Vooraf: vijf groene Actions op `d871d18`, Render-deployment `dep-dbomtv7f3r2c73bmi7j0` live op dezelfde SHA.
+- Nieuwe deploy `dep-dboob0hsrm7s73ck3v10` gestart op `6936476b`; nieuwe CI/deploy-uitkomst moet op de definitieve roadmap-head opnieuw worden gecontroleerd. Externe curl naar https://whatsup-dog-pr71-preview.onrender.com faalt in deze controlecontainer op DNS-resolutie; dus geen onafhankelijke HTTPS-bevestiging. Preview is read-only; geen backendmutatie of productie-merge.
