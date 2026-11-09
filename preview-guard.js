@@ -35,8 +35,8 @@ const localStorage=window.__wdPreviewStorage;
       const path=url.pathname;
       const allowAuth=path.startsWith('/auth/v1/');
       const allowRole=method==='POST'&&path==='/rest/v1/rpc/is_report_moderator';
-      const allowPhoto=method==='POST'&&path.startsWith('/storage/v1/object/sign/');
-      if(!allowAuth&&!allowRole&&!allowPhoto){
+      // Signed-upload requests can grant write access; never issue them from a read-only preview.
+      if(!allowAuth&&!allowRole){
         return Promise.resolve(new Response(JSON.stringify({message:'Deze proefversie is alleen-lezen.',code:'PREVIEW_READ_ONLY'}),{
           status:403,headers:{'Content-Type':'application/json'}
         }));
