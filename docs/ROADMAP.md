@@ -535,3 +535,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productfix `8afef548f21cdc187f60c4717c920b3830054473`: preview weigert nu ook signed-upload aanvragen naar Supabase Storage. Voorheen was `POST /storage/v1/object/sign/` uitgezonderd, ondanks het alleen-lezen karakter van de publieke featurepreview. Anonieme authenticatie en moderatorrolcontrole blijven uitgezonderd.
 - Voorgaande head `e84dce3`: vijf Actions groen (validate, browseracceptatie, kaartregressie, kwaliteitscontrole, preview-build), Render deployment `dep-dbogop0u01pc73f7dhq0` live.
 - Deze wijziging is een beveiligingsreparatie, geen bewijs van volledige backendmeldroute. Hosted schrijf-/verwijderacceptatie vereist geïsoleerde testdata en geautoriseerde backendroute. Geen productiegegevens gewijzigd.
+
+## 9 november 2026 — preview cacheveiligheid
+- Hostingwijziging `ceb2a9a`: Render geeft `/preview-guard.js` expliciet `Cache-Control: no-store, max-age=0`, zodat CDN/browser geen verouderde read-only gateway bewaren. Productie niet gewijzigd.
+- Voorafgaande head `73ede57`: vijf GitHub Actions geslaagd (validate, browseracceptatie, kaartregressie, quality, previewbuild).
+- Nieuwe SHA, CI en publieke HTTPS-bereikbaarheid na commit opnieuw controleren; deze wijziging bewijst geen backendpublicatie of eigenaarsverwijdering. Preview blijft read-only totdat geïsoleerde backend-E2E en releasegates zijn aangetoond.
