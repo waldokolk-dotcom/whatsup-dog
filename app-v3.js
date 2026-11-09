@@ -656,7 +656,9 @@ function renderSubChoices(cat,preferredSubtype=null){
  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{box.querySelectorAll("button").forEach(x=>x.classList.remove("active"));b.classList.add("active");reportState.type=b.dataset.t;reportState.subtype=b.dataset.s;saveReportDraft()})
 }
 function useCurrentReportLocation(){
- reportState.locationMode="gps";reportState.location=null;
+ // Preserve a confirmed manual pin when toggling GPS, so GPS failure
+ // does not erase the user's previously chosen location.
+ reportState.locationMode="gps";
  $("#reportUseGps")?.classList.add("active");$("#reportChooseMap")?.classList.remove("active");
  $("#reportLocationMapWrap")?.classList.add("hidden");
  const s=$("#reportLocationStatus");if(s)s.textContent="Mijn huidige locatie wordt gebruikt.";
