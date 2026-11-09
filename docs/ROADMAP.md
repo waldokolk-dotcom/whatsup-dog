@@ -564,3 +564,10 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Mobiele UI `76a35bf`: losloopgebieden is een compacte 38×24 px schakelaar in een 48 px hoge bediening, met vaste iOS-styling, focusindicator en voldoende ruimte voor de tekst.
 - PWA assetversies `ed2622f` en serviceworker v122 verversen de mobiele code en styling.
 - Verificatie nog nodig: nieuwe head Actions, Render-deployment op exact SHA en browsercontrole op iPhone/Android. Geen backenddata of productie gewijzigd.
+
+## 9 november 2026 — mobiele losloopbediening en echte Render-preview deploy
+- Productcommit `42c25f9`: de gehele losloopgebieden-bediening is nu aanklikbaar; een tik op de tekst bedient de echte checkbox zonder dubbele omschakeling. De schakelaar behoudt native change-events, opslag en kaartlaag.
+- PWA `8acd65e` / `066a9d0`: HTML assetversie 40 en serviceworker cache v123 voorkomen een oude iOS-bundel.
+- Voorafgaand aan de wijziging waren vijf Actions groen op `2837a9c`. Op `066a9d0` was kaartregressie groen; overige Actions liepen nog.
+- Render preview service `srv-dbljci6gekts738j4r40` gebruikt de juiste featurebranch en heeft autoDeploy uit. Deployment `dep-dbomtndg1s2s73fn6t9g` is handmatig gestart op exact `066a9d0`; bij controle build_in_progress.
+- Publieke URL `https://whatsup-dog-pr71-preview.onrender.com`: externe DNS-resolutie in controlecontainer faalde; bereikbaarheid niet bewezen. Preview is read-only, backend-write/eigenaarsverwijdering niet gevalideerd. Productie en echte data ongewijzigd.
