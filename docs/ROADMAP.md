@@ -546,3 +546,8 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Productcommit `c4b73e480fe760419c97ad163b1a2dda153a3229`: veiligheidsbanner is nu sluitbaar met een toegankelijk 44px-aanraakdoel, zodat deze geen permanente verticale ruimte inneemt op een klein telefoonscherm. De Supabase-writeblokkade blijft ook na sluiten actief.
 - Direct na de productcommit leverde de GitHub workflowquery nog geen runs op. De publieke URL https://whatsup-dog-pr71-preview.onrender.com kon vanuit de externe HTTP-controle niet worden geopend. Geen nieuwe Render-deploy of groene CI geclaimd; productie niet gewijzigd.
 - Open: daadwerkelijke HTTPS-bereikbaarheid, iPhone/Android hosted acceptatie, geïsoleerde backend-eigenaarsrechten en vereiste reviews. Volgende run: controleer nieuwe CI en Render SHA; werk daarna aan de echte accountloze meldroute in plaats van verdere previewcosmetica.
+
+## 9 november 2026 — meldlocatie behouden bij GPS-fout
+- Productcommit `874612ac04c670d49e83be424356be8839d27e9e`: wisselen van handmatig gekozen kaartpin naar GPS wist de bevestigde pin niet meer. Als GPS daarna weigert of onnauwkeurig is, kan de gebruiker terug naar de eerder gekozen kaartlocatie zonder opnieuw te tikken; publiceren in GPS-modus gebruikt nog steeds uitsluitend de GPS-fix.
+- GitHub Actions direct na commit: nog geen workflowruns voor deze SHA gevonden. Preview-HTTPS, mobiele Playwright-acceptatie en backend-eigenaarsrechten op deze head niet bevestigd; niet mergen of als live claimen.
+- Volgende cyclus: CI controleren, gehoste meldroute met geïsoleerde backenddata verifiëren en pas na alle gates releasen.
