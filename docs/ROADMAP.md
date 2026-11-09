@@ -540,3 +540,9 @@ Een feature gaat alleen door als deze een concreet gebruikersprobleem oplost, ee
 - Hostingwijziging `ceb2a9a`: Render geeft `/preview-guard.js` expliciet `Cache-Control: no-store, max-age=0`, zodat CDN/browser geen verouderde read-only gateway bewaren. Productie niet gewijzigd.
 - Voorafgaande head `73ede57`: vijf GitHub Actions geslaagd (validate, browseracceptatie, kaartregressie, quality, previewbuild).
 - Nieuwe SHA, CI en publieke HTTPS-bereikbaarheid na commit opnieuw controleren; deze wijziging bewijst geen backendpublicatie of eigenaarsverwijdering. Preview blijft read-only totdat geïsoleerde backend-E2E en releasegates zijn aangetoond.
+
+## 9 november 2026 — mobiele previewruimte en duidelijkheid
+- Previewproductcode: commit `8b06fa9` maakt expliciet dat kaart en meldingen te bekijken zijn, maar publiceren niet mogelijk is in de geïsoleerde alleen-lezen preview.
+- Productcommit `c4b73e480fe760419c97ad163b1a2dda153a3229`: veiligheidsbanner is nu sluitbaar met een toegankelijk 44px-aanraakdoel, zodat deze geen permanente verticale ruimte inneemt op een klein telefoonscherm. De Supabase-writeblokkade blijft ook na sluiten actief.
+- Direct na de productcommit leverde de GitHub workflowquery nog geen runs op. De publieke URL https://whatsup-dog-pr71-preview.onrender.com kon vanuit de externe HTTP-controle niet worden geopend. Geen nieuwe Render-deploy of groene CI geclaimd; productie niet gewijzigd.
+- Open: daadwerkelijke HTTPS-bereikbaarheid, iPhone/Android hosted acceptatie, geïsoleerde backend-eigenaarsrechten en vereiste reviews. Volgende run: controleer nieuwe CI en Render SHA; werk daarna aan de echte accountloze meldroute in plaats van verdere previewcosmetica.
